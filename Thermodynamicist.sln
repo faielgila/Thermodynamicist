@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thermodynamicist", "Thermodynamicist\Thermodynamicist.csproj", "{7A9B00CE-2A87-4091-9A26-5D17299DE032}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{6A6B19D0-BCF1-430E-BB6A-C8F294CEC2B4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7A9B00CE-2A87-4091-9A26-5D17299DE032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A9B00CE-2A87-4091-9A26-5D17299DE032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A9B00CE-2A87-4091-9A26-5D17299DE032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A9B00CE-2A87-4091-9A26-5D17299DE032}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A6B19D0-BCF1-430E-BB6A-C8F294CEC2B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A6B19D0-BCF1-430E-BB6A-C8F294CEC2B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A6B19D0-BCF1-430E-BB6A-C8F294CEC2B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A6B19D0-BCF1-430E-BB6A-C8F294CEC2B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
