@@ -2,7 +2,12 @@
 
 public struct MoleFraction
 {
-	public double Value;
+	private readonly double _value;
+
+	public static implicit operator double(MoleFraction x) => x._value;
+	public static implicit operator MoleFraction(double x) => new MoleFraction(x);
+
+	private MoleFraction(double value) { _value = value; }
 
 	public enum Relation
 	{
