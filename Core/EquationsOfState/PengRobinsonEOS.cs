@@ -4,16 +4,30 @@ namespace Core.EquationsOfState;
 
 public class PengRobinsonEOS : CubicEquationOfState
 {
-	private double Kappa = Constants.ThermoParams.PengRobinson.Kappa;
-	private Temperature CritTemp = Constants.ThermoParams.PengRobinson.GetCriticalPoint().Item1;
-	private Pressure CritPres = Constants.ThermoParams.PengRobinson.GetCriticalPoint().Item2;
-	private double b = Constants.ThermoParams.PengRobinson.B;
-	private double a(Temperature T)
-	{
-		return Constants.ThermoParams.PengRobinson.A(T);
-	}
+	private double b;
+	private double Kappa;
 	
-	public PengRobinsonEOS(Chemical species) : base(species) { }
+	private double a(Temperature T) { return Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / speciesData.critT)), 2); }
+
+	private double Alpha(Temperature T)
+	{
+		return Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / speciesData.critT)), 2);
+	}
+
+	private double Da(Temperature T)
+	{
+		var critTemp = speciesData.critT;
+		var critPres = speciesData.critP;
+		return -0.45724 * Math.Pow(R * critTemp, 2) / critPres * Kappa * Math.Sqrt(Alpha(T) / critTemp / T);
+	}
+
+	public PengRobinsonEOS(Chemical species) : base(species)
+	{
+		speciesData = Constants.ChemicalData[Species];
+		var acentricFactor = speciesData.acentricFactor;
+		Kappa = 0.3764 + 1.54226 * acentricFactor - 0.26992 * acentricFactor * acentricFactor;
+		b = 0.07780 * R * speciesData.critT / speciesData.critP; 
+	}
 
 	public override Pressure Pressure(Temperature T, MolarVolume VMol)
 	{

@@ -1,13 +1,19 @@
-﻿using Core.VariableTypes;
+﻿using System.Runtime.CompilerServices;
+using Core.VariableTypes;
 
 namespace Core.EquationsOfState;
 
 public class VanDerWaalsEOS : CubicEquationOfState
 {
-	private double a = Constants.ThermoParams.VanDerWaals.A;
-	private double b = Constants.ThermoParams.VanDerWaals.B;
+	private double a;
+	private double b;
 	
-	public VanDerWaalsEOS(Chemical species) : base(species) { }
+	public VanDerWaalsEOS(Chemical species) : base(species)
+	{
+		speciesData = Constants.ChemicalData[Species];
+		a = 27 * Math.Pow(R * speciesData.critT, 2) / (64 * speciesData.critP);
+		b = R * speciesData.critT / (8 * speciesData.critP);
+	}
 
 	public override Pressure Pressure(Temperature T, MolarVolume VMol)
 	{

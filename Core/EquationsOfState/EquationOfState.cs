@@ -7,7 +7,8 @@ public abstract class EquationOfState
 	public const double R = Constants.R;
 	public const double precisionLimit = Constants.precisionLimit;
 	
-	public Chemical Species;
+	public readonly Chemical Species;
+	public (double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT) speciesData;
 
 	protected EquationOfState(Chemical species)
 	{
