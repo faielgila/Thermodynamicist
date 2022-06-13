@@ -15,6 +15,8 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		b = R * speciesData.critT / (8 * speciesData.critP);
 	}
 
+	private double A(Temperature T, Pressure P, MolarVolume VMol) { return a * P / R / R / T / T; }
+	private double B(Temperature T, Pressure P, MolarVolume VMol) { return b * P / R / T; }
 	public override Pressure Pressure(Temperature T, MolarVolume VMol)
 	{
 		return R * T / (VMol - b) - a / (VMol * VMol);
@@ -23,17 +25,17 @@ public class VanDerWaalsEOS : CubicEquationOfState
 	// from Sandler, eqn 7.4-13
 	public override double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol)
 	{
-		var z = P * VMol / R / T;
-		var A = a * P / (R * R * T * T);
-		var B = b * P / R / T;
+		var z = CompressibilityFactor(T, P, VMol);
+		var A = this.A(T, P, VMol);
+		var B = this.B(T, P, VMol);
 		return Math.Exp(z - 1 - Math.Log(z - B) - A / z);
 	}
 
 	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
 	{
-		var z = P * VMol / (R * T);
-		var A = a * P / Math.Pow(R*T, 2);
-		var B = b * P / (R * T);
+		var z = CompressibilityFactor(T, P, VMol);
+		var A = this.A(T, P, VMol);
+		var B = this.B(T, P, VMol);
 		var term3 = Math.Pow(z, 3);
 		var term2 = (-1 - B) * z * z;
 		var term1 = A * z;
@@ -52,6 +54,6 @@ public class VanDerWaalsEOS : CubicEquationOfState
 
 	public override double ZCubicInflectionPoint(Temperature T, Pressure P)
 	{
-		return R * T / (3 * P) + b / 3;
+		return R * T /  P + b;
 	}
 }

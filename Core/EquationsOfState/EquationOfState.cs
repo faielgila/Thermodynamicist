@@ -23,6 +23,11 @@ public abstract class EquationOfState
 	/// <returns>pressure, measured in [Pa]</returns>
 	public abstract Pressure Pressure(Temperature T, MolarVolume VMol);
 
+	public static double CompressibilityFactor(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		return P * VMol / (R * T);
+	}
+
 	/// <summary>
 	/// Returns the fugacity coefficient of the system in the given state, defined by temperature, pressure, and molar volume.
 	/// </summary>

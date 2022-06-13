@@ -31,13 +31,14 @@ namespace Thermodynamicist
 			Pressure P = 101.325e3;
 			CubicEquationOfState vdWSF = new VanDerWaalsEOS(Chemical.Water);
 			MolarVolume[] VMols = vdWSF.PhaseFinder(T, P);
-
+			/*
 			Label label = new Label();
 			label.Content = "Molar volume at (T,P): " + (double) vdWSF.Pressure(T, VMols[1]) + " m³/mol";
 
-		StackPanel stackPanel = new StackPanel();
+			StackPanel stackPanel = new StackPanel();
 			stackPanel.Children.Add(label);
 			Content = stackPanel;
+			*/
 		}
 	}
 }
