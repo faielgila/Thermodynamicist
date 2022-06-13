@@ -54,6 +54,6 @@ public class VanDerWaalsEOS : CubicEquationOfState
 
 	public override double ZCubicInflectionPoint(Temperature T, Pressure P)
 	{
-		return R * T /  P + b;
+		return R * T / (3 * P) + b / 3;
 	}
 }
