@@ -23,7 +23,7 @@ public abstract class EquationOfState
 	/// <returns>pressure, measured in [Pa]</returns>
 	public abstract Pressure Pressure(Temperature T, MolarVolume VMol);
 
-	public static double CompressibilityFactor(Temperature T, Pressure P, MolarVolume VMol)
+	public double CompressibilityFactor(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		return P * VMol / (R * T);
 	}
@@ -37,6 +37,8 @@ public abstract class EquationOfState
 	/// <returns>fugacity coefficient f/P, unitless</returns>
 	public abstract double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol);
 
+	public double Fugacity(Temperature T, Pressure P, MolarVolume VMol) { return FugacityCoeff(T, P, VMol) * P; }
+
 	/// <summary>
 	/// Uses the equation of state to find the phases present in a system given a temperature and pressure.
 	/// Checks for valid equilibrium using the fugacity coefficient.
@@ -46,5 +48,5 @@ public abstract class EquationOfState
 	/// <returns>
 	/// molar volume at each the liquid and vapor phases, measured in [m³/mol].
 	/// Returns 0 if the phase is not present.</returns>
-	public abstract MolarVolume[] PhaseFinder(Temperature T, Pressure P);
+	public abstract (MolarVolume VMol_L, MolarVolume VMol_V) PhaseFinder(Temperature T, Pressure P);
 }

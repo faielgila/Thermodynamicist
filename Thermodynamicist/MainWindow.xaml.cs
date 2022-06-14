@@ -27,16 +27,29 @@ namespace Thermodynamicist
 		{
 			InitializeComponent();
 
-			Temperature T = 15 + 273.15;
+			Temperature T = 373.15;
 			Pressure P = 101.325e3;
-			CubicEquationOfState vdWSF = new VanDerWaalsEOS(Chemical.Water);
-			MolarVolume[] VMols = vdWSF.PhaseFinder(T, P);
-			
-			Label label = new Label();
-			label.Content = "Molar volume at (T,P): " + (double) vdWSF.Pressure(T, VMols[1]) + " m³/mol";
-
-			StackPanel stackPanel = new StackPanel();
-			stackPanel.Children.Add(label);
+			CubicEquationOfState PREoS = new PengRobinsonEOS(Chemical.Water);
+			var VMol = PREoS.PhaseFinder(T, P);
+			var labelL = new Label
+			{
+				Content = "Liquid phase: \n" +
+				          "z = " + PREoS.CompressibilityFactor(T, P, VMol.VMol_L) + "\n" +
+				          "f = " + PREoS.FugacityCoeff(T, P, VMol.VMol_L)*P + " Pa \n" +
+				          "V = " + (double)VMol.VMol_L + " m³/mol \n" +
+				          "P = " + (double)PREoS.Pressure(T, VMol.VMol_L) + " Pa"
+			};
+			var labelV = new Label
+			{
+				Content = "Vapor phase: \n" +
+				          "z = " + PREoS.CompressibilityFactor(T, P, VMol.VMol_V) + "\n" +
+				          "f = " + PREoS.FugacityCoeff(T, P, VMol.VMol_V) * P + " Pa \n" +
+				          "V = " + (double)VMol.VMol_V + " m³/mol \n" +
+				          "P = " + (double)PREoS.Pressure(T, VMol.VMol_V) + " Pa"
+			};
+			var stackPanel = new StackPanel();
+			stackPanel.Children.Add(labelL);
+			stackPanel.Children.Add(labelV);
 			Content = stackPanel;
 		}
 	}

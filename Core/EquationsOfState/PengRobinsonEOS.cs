@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-using Core.VariableTypes;
+﻿using Core.VariableTypes;
 
 namespace Core.EquationsOfState;
 
@@ -12,11 +11,18 @@ public class PengRobinsonEOS : CubicEquationOfState
 	{
 		speciesData = Constants.ChemicalData[Species];
 		var acentricFactor = speciesData.acentricFactor;
-		Kappa = 0.3764 + 1.54226 * acentricFactor - 0.26992 * acentricFactor * acentricFactor;
+		Kappa = 0.37464 + (1.54226 - 0.26992 * acentricFactor) * acentricFactor;
 		b = 0.07780 * R * speciesData.critT / speciesData.critP; 
 	}
-	
-	private double a(Temperature T) { return Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / speciesData.critT)), 2); }
+
+	private double a(Temperature T)
+	{
+		var critT = speciesData.critT;
+		var critP = speciesData.critP;
+		var aleph = 0.45724 * Math.Pow(R * critT, 2) / critP;
+		var alpha = Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / critT)), 2);
+		return aleph * alpha;
+	}
 	
 	private double A(Temperature T, Pressure P, MolarVolume VMol) { return a(T) * P / R / R / T / T; }
 	private double B(Temperature T, Pressure P, MolarVolume VMol) { return b * P / R / T; }
@@ -38,9 +44,16 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return R * T / (VMol - b) - a(T) / (VMol * VMol + 2 * b * VMol - b * b);
 	}
 
+	// from Sandler, eqn 7.4-14
 	public override double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol)
 	{
-		throw new NotImplementedException();
+		var sqrt2 = Math.Sqrt(2);
+		var z = CompressibilityFactor(T, P, VMol);
+		var A = this.A(T, P, VMol);
+		var B = this.B(T, P, VMol);
+		var termLog = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
+		var LogFugacityCoeff = z - 1 - Math.Log(z - B) - A / (2 * sqrt2 * B) * Math.Log(termLog);
+		return Math.Exp(LogFugacityCoeff);
 	}
 
 	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
