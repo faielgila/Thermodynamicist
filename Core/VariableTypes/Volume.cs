@@ -2,15 +2,15 @@
 
 public struct MolarVolume
 {
-    public readonly double _value;
+    private readonly double _value;
+    private readonly ThermoVarRelations _relation;
 
     public static implicit operator double(MolarVolume VMol) => VMol._value;
-    public static implicit operator MolarVolume(double VMol) => new MolarVolume(VMol);
+    public static implicit operator MolarVolume(double VMol) => new (VMol);
 
-    private MolarVolume(double value) { _value = value; }
-
-    public enum Relation
+    public MolarVolume(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
     {
-        MolarVolume
+        _value = value;
+        _relation = relation;
     }
 }

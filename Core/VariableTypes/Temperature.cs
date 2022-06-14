@@ -3,14 +3,14 @@
 public struct Temperature
 {
 	private readonly double _value;
+	private readonly ThermoVarRelations _relation;
 
 	public static implicit operator double(Temperature T) => T._value;
-	public static implicit operator Temperature(double T) => new Temperature(T);
+	public static implicit operator Temperature(double T) => new (T);
 
-	private Temperature(double value) { _value = value; }
-
-	public enum Relation
+	public Temperature(double value, ThermoVarRelations relation = ThermoVarRelations.Temperature)
 	{
-		Temperature
+		_value = value;
+		_relation = relation;
 	}
 }

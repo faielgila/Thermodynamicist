@@ -3,17 +3,14 @@
 public struct MoleFraction
 {
 	private readonly double _value;
+	private readonly ThermoVarRelations _relation;
 
 	public static implicit operator double(MoleFraction x) => x._value;
-	public static implicit operator MoleFraction(double x) => new MoleFraction(x);
+	public static implicit operator MoleFraction(double x) => new (x, ThermoVarRelations.Undefined);
 
-	private MoleFraction(double value) { _value = value; }
-
-	public enum Relation
+	public MoleFraction(double value, ThermoVarRelations relation)
 	{
-		FractionInVapor,
-		FractionInLiquid1, FractionInLiquid2,
-		FractionInSolid1, FractionInSolid2,
-		FractionInSystem
+		_value = value;
+		_relation = relation;
 	}
 }

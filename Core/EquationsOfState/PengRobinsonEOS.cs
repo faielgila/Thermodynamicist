@@ -15,6 +15,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 		b = 0.07780 * R * speciesData.critT / speciesData.critP; 
 	}
 
+	#region Parameters
+
 	private double a(Temperature T)
 	{
 		var critT = speciesData.critT;
@@ -38,6 +40,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var critPres = speciesData.critP;
 		return -0.45724 * Math.Pow(R * critTemp, 2) / critPres * Kappa * Math.Sqrt(Alpha(T) / critTemp / T);
 	}
+	
+	#endregion
 
 	public override Pressure Pressure(Temperature T, MolarVolume VMol)
 	{
@@ -56,6 +60,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return Math.Exp(LogFugacityCoeff);
 	}
 
+	#region Cubic and related equations
 	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
@@ -80,4 +85,12 @@ public class PengRobinsonEOS : CubicEquationOfState
 	{
 		return R * T / (3 * P) - b;
 	}
+	
+	#endregion
+
+	#region Departure functions
+
+	
+
+	#endregion
 }

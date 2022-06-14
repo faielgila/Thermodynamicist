@@ -3,16 +3,14 @@
 public struct Pressure
 {
 	private readonly double _value;
+	private readonly ThermoVarRelations _relation;
 	
 	public static implicit operator double(Pressure P) => P._value;
-	public static implicit operator Pressure(double P) => new Pressure(P);
+	public static implicit operator Pressure(double P) => new (P);
 
-	private Pressure(double value) { _value = value; }
-
-	public enum Relation
+	public Pressure(double value, ThermoVarRelations relation = ThermoVarRelations.Pressure)
 	{
-		Pressure,
-		VaporPressure,
-		PartialPressure
+		_value = value;
+		_relation = relation;
 	}
 }

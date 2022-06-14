@@ -5,7 +5,7 @@ namespace Core.EquationsOfState;
 public abstract class EquationOfState
 {
 	public const double R = Constants.R;
-	public const double precisionLimit = Constants.precisionLimit;
+	public const double precisionLimit = Constants.PrecisionLimit;
 	
 	public readonly Chemical Species;
 	public (double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT) speciesData;

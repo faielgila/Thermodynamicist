@@ -13,11 +13,12 @@ public class Constants
 	/// <summary>
 	/// Precision limit, to be used in algorithms.
 	/// </summary>
-	public const double precisionLimit = 1e-15;
+	public const double PrecisionLimit = 1e-15;
 
 	/// <summary>
 	/// Stores basic chemical data such as molar mass, critical point, acentric factor, and boiling point as a Tuple.
 	/// </summary>
+	// from Sandler, table 6.6-1
 	public static readonly Dictionary<Chemical,
 		(double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT)
 	> ChemicalData = new()
@@ -52,6 +53,7 @@ public class Constants
 	/// For some chemicals, alternative coefficients that are usable for extreme temperatures are available in
 	/// the <see cref="HighTempIdealGasCpConstants"/> dictionary.
 	/// </summary>
+	// from Sandler, appendix A.II
 	public static readonly Dictionary<Chemical, (double[] vals, double[] lims)> IdealGasCpConstants = new()
 	{
 		[Chemical.Ammonia]          = (new [] {27.551, 2.563e-2, 0.990e-5, -6.687e-9}, new double[] {273, 1500}),
@@ -81,6 +83,7 @@ public class Constants
 	/// It is not recommended to use this data unless absolutely necessary, as it is less accurate for lower
 	/// and more reasonable temperatures.
 	/// </summary>
+	// from Sandler, appendix A.II
 	public static readonly Dictionary<Chemical, (double[] vals, double[] lims)> HighTempIdealGasCpConstants = new()
 	{
 		[Chemical.CarbonMonoxide] = (new [] {27.113, 0.655e-2, -0.100e-5, 0}, new double[] {273, 3800}),
