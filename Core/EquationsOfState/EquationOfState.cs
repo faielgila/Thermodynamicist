@@ -6,13 +6,19 @@ public abstract class EquationOfState
 {
 	public const double R = Constants.R;
 	public const double precisionLimit = Constants.PrecisionLimit;
-	
+
+	public bool UseHighTempData = false;
 	public readonly Chemical Species;
 	public (double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT) speciesData;
+	public (double[] vals, double[] lims) speciesCpData;
+	public (double[] vals, double[] lims) speciesHighTempCpData;
 
 	protected EquationOfState(Chemical species)
 	{
-		Species = species; 
+		Species = species;
+		speciesData = Constants.ChemicalData[species];
+		speciesCpData = Constants.IdealGasCpConstants[species];
+		speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
 	}
 
 	/// <summary>

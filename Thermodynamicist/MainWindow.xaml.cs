@@ -26,33 +26,35 @@ namespace Thermodynamicist
 		public MainWindow()
 		{
 			InitializeComponent();
+			Topmost = true;
 
-			var T = new Temperature(373.15);
-			var P = new Pressure(101.325e3);
-			CubicEquationOfState PREoS = new PengRobinsonEOS(Chemical.Water);
-			var VMols = PREoS.PhaseFinder(T, P);
-			var labelL = new Label
+			PengRobinsonEOS PREoS = new PengRobinsonEOS(Chemical.Water);
+			var T1 = new Temperature(298.15);
+			var P1 = new Pressure(100e3);
+			var VMol1 = IdealGasLaw.MolarVolume(T1, P1);
+			var T2 = new Temperature(500);
+			var P2 = new Pressure(101.325e3);
+			var VMol2 = PREoS.PhaseFinder(T2, P2).VMol_V;
+			var H = PREoS.DepartureEnthalpy(T2, P2, VMol2) + PREoS.IdealMolarEnthalpyChange(298.15, T2);
+			
+			var labelTesting = new Label
 			{
-				Content = "Liquid phase: \n" +
-				          "z = " + PREoS.CompressibilityFactor(T, P, VMols.VMol_L) + "\n" +
-				          "f = " + PREoS.FugacityCoeff(T, P, VMols.VMol_L)*P + " Pa \n" +
-				          "V = " + (double)VMols.VMol_L + " m³/mol \n" +
-				          "P = " + (double)PREoS.Pressure(T, VMols.VMol_L) + " Pa"
+				Content = "Molar Enthalpy Departure at point 1 = " + 
+							(double)PREoS.DepartureEnthalpy(T1, P1, VMol1) + "\n" +
+				          "Ideal Molar Enthalpy Change = " + 
+							(double)PREoS.IdealMolarEnthalpyChange(T1, T2) + "\n" +
+				          "Molar Enthalpy Departure at point 2 = " + 
+							(double)PREoS.DepartureEnthalpy(T2, P2, VMol2) + "\n" +
+				          "Total Enthalpy Change = " + 
+							(double)PREoS.MolarEnthalpyChange(T1, P1, VMol1, T2, P2, VMol2) + "\n" +
+				          "Enthalpy w/rt Reference State = " +
+							(double)PREoS.ReferenceMolarEnthalpy(T2, P2, VMol2) + "\n" + 
+				          "H = " + H + " J/mol"
 			};
-			var labelV = new Label
-			{
-				Content = "Vapor phase: \n" +
-				          "z = " + PREoS.CompressibilityFactor(T, P, VMols.VMol_V) + "\n" +
-				          "f = " + PREoS.FugacityCoeff(T, P, VMols.VMol_V) * P + " Pa \n" +
-				          "V = " + (double)VMols.VMol_V + " m³/mol \n" +
-				          "P = " + (double)PREoS.Pressure(T, VMols.VMol_V) + " Pa"
-			};
+			
 			var stackPanel = new StackPanel();
-			stackPanel.Children.Add(labelL);
-			stackPanel.Children.Add(labelV);
+			stackPanel.Children.Add(labelTesting);
 			Content = stackPanel;
-
-			var enthalpy = new MolarEnthalpy(0.1, ThermoVarRelations.Departure);
 		}
 	}
 }

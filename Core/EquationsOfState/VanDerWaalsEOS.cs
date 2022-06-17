@@ -15,8 +15,8 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		b = R * speciesData.critT / (8 * speciesData.critP);
 	}
 
-	private double A(Temperature T, Pressure P, MolarVolume VMol) { return a * P / R / R / T / T; }
-	private double B(Temperature T, Pressure P, MolarVolume VMol) { return b * P / R / T; }
+	private double A(Temperature T, Pressure P) { return a * P / R / R / T / T; }
+	private double B(Temperature T, Pressure P) { return b * P / R / T; }
 	public override Pressure Pressure(Temperature T, MolarVolume VMol)
 	{
 		return R * T / (VMol - b) - a / (VMol * VMol);
@@ -26,16 +26,16 @@ public class VanDerWaalsEOS : CubicEquationOfState
 	public override double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
-		var A = this.A(T, P, VMol);
-		var B = this.B(T, P, VMol);
+		var A = this.A(T, P);
+		var B = this.B(T, P);
 		return Math.Exp(z - 1 - Math.Log(z - B) - A / z);
 	}
 
 	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
-		var A = this.A(T, P, VMol);
-		var B = this.B(T, P, VMol);
+		var A = this.A(T, P);
+		var B = this.B(T, P);
 		var term3 = Math.Pow(z, 3);
 		var term2 = (-1 - B) * z * z;
 		var term1 = A * z;

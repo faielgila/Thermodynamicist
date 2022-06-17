@@ -9,7 +9,6 @@ public class PengRobinsonEOS : CubicEquationOfState
 	
 	public PengRobinsonEOS(Chemical species) : base(species)
 	{
-		speciesData = Constants.ChemicalData[Species];
 		var acentricFactor = speciesData.acentricFactor;
 		Kappa = 0.37464 + (1.54226 - 0.26992 * acentricFactor) * acentricFactor;
 		b = 0.07780 * R * speciesData.critT / speciesData.critP; 
@@ -26,8 +25,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return aleph * alpha;
 	}
 	
-	private double A(Temperature T, Pressure P, MolarVolume VMol) { return a(T) * P / R / R / T / T; }
-	private double B(Temperature T, Pressure P, MolarVolume VMol) { return b * P / R / T; }
+	private double A(Temperature T, Pressure P) { return a(T) * P / R / R / T / T; }
+	private double B(Temperature T, Pressure P) { return b * P / R / T; }
 
 	private double Alpha(Temperature T)
 	{
@@ -53,8 +52,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 	{
 		var sqrt2 = Math.Sqrt(2);
 		var z = CompressibilityFactor(T, P, VMol);
-		var A = this.A(T, P, VMol);
-		var B = this.B(T, P, VMol);
+		var A = this.A(T, P);
+		var B = this.B(T, P);
 		var termLog = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
 		var LogFugacityCoeff = z - 1 - Math.Log(z - B) - A / (2 * sqrt2 * B) * Math.Log(termLog);
 		return Math.Exp(LogFugacityCoeff);
@@ -64,8 +63,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
-		var A = this.A(T, P, VMol);
-		var B = this.B(T, P, VMol);
+		var A = this.A(T, P);
+		var B = this.B(T, P);
 		var term3 = z * z * z;
 		var term2 = (-1 + B) * z * z;
 		var term1 = (A - 3 * B * B - 2 * B) * z;
@@ -76,8 +75,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 	public override double ZCubicDerivative(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
-		var A = this.A(T, P, VMol);
-		var B = this.B(T, P, VMol);
+		var A = this.A(T, P);
+		var B = this.B(T, P);
 		return 3 * z * z + 2 * (-1 + B) * z + (A - 3 * B * B - 2 * B);
 	}
 
@@ -88,9 +87,60 @@ public class PengRobinsonEOS : CubicEquationOfState
 	
 	#endregion
 
-	#region Departure functions
+	#region State functions - Enthalpy
 
+	// from Sandler, eqn 6.4-29
+	public MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var sqrt2 = Math.Sqrt(2);
+		var da = this.Da(T);
+		var a = this.a(T);
+		var z = CompressibilityFactor(T, P, VMol);
+		var B = this.B(T, P);
+		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
+		var value = R * T * (z - 1) + (T * da - a) / (2 * sqrt2 * b) * Math.Log(logPiece);
+		return new MolarEnthalpy(value, ThermoVarRelations.Departure);
+	}
+
+	public MolarEnthalpy IdealMolarEnthalpyChange(Temperature T1, Temperature T2)
+	{
+		double[] c;
+		if (!UseHighTempData)
+		{
+			// TODO: show warning if T1 or T2 is outside the TLimits specified in the data
+			var lowerTLimit = speciesCpData.lims[0];
+			var upperTLimit = speciesCpData.lims[1];
+			c = speciesCpData.vals;
+		}
+		else
+		{
+			throw new NotImplementedException();
+		}
+
+		var deltaT2 = T2 * T2 - T1 * T1;
+		var deltaT3 = T2 * T2*T2 - T1 * T1*T1;
+		var deltaT4 = Math.Pow(T2,4) - Math.Pow(T1,4);
+		var value = c[0] * (T2 - T1) + c[1]/2 * deltaT2 + c[2]/3 * deltaT3 + c[3]/4 * deltaT4;
+		return new MolarEnthalpy(value, ThermoVarRelations.Change);
+	}
+
+	public MolarEnthalpy MolarEnthalpyChange
+		(Temperature T1, Pressure P1, MolarVolume VMol1, Temperature T2, Pressure P2, MolarVolume VMol2)
+	{
+		var pathA = DepartureEnthalpy(T1, P1, VMol1);
+		var pathB = IdealMolarEnthalpyChange(T1, T2);
+		var pathC = DepartureEnthalpy(T2, P2, VMol2);
+		var totalPath = -pathA + pathB + pathC;
+		return new MolarEnthalpy(totalPath, ThermoVarRelations.Change);
+	}
 	
+	public MolarEnthalpy ReferenceMolarEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var pathB = IdealMolarEnthalpyChange(273.15+25, T);
+		var pathC = DepartureEnthalpy(T, P, VMol);
+		var totalPath = pathB + pathC;
+		return new MolarEnthalpy(totalPath, ThermoVarRelations.Change);
+	}
 
 	#endregion
 }

@@ -3,11 +3,11 @@
 public enum ThermoVarRelations
 {
 	/// <summary>
-	/// apply to thermodynamic variables for which defining a "relation" doesn't mean anything
+	/// Apply to thermodynamic variables for which defining a "relation" doesn't mean anything
 	/// </summary>
 	Undefined,
 	
-	RealMolar, IGMolar,
+	RealMolar, IGMolar, 
 	PartialMolar,
 	Departure, Change,
 	Mixing, Excess,
@@ -19,11 +19,11 @@ public enum ThermoVarRelations
 	Pressure, VaporPressure, PartialPressure,
 	
 	/// <summary>
-	/// apply to <see cref="MoleFraction"/> when fraction represents a mol% of a component in a system or phase
+	/// Apply to <see cref="MoleFraction"/> when fraction represents a mol% of a component in a system or phase
 	/// </summary>
 	ComponentFraction,
 	/// <summary>
-	/// apply to <see cref="MoleFraction"/> when fraction represents a mol% of a phase in a system or about a phase
+	/// Apply to <see cref="MoleFraction"/> when fraction represents a mol% of a phase in a system or about a phase
 	/// </summary>
 	PhaseFraction
 }
