@@ -86,7 +86,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 	}
 	
 	#endregion
-
+	
 	#region State functions - Enthalpy
 
 	// from Sandler, eqn 6.4-29
@@ -140,6 +140,63 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var pathC = DepartureEnthalpy(T, P, VMol);
 		var totalPath = pathB + pathC;
 		return new MolarEnthalpy(totalPath, ThermoVarRelations.Change);
+	}
+
+	#endregion
+	
+	#region State functions - Entropy
+
+	// from Sandler, eqn 6.4-30
+	public MolarEntropy DepartureEntropy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var sqrt2 = Math.Sqrt(2);
+		var da = this.Da(T);
+		var a = this.a(T);
+		var z = CompressibilityFactor(T, P, VMol);
+		var B = this.B(T, P);
+		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
+		var value = R * Math.Log(z - B) + da / (2 * sqrt2 * b) * Math.Log(logPiece);
+		return new MolarEntropy(value, ThermoVarRelations.Departure);
+	}
+
+	public MolarEntropy IdealMolarEntropyChange(Temperature T1, Pressure P1, Temperature T2, Pressure P2)
+	{
+		double[] c;
+		if (!UseHighTempData)
+		{
+			// TODO: show warning if T1 or T2 is outside the TLimits specified in the data
+			var lowerTLimit = speciesCpData.lims[0];
+			var upperTLimit = speciesCpData.lims[1];
+			c = speciesCpData.vals;
+		}
+		else
+		{
+			throw new NotImplementedException();
+		}
+		
+		var deltaT2 = T2 * T2 - T1 * T1;
+		var deltaT3 = T2 * T2*T2 - T1 * T1*T1;
+		var value = c[0] * Math.Log(T2 / T1) + c[1] * (T2 - T1) + c[2] / 2 * deltaT2 + c[3] / 3 * deltaT3;
+		value -= R * Math.Log(P2 / P1);
+		return new MolarEntropy(value, ThermoVarRelations.Change);
+	}
+
+	public MolarEntropy MolarEntropyChange
+		(Temperature T1, Pressure P1, MolarVolume VMol1, Temperature T2, Pressure P2, MolarVolume VMol2)
+	{
+		var pathA = DepartureEntropy(T1, P1, VMol1);
+		var pathB = IdealMolarEntropyChange(T1, P1, T2, P2);
+		var pathC = DepartureEntropy(T2, P2, VMol2);
+		var totalPath = -pathA + pathB + pathC;
+		return new MolarEntropy(totalPath, ThermoVarRelations.Change);
+	}
+	
+	public MolarEntropy ReferenceMolarEntropy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var pathB = IdealMolarEntropyChange(273.15+25, 100e3, T, P);
+		var pathC = DepartureEntropy(T, P, VMol);
+		var totalPath = pathB + pathC;
+		return new MolarEntropy(totalPath, ThermoVarRelations.Change);
 	}
 
 	#endregion

@@ -29,27 +29,30 @@ namespace Thermodynamicist
 			Topmost = true;
 
 			PengRobinsonEOS PREoS = new PengRobinsonEOS(Chemical.Water);
-			var T1 = new Temperature(298.15);
-			var P1 = new Pressure(100e3);
-			var VMol1 = IdealGasLaw.MolarVolume(T1, P1);
-			var T2 = new Temperature(500);
-			var P2 = new Pressure(101.325e3);
-			var VMol2 = PREoS.PhaseFinder(T2, P2).VMol_V;
-			var H = PREoS.DepartureEnthalpy(T2, P2, VMol2) + PREoS.IdealMolarEnthalpyChange(298.15, T2);
+			var T = new Temperature(500);
+			var P = new Pressure(101.325e3);
+			var VMol = PREoS.PhaseFinder(T, P);
+			VMol.VMol_L = 0.026747e-3;
+			var Z = new [] { PREoS.CompressibilityFactor(T, P, VMol.VMol_L), PREoS.CompressibilityFactor(T,P,VMol.VMol_V) };
+			var H = new [] { PREoS.ReferenceMolarEnthalpy(T, P, VMol.VMol_L), PREoS.ReferenceMolarEnthalpy(T, P, VMol.VMol_V)};
+			var S = new [] { PREoS.ReferenceMolarEntropy(T, P, VMol.VMol_L), PREoS.ReferenceMolarEntropy(T, P, VMol.VMol_V) };
+			var f = new [] { PREoS.Fugacity(T, P, VMol.VMol_L), PREoS.Fugacity(T, P, VMol.VMol_L) };
 			
 			var labelTesting = new Label
 			{
-				Content = "Molar Enthalpy Departure at point 1 = " + 
-							(double)PREoS.DepartureEnthalpy(T1, P1, VMol1) + "\n" +
-				          "Ideal Molar Enthalpy Change = " + 
-							(double)PREoS.IdealMolarEnthalpyChange(T1, T2) + "\n" +
-				          "Molar Enthalpy Departure at point 2 = " + 
-							(double)PREoS.DepartureEnthalpy(T2, P2, VMol2) + "\n" +
-				          "Total Enthalpy Change = " + 
-							(double)PREoS.MolarEnthalpyChange(T1, P1, VMol1, T2, P2, VMol2) + "\n" +
-				          "Enthalpy w/rt Reference State = " +
-							(double)PREoS.ReferenceMolarEnthalpy(T2, P2, VMol2) + "\n" + 
-				          "H = " + H + " J/mol"
+				Content = 
+					"Reference state: (" +298.15+" K, "+100e3+" Pa) \n" + 
+					"Interested state: (" +(double)T+" K, "+(double)P+" Pa) \n" +
+					"z(l) = " + Z[0] + "\n" +
+					"V(l) = " + (double)VMol.VMol_L + " m³/mol \n" +
+					"H(l) = " + (double)H[0] + " J/mol \n" +
+					"S(l) = " + (double)S[0] + " J/mol/K \n" +
+					"f(l) = " + f[1] + " Pa \n" +
+					"z(g) = " + Z[1] + "\n" +
+					"V(g) = " + (double)VMol.VMol_V + " m³/mol \n" +
+					"H(g) = " + (double)H[1] + " J/mol \n" +
+					"S(g) = " + (double)S[1] + " J/mol/K \n" +
+					"f(g) = " + f[1] + " Pa \n"
 			};
 			
 			var stackPanel = new StackPanel();
