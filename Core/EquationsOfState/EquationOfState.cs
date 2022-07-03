@@ -51,8 +51,9 @@ public abstract class EquationOfState
 	/// </summary>
 	/// <param name="T">temperature, measured in [K]</param>
 	/// <param name="P">pressure, measured in [Pa]</param>
+	/// <param name="ignoreEquilibrium">skips fugacity comparison which determines phase equilibrium state</param>
 	/// <returns>
 	/// molar volume at each the liquid and vapor phases, measured in [m³/mol].
 	/// Returns 0 if the phase is not present.</returns>
-	public abstract (MolarVolume VMol_L, MolarVolume VMol_V) PhaseFinder(Temperature T, Pressure P);
+	public abstract (MolarVolume L, MolarVolume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
 }

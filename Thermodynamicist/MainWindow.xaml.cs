@@ -31,33 +31,32 @@ namespace Thermodynamicist
 			PengRobinsonEOS PREoS = new PengRobinsonEOS(Chemical.Water);
 			var T = new Temperature(500);
 			var P = new Pressure(101.325e3);
-			var VMol = PREoS.PhaseFinder(T, P);
-			VMol.VMol_L = 0.026747e-3;
-			var Z = new [] { PREoS.CompressibilityFactor(T, P, VMol.VMol_L), PREoS.CompressibilityFactor(T,P,VMol.VMol_V) };
-			var H = new [] { PREoS.ReferenceMolarEnthalpy(T, P, VMol.VMol_L), PREoS.ReferenceMolarEnthalpy(T, P, VMol.VMol_V)};
-			var S = new [] { PREoS.ReferenceMolarEntropy(T, P, VMol.VMol_L), PREoS.ReferenceMolarEntropy(T, P, VMol.VMol_V) };
-			var f = new [] { PREoS.Fugacity(T, P, VMol.VMol_L), PREoS.Fugacity(T, P, VMol.VMol_L) };
-			
-			var labelTesting = new Label
-			{
-				Content = 
-					"Reference state: (" +298.15+" K, "+100e3+" Pa) \n" + 
-					"Interested state: (" +(double)T+" K, "+(double)P+" Pa) \n" +
-					"z(l) = " + Z[0] + "\n" +
-					"V(l) = " + (double)VMol.VMol_L + " m³/mol \n" +
-					"H(l) = " + (double)H[0] + " J/mol \n" +
-					"S(l) = " + (double)S[0] + " J/mol/K \n" +
-					"f(l) = " + f[1] + " Pa \n" +
-					"z(g) = " + Z[1] + "\n" +
-					"V(g) = " + (double)VMol.VMol_V + " m³/mol \n" +
-					"H(g) = " + (double)H[1] + " J/mol \n" +
-					"S(g) = " + (double)S[1] + " J/mol/K \n" +
-					"f(g) = " + f[1] + " Pa \n"
-			};
-			
-			var stackPanel = new StackPanel();
-			stackPanel.Children.Add(labelTesting);
-			Content = stackPanel;
+			var VMol = new [] { PREoS.PhaseFinder(T, P, true).L, PREoS.PhaseFinder(T, P, true).V };
+			var Z = new [] { PREoS.CompressibilityFactor(T, P, VMol[0]), PREoS.CompressibilityFactor(T,P,VMol[1]) };
+			var H = new [] { PREoS.ReferenceMolarEnthalpy(T, P, VMol[0]), PREoS.ReferenceMolarEnthalpy(T, P, VMol[1]) };
+			var S = new [] { PREoS.ReferenceMolarEntropy(T, P, VMol[0]), PREoS.ReferenceMolarEntropy(T, P, VMol[1]) };
+			var f = new [] { PREoS.Fugacity(T, P, VMol[0]), PREoS.Fugacity(T, P, VMol[1]) };
+
+			var stateData =
+				"Reference state: (" + 298.15 + " K, " + Display.DoubleToEngrNotation(100e3) + " Pa) \n" + 
+				"Interested state: (" + (double)T + " K, " + (double)P + " Pa) \n";
+			var phaseDataLiquid =
+				"Z = " + Z[0] + "\n" + 
+				"V = " + (double)VMol[0] + " m³/mol \n" +
+				"H = " + (double)H[0] + " J/mol \n" +
+				"S = " + (double)S[0] + " J/mol/K \n" +
+				"f = " + f[0] + " Pa \n";
+			var phaseDataVapor =
+				"Z = " + Z[1] + "\n" + 
+				"V = " + (double)VMol[1] + " m³/mol \n" +
+				"H = " + (double)H[1] + " J/mol \n" +
+				"S = " + (double)S[1] + " J/mol/K \n" +
+				"f = " + f[1] + " Pa \n";
+
+			DataLabel.Content = stateData;
+			GroupBoxVapor.Content = phaseDataVapor;
+			GroupBoxLiquid.Content = phaseDataLiquid;
+			MainGrid.ShowGridLines = true;
 		}
 	}
 }

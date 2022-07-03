@@ -33,7 +33,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	public abstract double ZCubicInflectionPoint(Temperature T, Pressure P);
 	
 	/// <inheritdoc cref="EquationOfState.PhaseFinder"/>
-	public override (MolarVolume VMol_L, MolarVolume VMol_V) PhaseFinder(Temperature T, Pressure P)
+	public override (MolarVolume L, MolarVolume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
 	{
 		/*
 		In order to find the roots of the cubic equation, the bisection algorithm needs a range to check for which
@@ -55,6 +55,9 @@ public abstract class CubicEquationOfState : EquationOfState
 		MolarVolume VMol_L = ZCubicRootFinder(T, P, 0, turningPoint1);
 		MolarVolume VMol_V = ZCubicRootFinder(T, P, turningPoint2, 1);
 		
+		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
+		if (ignoreEquilibrium) { return (VMol_L, VMol_V); }
+		
 		/*
 		Now that the predicted phases have been found, we can calculate the fugacity of each phase to determine whether
 		the predicted phase equilibrium corresponds to a real equilibrium state. If the fugacities are roughly equal,
@@ -65,6 +68,7 @@ public abstract class CubicEquationOfState : EquationOfState
 		*/
 		double f_L = FugacityCoeff(T, P, VMol_L);
 		double f_V = FugacityCoeff(T, P, VMol_V);
+		
 		/* Note that 0.1 is used here instead of the precision limit because the exponential nature of the fugacity
 		 coefficient means that a small different in precision leads to quite a different number. In the reality of
 		 numerical solutions for these kinds of equations, a difference between fugacities of 0.1 is more than enough

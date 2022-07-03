@@ -89,6 +89,10 @@ public class PengRobinsonEOS : CubicEquationOfState
 	
 	#region State functions - Enthalpy
 
+	/// <summary>
+	/// Calculates the difference between the ideal and real enthalpy at the specified state.
+	/// </summary>
+	/// <returns>Molar Enthalpy, departure</returns>
 	// from Sandler, eqn 6.4-29
 	public MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
 	{
@@ -102,6 +106,14 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return new MolarEnthalpy(value, ThermoVarRelations.Departure);
 	}
 
+	/// <summary>
+	/// Calculates the enthalpy change between two states assuming ideal gas behavior.
+	/// Ideal enthalpy change is a pure function of temperature.
+	/// </summary>
+	/// <param name="T1">Initial temperature</param>
+	/// <param name="T2">Final temperature</param>
+	/// <returns>Molar Enthalpy, change</returns>
+	/// <exception cref="NotImplementedException">Use of high-temperature Cp data is not currently supported.</exception>
 	public MolarEnthalpy IdealMolarEnthalpyChange(Temperature T1, Temperature T2)
 	{
 		double[] c;
@@ -124,6 +136,10 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return new MolarEnthalpy(value, ThermoVarRelations.Change);
 	}
 
+	/// <summary>
+	/// Calculates the enthalpy change between two states using departure functions and convenient paths.
+	/// </summary>
+	/// <returns></returns>
 	public MolarEnthalpy MolarEnthalpyChange
 		(Temperature T1, Pressure P1, MolarVolume VMol1, Temperature T2, Pressure P2, MolarVolume VMol2)
 	{
