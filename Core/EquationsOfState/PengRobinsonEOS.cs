@@ -212,7 +212,49 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var pathB = IdealMolarEntropyChange(273.15+25, 100e3, T, P);
 		var pathC = DepartureEntropy(T, P, VMol);
 		var totalPath = pathB + pathC;
-		return new MolarEntropy(totalPath, ThermoVarRelations.Change);
+		return new MolarEntropy(totalPath);
+	}
+
+	#endregion
+
+	#region Other state functions
+
+	public MolarInternalEnergy ReferenceMolarInternalEnergy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		return new MolarInternalEnergy(ReferenceMolarEnthalpy(T, P, VMol) - P * VMol);
+	}
+
+	public MolarGibbsEnergy ReferenceMolarGibbsEnergy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var H = ReferenceMolarEnthalpy(T, P, VMol);
+		var S = ReferenceMolarEntropy(T, P, VMol);
+		return new MolarGibbsEnergy(H - T * S);
+	}
+	
+	public MolarHelmholtzEnergy ReferenceMolarHelmholtzEnergy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var U = ReferenceMolarInternalEnergy(T, P, VMol);
+		var S = ReferenceMolarEntropy(T, P, VMol);
+		return new MolarHelmholtzEnergy(U - T * S);
+	}
+
+	#endregion
+
+	#region Helpful methods
+
+	public override (double Z, MolarInternalEnergy U, MolarEnthalpy H, MolarEntropy S,
+		MolarGibbsEnergy G, MolarHelmholtzEnergy A, double f)
+		GetAllStateVariables(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		var Z = CompressibilityFactor(T, P, VMol);
+		var U = ReferenceMolarInternalEnergy(T, P, VMol);
+		var H = ReferenceMolarEnthalpy(T, P, VMol);
+		var S = ReferenceMolarEntropy(T, P, VMol);
+		var G = ReferenceMolarGibbsEnergy(T, P, VMol);
+		var A = ReferenceMolarHelmholtzEnergy(T, P, VMol);
+		var f = FugacityCoeff(T, P, VMol);
+
+		return (Z, U, H, S, G, A, f);
 	}
 
 	#endregion

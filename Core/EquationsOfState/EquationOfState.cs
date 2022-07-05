@@ -56,4 +56,9 @@ public abstract class EquationOfState
 	/// molar volume at each the liquid and vapor phases, measured in [m³/mol].
 	/// Returns 0 if the phase is not present.</returns>
 	public abstract (MolarVolume L, MolarVolume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
+
+	public abstract
+		(double Z, MolarInternalEnergy U, MolarEnthalpy H, MolarEntropy S,
+		MolarGibbsEnergy G, MolarHelmholtzEnergy A, double f)
+		GetAllStateVariables(Temperature T, Pressure P, MolarVolume VMol);
 }
