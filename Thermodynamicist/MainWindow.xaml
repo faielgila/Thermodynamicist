@@ -5,10 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Thermodynamicist"
         mc:Ignorable="d"
-        Title="Thermodynamicist | Main Window" Height="200" Width="520">
+        Title="Thermodynamicist | Main Window" Height="260" Width="520">
     <Grid x:Name="MainGrid">
-        <GroupBox x:Name="GroupBoxVapor" Header="Vapor phase" Margin="10,36,0,10" HorizontalAlignment="Left"/>
-        <GroupBox x:Name="GroupBoxLiquid" Header="Liquid phase" Margin="0,36,10,10" HorizontalAlignment="Right"/>
-        <Label x:Name="DataLabel" Content="placeholder" HorizontalAlignment="Stretch" Margin="10,0,10,0" VerticalAlignment="Top"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Label x:Name="DataLabel" Content="temperature pressure" Grid.Row="0" Grid.ColumnSpan="2"/>
+        <GroupBox x:Name="GroupBoxVapor" Header="Vapor phase" Margin="10, 0, 5, 10" Grid.Column="0" Grid.Row="1"/>
+        <GroupBox x:Name="GroupBoxLiquid" Header="Liquid phase" Margin="5, 0, 10, 10" Grid.Column="1" Grid.Row="1"/>
     </Grid>
 </Window>

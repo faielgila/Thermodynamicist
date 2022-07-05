@@ -4,6 +4,8 @@ public struct MoleFraction
 {
 	private readonly double _value;
 	private readonly ThermoVarRelations _relation;
+	
+	public double Value => _value;
 
 	public static implicit operator double(MoleFraction x) => x._value;
 	public static implicit operator MoleFraction(double x) => new (x, ThermoVarRelations.Undefined);

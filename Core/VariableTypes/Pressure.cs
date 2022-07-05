@@ -5,6 +5,8 @@ public struct Pressure
 	private readonly double _value;
 	private readonly ThermoVarRelations _relation;
 	
+	public double Value => _value;
+	
 	public static implicit operator double(Pressure P) => P._value;
 	public static implicit operator Pressure(double P) => new (P);
 

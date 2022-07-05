@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
 using Core;
 using Core.EquationsOfState;
 using Core.VariableTypes;
@@ -38,24 +25,12 @@ namespace Thermodynamicist
 			var f = new [] { PREoS.Fugacity(T, P, VMol[0]), PREoS.Fugacity(T, P, VMol[1]) };
 
 			var stateData =
-				"Reference state: (" + 298.15 + " K, " + Display.DoubleToEngrNotation(100e3) + " Pa) \n" + 
-				"Interested state: (" + (double)T + " K, " + (double)P + " Pa) \n";
-			var phaseDataLiquid =
-				"Z = " + Z[0] + "\n" + 
-				"V = " + (double)VMol[0] + " m³/mol \n" +
-				"H = " + (double)H[0] + " J/mol \n" +
-				"S = " + (double)S[0] + " J/mol/K \n" +
-				"f = " + f[0] + " Pa \n";
-			var phaseDataVapor =
-				"Z = " + Z[1] + "\n" + 
-				"V = " + (double)VMol[1] + " m³/mol \n" +
-				"H = " + (double)H[1] + " J/mol \n" +
-				"S = " + (double)S[1] + " J/mol/K \n" +
-				"f = " + f[1] + " Pa \n";
+				"Reference state: (" + 298.15.ToEngrNotation() + " K, " + 100e3.ToEngrNotation() + " Pa) \n" + 
+				"Interested state: (" + (double)T + " K, " + (double)P + " Pa)";
 
 			DataLabel.Content = stateData;
-			GroupBoxVapor.Content = phaseDataVapor;
-			GroupBoxLiquid.Content = phaseDataLiquid;
+			GroupBoxVapor.Content = Display.GetAllStateVariablesFormatted(PREoS, T, P, VMol[1]);
+			GroupBoxLiquid.Content = Display.GetAllStateVariablesFormatted(PREoS, T, P, VMol[0]);
 			MainGrid.ShowGridLines = true;
 		}
 	}

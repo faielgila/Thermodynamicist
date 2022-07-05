@@ -31,6 +31,8 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return Math.Exp(z - 1 - Math.Log(z - B) - A / z);
 	}
 
+	#region Cubic and related equations
+
 	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
@@ -56,4 +58,20 @@ public class VanDerWaalsEOS : CubicEquationOfState
 	{
 		return R * T / (3 * P) + b / 3;
 	}
+	
+	#endregion
+
+	#region Depature functions
+
+	public override MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override MolarEntropy DepartureEntropy(Temperature T, Pressure P, MolarVolume VMol)
+	{
+		throw new NotImplementedException();
+	}
+
+	#endregion
 }
