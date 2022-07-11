@@ -18,20 +18,15 @@ namespace Thermodynamicist
 			PengRobinsonEOS PREoS = new PengRobinsonEOS(Chemical.Water);
 			var T = new Temperature(500);
 			var P = new Pressure(101.325e3);
-			var VMol = new [] { PREoS.PhaseFinder(T, P, true).L, PREoS.PhaseFinder(T, P, true).V };
-			var Z = new [] { PREoS.CompressibilityFactor(T, P, VMol[0]), PREoS.CompressibilityFactor(T,P,VMol[1]) };
-			var H = new [] { PREoS.ReferenceMolarEnthalpy(T, P, VMol[0]), PREoS.ReferenceMolarEnthalpy(T, P, VMol[1]) };
-			var S = new [] { PREoS.ReferenceMolarEntropy(T, P, VMol[0]), PREoS.ReferenceMolarEntropy(T, P, VMol[1]) };
-			var f = new [] { PREoS.Fugacity(T, P, VMol[0]), PREoS.Fugacity(T, P, VMol[1]) };
+			var phaseVMols = PREoS.PhaseFinder(T, P);
 
 			var stateData =
 				"Reference state: (" + 298.15.ToEngrNotation() + " K, " + 100e3.ToEngrNotation() + " Pa) \n" + 
 				"Interested state: (" + (double)T + " K, " + (double)P + " Pa)";
 
 			DataLabel.Content = stateData;
-			GroupBoxVapor.Content = Display.GetAllStateVariablesFormatted(PREoS, T, P, VMol[1]);
-			GroupBoxLiquid.Content = Display.GetAllStateVariablesFormatted(PREoS, T, P, VMol[0]);
-			MainGrid.ShowGridLines = true;
+			GroupBoxVapor.Content = Display.GetAllStateVariablesFormatted(PREoS, T, P, phaseVMols.V, 5);
+			GroupBoxLiquid.Content = Display.GetAllStateVariablesFormatted(PREoS, T, P, phaseVMols.L, 5);
 		}
 	}
 }

@@ -36,19 +36,19 @@ public abstract class CubicEquationOfState : EquationOfState
 	public override (MolarVolume L, MolarVolume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
 	{
 		/*
-		In order to find the roots of the cubic equation, the bisection algorithm needs a range to check for which
-		there is only one root (or no roots; the algorithm has been implemented to return 0 if a root is not found).
-		Calculus guarantees that there is only one root between each turning point of the function, which means there
-		is one root from 0 to the first turning point, one root between the turning points, and one root from the
-		second turning point to "infinity" (this code stops at 1, since "one cubic meter per mole" can well be assumed
-		to be a vacuum and thus is not of interest for these calculations).
-		To get the turning points, we apply the same reasoning to find the roots of the derivative. Conveniently,
-		the inflection point of a cubic is a single point, which means the value of VMol at that point is analytically
-		defined and does not need a root-finding algorithm.
-		Once the inflection point is calculated, the two turning points are found. Once the turning points are found,
-		the bisection algorithm is applied to the cubic equation over each range
-		(excluding the root between the turning points, since it does not correspond to any real state).
-		*/
+		 * In order to find the roots of the cubic equation, the bisection algorithm needs a range to check for which
+		 * there is only one root (or no roots; the algorithm has been implemented to return 0 if a root is not found).
+		 * Calculus guarantees that there is only one root between each turning point of the function, which means there
+		 * is one root from 0 to the first turning point, one root between the turning points, and one root from the
+		 * second turning point to "infinity" (this code stops at 1, since "one cubic meter per mole" can well be assumed
+		 * to be a vacuum and thus is not of interest for these calculations).
+		 * To get the turning points, we apply the same reasoning to find the roots of the derivative. Conveniently,
+		 * the inflection point of a cubic is a single point, which means the value of VMol at that point is analytically
+		 * defined and does not need a root-finding algorithm.
+		 * Once the inflection point is calculated, the two turning points are found. Once the turning points are found,
+		 * the bisection algorithm is applied to the cubic equation over each range
+		 * (excluding the root between the turning points, since it does not correspond to any real state).
+		 */
 		MolarVolume inflectionVMol = ZCubicInflectionPoint(T, P);
 		MolarVolume turningPoint1 = ZCubicTurnFinder(T, P, 0, inflectionVMol);
 		MolarVolume turningPoint2 = ZCubicTurnFinder(T, P, inflectionVMol, 1);
@@ -59,20 +59,21 @@ public abstract class CubicEquationOfState : EquationOfState
 		if (ignoreEquilibrium) { return (VMol_L, VMol_V); }
 		
 		/*
-		Now that the predicted phases have been found, we can calculate the fugacity of each phase to determine whether
-		the predicted phase equilibrium corresponds to a real equilibrium state. If the fugacities are roughly equal,
-		then the two phases are likely in equilibrium. If one fugacity is larger than the other, then the system will
-		prefer the lower fugacity phase over the higher one, and as such only the phase with the lower fugacity exists
-		at that state. This code uses the fugacity coefficient instead of fugacity directly since it requires
-		slightly less calculation and doesn't require dividing by a large number (which reduces precision).
-		*/
+		 * Now that the predicted phases have been found, we can calculate the fugacity of each phase to determine whether
+		 * the predicted phase equilibrium corresponds to a real equilibrium state. If the fugacities are roughly equal,
+		 * then the two phases are likely in equilibrium. If one fugacity is larger than the other, then the system will
+		 * prefer the lower fugacity phase over the higher one, and as such only the phase with the lower fugacity exists
+		 * at that state. This code uses the fugacity coefficient instead of fugacity directly since it requires
+		 * slightly less calculation and doesn't require dividing by a large number (which reduces precision).
+		 */
 		double f_L = FugacityCoeff(T, P, VMol_L);
 		double f_V = FugacityCoeff(T, P, VMol_V);
-		
-		/* Note that 0.1 is used here instead of the precision limit because the exponential nature of the fugacity
-		 coefficient means that a small different in precision leads to quite a different number. In the reality of
-		 numerical solutions for these kinds of equations, a difference between fugacities of 0.1 is more than enough
-		 to conclude that the system in is phase equilibrium.
+
+		/*
+		 * Note that 0.1 is used here instead of the precision limit because the exponential nature of the fugacity
+		 * coefficient means that a small difference in precision leads to quite a different number. In the reality of
+		 * numerical solutions for these kinds of equations, a difference between fugacities of 0.1 is more than enough
+		 * to conclude that the system in is phase equilibrium.
 		 */
 		if (Math.Abs(f_L - f_V) < 0.1) return ( VMol_L, VMol_V );
 		if (f_L > f_V) return ( 0, VMol_V );
@@ -81,6 +82,28 @@ public abstract class CubicEquationOfState : EquationOfState
 		// This statement should never be reached!
 		// TODO: Throw an exception if this line is reached.
 		return ( 0, 0 );
+	}
+
+	/// <summary>
+	/// Determines which phases are present at equilibrium given the state.
+	/// Compares fugacity coefficients of each phase.
+	/// </summary>
+	/// <param name="T">temperature, measured in [K]</param>
+	/// <param name="P">pressure, measured in [Pa]</param>
+	/// <param name="VMol_L">molar volume of liquid phase, measured in [m³/mol]</param>
+	/// <param name="VMol_V">molar volume of vapor phase, measured in [m³/mol]</param>
+	/// <returns>Tuple of boolean values corresponding to each phase</returns>
+	public (bool L, bool V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, MolarVolume VMol_L, MolarVolume VMol_V)
+    {
+				double f_L = FugacityCoeff(T, P, VMol_L);
+		double f_V = FugacityCoeff(T, P, VMol_V);
+		if (Math.Abs(f_L - f_V) < 0.1) return (true, true);
+		if (f_L > f_V) return (false, true);
+		if (f_L < f_V) return (true, false);
+
+		// This statement should never be reached!
+		// TODO: Throw an exception if this line is reached.
+		return (false, false);
 	}
 
 	/// <summary>
