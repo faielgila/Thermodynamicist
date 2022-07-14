@@ -11,11 +11,11 @@ public static class Display
 		if (number == 0) return number.ToString(CultureInfo.CurrentCulture);
 		if (Double.IsNaN(number)) return 0.ToString(CultureInfo.CurrentCulture);
 
-		var exponent = Math.Floor(Math.Log10(Math.Abs(number)) / 3) * 3;
+		int exponent = (int) Math.Floor(Math.Log10(Math.Abs(number)) / 3) * 3;
 		var mantissa = number / Math.Pow(10, exponent);
 		if (exponent == 0) return number.ToString(CultureInfo.CurrentCulture);
 		
-		return mantissa + "×10^" + exponent;
+		return mantissa + "×10" + exponent.IntToSuperscript();
 	}
 
 	public static string ToEngrNotation(this double number, int sigfigs)
@@ -67,5 +67,31 @@ public static class Display
 		double scale = Math.Pow(10, Math.Floor(Math.Log10(Math.Abs(d))) + 1);
 		return scale * Math.Round(d / scale, digits);
 	}
+
+	static string IntToSuperscript(this int exp)
+    {
+		char[] chars = exp.ToString().ToArray();
+		string expString = "";
+        foreach (var item in chars)
+        {
+			expString += ExponentDict[item];
+        }
+		return expString;
+    }
+
+	private static readonly Dictionary<char, string> ExponentDict = new()
+	{
+		{ '0', "⁰" },
+		{ '1', "¹" },
+		{ '2', "²" },
+		{ '3', "³" },
+		{ '4', "⁴" },
+		{ '5', "⁵" },
+		{ '6', "⁶" },
+		{ '7', "⁷" },
+		{ '8', "⁸" },
+		{ '9', "⁹" },
+		{ '-', "⁻" }
+	};
 
 }
