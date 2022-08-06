@@ -18,16 +18,17 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition/>
 		</Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-            <TextBlock Text="State: (" VerticalAlignment="Center" Margin="0, 0, 5, 0"/>
-            <muxc:NumberBox x:Name="NumBoxT" PlaceholderText="temperature" AcceptsExpression="True"/>
-            <TextBlock Text="K ," VerticalAlignment="Center" Margin="0, 0, 5, 0"/>
-            <muxc:NumberBox x:Name="NumBoxP" PlaceholderText="pressure" AcceptsExpression="True"/>
-            <TextBlock Text="Pa )" VerticalAlignment="Center" Margin="0, 0, 0, 0"/>
+		<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+			<TextBlock Text="State: (" VerticalAlignment="Center" Margin="0, 0, 0, 0"/>
+			<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="temperature" AcceptsExpression="True"/>
+			<TextBlock Text="K," VerticalAlignment="Center" Margin="5, 0, 5, 0"/>
+			<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="pressure" AcceptsExpression="True"/>
+			<TextBlock Text="Pa)" VerticalAlignment="Center" Margin="5, 0, 0, 0"/>
+            <ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species" Margin="20, 0, 0, 0"/>
             <Button x:Name="ButtonRecalc" Click="ButtonRecalc_Click" Style="{StaticResource AccentButtonStyle}" Content="Recalculate" Margin="20, 0, 0, 0" Grid.Row="1"/>
-        </StackPanel>
-        <TextBlock x:Name="DataLabel" Grid.Row="1" Grid.ColumnSpan="2"/>
-        <TextBlock x:Name="GroupBoxVapor" Margin="0, 0, 5, 0" Grid.Column="0" Grid.Row="2"/>
+		</StackPanel>
+		<TextBlock x:Name="DataLabel" Grid.Row="1" Grid.ColumnSpan="2"/>
+		<TextBlock x:Name="GroupBoxVapor" Margin="0, 0, 5, 0" Grid.Column="0" Grid.Row="2"/>
 		<TextBlock x:Name="GroupBoxLiquid" Margin="5, 0, 0, 0" Grid.Column="1" Grid.Row="2"/>
 	</Grid>
 </Page>

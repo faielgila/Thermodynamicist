@@ -28,11 +28,13 @@ namespace ThermodynamicistUWP
 		public MainPage()
 		{
 			this.InitializeComponent();
-		}
 
-		private void ClickRecalculate()
-        {
-			
+			// Initializes chemical list in species dropdown
+			foreach (Chemical chemical in Enum.GetValues(typeof(Chemical)))
+			{
+				string item = Constants.ChemicalNames[chemical];
+				DropdownSpecies.Items.Add(item);
+			}
 		}
 
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
@@ -58,7 +60,9 @@ namespace ThermodynamicistUWP
         {
 			var T = new Temperature(NumBoxT.Value);
 			var P = new Pressure(NumBoxP.Value);
-			PengRobinsonEOS PREoS = new PengRobinsonEOS(Chemical.Water);
+			Chemical species = Constants.ChemicalNames.FirstOrDefault(
+				x => x.Value == DropdownSpecies.SelectedValue.ToString()).Key;
+			PengRobinsonEOS PREoS = new PengRobinsonEOS(species);
 			UpdateData(PREoS, T, P);
 		}
     }

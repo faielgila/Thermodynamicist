@@ -20,7 +20,8 @@ public abstract class EquationOfState
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
 		speciesCpData = Constants.IdealGasCpConstants[species];
-		speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+		//TODO: when high-temp calculations are fleshed out, reactivate this line.
+		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
 	}
 
 	/// <summary>

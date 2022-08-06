@@ -94,8 +94,8 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="VMol_V">molar volume of vapor phase, measured in [m³/mol]</param>
 	/// <returns>Tuple of boolean values corresponding to each phase</returns>
 	public (bool L, bool V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, MolarVolume VMol_L, MolarVolume VMol_V)
-    {
-				double f_L = FugacityCoeff(T, P, VMol_L);
+	{
+		double f_L = FugacityCoeff(T, P, VMol_L);
 		double f_V = FugacityCoeff(T, P, VMol_V);
 		if (Math.Abs(f_L - f_V) < 0.1) return (true, true);
 		if (f_L > f_V) return (false, true);
