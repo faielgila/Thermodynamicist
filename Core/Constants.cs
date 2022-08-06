@@ -71,10 +71,10 @@ public class Constants
 		[Chemical.Oxygen]           = (new [] {25.460, 1.519e-2, -0.715e-5, 1.311e-9}, new double[] {273, 1800}),
 		[Chemical.NPentane]         = (new [] {6.770, 45.398e-2, -22.448e-5, 42.459e-9}, new double[] {273, 1500}),
 		[Chemical.Propane]          = (new [] {-4.042, 30.456e-2, -15.711e-5, 31.716e-9}, new double[] {273, 1500}),
-		[Chemical.R12]              = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
-		[Chemical.R134a]            = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
+	  //[Chemical.R12]              = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
+	  //[Chemical.R134a]            = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
 		[Chemical.SulfurDioxide]    = (new [] {25.762, 5.791e-2, -3.809e-5, 8.607e-9}, new double[] {273, 1800}),
-		[Chemical.Toluene]          = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
+	  //[Chemical.Toluene]          = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
 		[Chemical.Water]            = (new [] {25.460, 1.519e-2, -0.715e-5, 1.311e-9}, new double[] {273, 1800})
 	};
 
@@ -91,5 +91,31 @@ public class Constants
 		[Chemical.Nitrogen] = (new [] {27.318, 0.623e-2, -0.095e-5, 0}, new double[] {273, 3800}),
 		[Chemical.Oxygen]   = (new [] {28.167, 0.630e-2, -0.075e-5, 0}, new double[] {273, 3800}),
 		[Chemical.Water]    = (new [] {29.163, 1.449e-2, -0.202e-5, 0}, new double[] {273, 3800}),
+	};
+
+	public static readonly Dictionary<Chemical, string> ChemicalNames = new()
+	{
+		[Chemical.Ammonia] = "Ammonia",
+        [Chemical.Benzene] = "Benzene",
+		[Chemical.NButane] = "n-Butane",
+		[Chemical.Isobutane] = "Isobutane",
+		[Chemical.CarbonDioxide] = "Carbon dioxide",
+		[Chemical.CarbonMonoxide] = "Carbon monoxide",
+		[Chemical.Ethane] = "Ethane",
+		[Chemical.Hydrogen] = "Hydrogen",
+		[Chemical.HydrogenFluoride] = "Hydrogen fluoride",
+        [Chemical.HydrogenChloride] = "Hydrogen chloride",
+		[Chemical.HydrogenSulfide] = "Hydrogen sulfide",
+		[Chemical.Methane] = "Methane",
+		[Chemical.Nitrogen] = "Nitrogen",
+		[Chemical.Oxygen] = "Oxygen",
+		[Chemical.NPentane] = "n-Pentane",
+        [Chemical.Isopentane] = "Isopentane",
+		[Chemical.Propane] = "Propane",
+		[Chemical.R12] = "R12",
+		[Chemical.R134a] = "R134a",
+		[Chemical.SulfurDioxide] = "Sulfur dioxide",
+		[Chemical.Toluene] = "Toluene",
+		[Chemical.Water] = "Water"
 	};
 }
