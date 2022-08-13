@@ -49,20 +49,34 @@ namespace ThermodynamicistUWP
 			var phaseEquilibriums = EoS.IsStateInPhaseEquilbirum(T, P, phaseVMols.L, phaseVMols.V);
 
 			string phasesString = "";
-			if (phaseEquilibriums.L && phaseEquilibriums.V) phasesString = "liquid, vapor";
-			if (!phaseEquilibriums.L && phaseEquilibriums.V) phasesString = "vapor";
-			if (phaseEquilibriums.L && !phaseEquilibriums.V) phasesString = "liquid";
+			if (phaseEquilibriums.L == 1 && phaseEquilibriums.V == 1) phasesString = "liquid, vapor";
+			if ((phaseEquilibriums.L == 0 || phaseEquilibriums.L == 2)	&& phaseEquilibriums.V == 1) phasesString = "vapor";
+			if (phaseEquilibriums.L == 1 && (phaseEquilibriums.V == 0 || phaseEquilibriums.V == 2)) phasesString = "liquid";
 
 			var stateData =
 				"Reference state: (" + 298.15.ToEngrNotation() + " K, " + 100e3.ToEngrNotation() + " Pa) \n" +
 				"Phases at equilibrium: " + phasesString;
 
 			DataLabel.Text = stateData;
-			GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.V, 5);
-			GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
+            if (phaseEquilibriums.V != 2)
+            {
+                GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.V, 5);
+            }
+            else
+            {
+                GroupBoxVapor.Text = "Vapor phase data: \n indeterminate";
+            }
+            if (phaseEquilibriums.L != 2)
+            {
+                GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
+            }
+            else
+            {
+                GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
+            }
 
-			// Creates a new view model with the new chemical and equation of state, then updates the plot view
-			ViewModel = new MainViewModel(EoS);
+            // Creates a new view model with the new chemical and equation of state, then updates the plot view
+            ViewModel = new MainViewModel(EoS);
 			MainPlotView.InvalidatePlot();
 		}
 

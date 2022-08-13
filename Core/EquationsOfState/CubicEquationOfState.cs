@@ -93,23 +93,28 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <summary>
 	/// Determines which phases are present at equilibrium given the state.
 	/// Compares fugacity coefficients of each phase.
+	/// Returns "0" for phase if phase is not preferred in equilibrium.
+	/// Returns "1" for phase if phase is preferred in equilibrium.
+	/// Returns "2" for phase if phase is non-physical (if fugacity returns "NaN").
 	/// </summary>
 	/// <param name="T">temperature, measured in [K]</param>
 	/// <param name="P">pressure, measured in [Pa]</param>
 	/// <param name="VMol_L">molar volume of liquid phase, measured in [m³/mol]</param>
 	/// <param name="VMol_V">molar volume of vapor phase, measured in [m³/mol]</param>
-	/// <returns>Tuple of boolean values corresponding to each phase</returns>
-	public (bool L, bool V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, Volume VMol_L, Volume VMol_V)
+	/// <returns>Tuple of values corresponding to each phase</returns>
+	public (int L, int V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, Volume VMol_L, Volume VMol_V)
 	{
 		double f_L = FugacityCoeff(T, P, VMol_L);
 		double f_V = FugacityCoeff(T, P, VMol_V);
-		if (Math.Abs(f_L - f_V) < 0.1) return (true, true);
-		if (f_L > f_V) return (false, true);
-		if (f_L < f_V) return (true, false);
+		if (Math.Abs(f_L - f_V) < 0.1) return (1, 1);
+		if (f_L > f_V) return (0, 1);
+		if (f_L < f_V) return (1, 0);
+		if (Double.IsNaN(f_L) && !Double.IsNaN(f_V)) return (2, 1);
+		if (!Double.IsNaN(f_L) && Double.IsNaN(f_V)) return (1, 2);
 
 		// This statement should never be reached!
 		// TODO: Throw an exception if this line is reached.
-		return (false, false);
+		return (0, 0);
 	}
 
 	/// <summary>

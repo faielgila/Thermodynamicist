@@ -19,6 +19,7 @@ public class Constants
 	/// Stores basic chemical data such as molar mass, critical point, acentric factor, and boiling point as a Tuple.
 	/// </summary>
 	// from Sandler, table 6.6-1
+	// HCl from Perry's Handbook, table 2-106 (p. 2-186 or 221)
 	public static readonly Dictionary<Chemical,
 		(double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT)
 	> ChemicalData = new()
@@ -32,6 +33,7 @@ public class Constants
 		[Chemical.Ethane]           = (30.070, 305.4, 4.884e6, 0.098, 184.5),
 		[Chemical.Hydrogen]         = (2.016, 33.2, 1.297e6, -0.22, 20.4),
 		[Chemical.HydrogenFluoride] = (20.006, 461.0, 6.488e6, 0.372, 292.7),
+        [Chemical.HydrogenChloride] = (36.461, 324.68, 8.256e6, 0.131544, 188.10),
 		[Chemical.HydrogenSulfide]  = (34.080, 373.2, 8.942e6, 0.100, 212.8),
 		[Chemical.Methane]          = (16.043, 190.6, 4.600e6, 0.008, 111.7),
 		[Chemical.Nitrogen]         = (28.013, 126.2, 3.394e6, 0.040, 77.4),
@@ -65,7 +67,8 @@ public class Constants
 		[Chemical.Ethane]           = (new [] {6.895, 17.255e-2, -6.402e-5, 7.280e-9}, new double[] {273, 1500}),
 		[Chemical.Hydrogen]         = (new [] {29.088, -0.192e-2, 0.400e-5, -0.870e-9}, new double[] {273, 1800}),
 		[Chemical.HydrogenFluoride] = (new [] {30.130, -0.493e-2, 0.659e-5, -1.573e-9}, new double[] {273, 2000}),
-		[Chemical.HydrogenSulfide]  = (new [] {29.582, 1.309e-2, 0.571e-5, -3.292e-9}, new double[] {273, 1800}),
+        [Chemical.HydrogenChloride] = (new [] {30.310, -0.762e-2, 1.326e-5, -4.335e-9}, new double[] {273, 1500}),
+        [Chemical.HydrogenSulfide]  = (new [] {29.582, 1.309e-2, 0.571e-5, -3.292e-9}, new double[] {273, 1800}),
 		[Chemical.Methane]          = (new [] {19.875, 5.021e-2, 1.2683-5, -11.004e-9}, new double[] {273, 1500}),
 		[Chemical.Nitrogen]         = (new [] {28.883, -0.157e-2, 0.808e-5, -2.871e-9}, new double[] {273, 1800}),
 		[Chemical.Oxygen]           = (new [] {25.460, 1.519e-2, -0.715e-5, 1.311e-9}, new double[] {273, 1800}),
