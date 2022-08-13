@@ -36,7 +36,7 @@ public static class Display
 			"S = " + stateVars.S.Value.ToEngrNotation() + " J/mol/K \n" +
 			"G = " + stateVars.G.Value.ToEngrNotation() + " J/mol/K \n" +
 			"A = " + stateVars.A.Value.ToEngrNotation() + " J/mol/K \n" +
-			"f = " + f.ToEngrNotation() + " Pa";
+			"φ = " + f.ToEngrNotation();
 
 		return formatted;
 	}
@@ -54,7 +54,7 @@ public static class Display
 			"S = " + stateVars.S.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
 			"G = " + stateVars.G.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
 			"A = " + stateVars.A.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"f = " + f.ToEngrNotation(sigfigs) + " Pa";
+			"φ = " + f.ToEngrNotation(sigfigs);
 
 		return formatted;
 	}
