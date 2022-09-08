@@ -34,10 +34,10 @@ namespace ThermodynamicistUWP
 			{
 				MenuFlyoutItem item = new MenuFlyoutItem();
 				item.Text = Constants.ChemicalNames[chemical];
-				DropdownSpecies.Items.Add(item);
+				// DropdownSpecies.Items.Add(item);
 			}
 		}
-
+		/*
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
 		{
 			var phaseVMols = EoS.PhaseFinder(T, P, true);
@@ -63,11 +63,6 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 			PengRobinsonEOS PREoS = new PengRobinsonEOS(Chemical.Water);
 			UpdateData(PREoS, T, P);
-		}
-
-        private void DropdownSpeciesInit(object sender, RoutedEventArgs e)
-        {
-			
-        }
+		} */
     }
 }
