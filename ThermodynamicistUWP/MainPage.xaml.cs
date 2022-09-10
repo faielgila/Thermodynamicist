@@ -36,7 +36,7 @@ namespace ThermodynamicistUWP
 				DropdownSpecies.Items.Add(item);
 			}
 		}
-
+		/*
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
 		{
 			var phaseVMols = EoS.PhaseFinder(T, P, true);
@@ -65,5 +65,10 @@ namespace ThermodynamicistUWP
 			PengRobinsonEOS PREoS = new PengRobinsonEOS(species);
 			UpdateData(PREoS, T, P);
 		}
+
+        private void DropdownSpeciesInit(object sender, RoutedEventArgs e)
+        {
+			
+        }
     }
 }
