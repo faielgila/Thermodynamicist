@@ -36,7 +36,7 @@ namespace ThermodynamicistUWP
 				DropdownSpecies.Items.Add(item);
 			}
 		}
-		/*
+		
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
 		{
 			var phaseVMols = EoS.PhaseFinder(T, P, true);
@@ -56,19 +56,16 @@ namespace ThermodynamicistUWP
 			GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
 		}
 
-        private void ButtonRecalc_Click(object sender, RoutedEventArgs e)
-        {
+		private void ButtonRecalc_Click(object sender, RoutedEventArgs e)
+		{
 			var T = new Temperature(NumBoxT.Value);
 			var P = new Pressure(NumBoxP.Value);
 			Chemical species = Constants.ChemicalNames.FirstOrDefault(
 				x => x.Value == DropdownSpecies.SelectedValue.ToString()).Key;
 			PengRobinsonEOS PREoS = new PengRobinsonEOS(species);
 			UpdateData(PREoS, T, P);
-		}
 
-        private void DropdownSpeciesInit(object sender, RoutedEventArgs e)
-        {
-			
-        }
-    }
+			this.Frame.Navigate(typeof(PlotPage));
+		}
+	}
 }
