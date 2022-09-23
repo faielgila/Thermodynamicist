@@ -1,18 +1,10 @@
 ﻿namespace Core.VariableTypes;
 
-public struct MoleFraction
+public class MoleFraction : ThermoVariable
 {
-	private readonly double _value;
-	private readonly ThermoVarRelations _relation;
-	
-	public double Value => _value;
+    public MoleFraction(double value, ThermoVarRelations relation = ThermoVarRelations.Undefined)
+        : base(value, relation) { }
 
-	public static implicit operator double(MoleFraction x) => x._value;
-	public static implicit operator MoleFraction(double x) => new (x, ThermoVarRelations.Undefined);
-
-	public MoleFraction(double value, ThermoVarRelations relation)
-	{
-		_value = value;
-		_relation = relation;
-	}
+    public static implicit operator double(MoleFraction T) => T.Value;
+    public static implicit operator MoleFraction(double T) => new(T);
 }

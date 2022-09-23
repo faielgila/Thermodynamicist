@@ -9,12 +9,14 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
     <Grid x:Name="MainGrid" Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -31,5 +33,6 @@
         <TextBlock x:Name="DataLabel" Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" />
         <TextBlock x:Name="GroupBoxVapor" Margin="0, 0, 5, 0" Grid.Column="0" Grid.Row="2"/>
         <TextBlock x:Name="GroupBoxLiquid" Margin="5, 0, 0, 0" Grid.Column="1" Grid.Row="2"/>
+        <oxy:PlotView x:Name="MainPlotView" Model="{x:Bind ViewModel.Model, Mode=OneWay}" Grid.Row="3" Grid.ColumnSpan="2" Grid.Column="0"/>
     </Grid>
 </Page>

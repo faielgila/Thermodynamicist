@@ -1,18 +1,10 @@
 ﻿namespace Core.VariableTypes;
 
-public struct MolarEnthalpy
+public class Enthalpy : ThermoVariable
 {
-	private readonly double _value;
-	private readonly ThermoVarRelations _relation;
-	
-	public double Value => _value;
+    public Enthalpy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
+        : base(value, relation) { }
 
-	public static implicit operator double(MolarEnthalpy H) => H._value;
-	public static implicit operator MolarEnthalpy(double H) => new (H);
-
-	public MolarEnthalpy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
-	{
-		_value = value;
-		_relation = relation;
-	}
+    public static implicit operator double(Enthalpy T) => T.Value;
+    public static implicit operator Enthalpy(double T) => new(T);
 }

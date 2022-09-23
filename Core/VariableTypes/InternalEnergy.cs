@@ -1,18 +1,10 @@
 ﻿namespace Core.VariableTypes;
 
-public struct MolarInternalEnergy
+public class InternalEnergy : ThermoVariable
 {
-	private readonly double _value;
-	private readonly ThermoVarRelations _relation;
-	
-	public double Value => _value;
+    public InternalEnergy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
+        : base(value, relation) { }
 
-	public static implicit operator double(MolarInternalEnergy U) => U._value;
-	public static implicit operator MolarInternalEnergy(double U) => new (U);
-
-	public MolarInternalEnergy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
-	{
-		_value = value;
-		_relation = relation;
-	}
+    public static implicit operator double(InternalEnergy T) => T.Value;
+    public static implicit operator InternalEnergy(double T) => new(T);
 }

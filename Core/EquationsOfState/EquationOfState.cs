@@ -2,19 +2,32 @@
 
 namespace Core.EquationsOfState;
 
+/// <summary>
+/// Abstract class which stores an equation of state and its related functions,
+/// such as fugacity and phase finder algorithms.
+/// </summary>
 public abstract class EquationOfState
 {
+	/// <inheritdoc cref="Constants.R"/>
 	public const double R = Constants.R;
 	public const double precisionLimit = Constants.PrecisionLimit;
 
+	/// <summary>
+	/// Toggles check and use of high-temperature data.
+	/// </summary>
 	public bool UseHighTempData = false;
-	public readonly (Temperature refT, Pressure refP) ReferenceState = (298.15, 100e3);
+
+	/// <summary>
+	/// The reference state to which all real and ideal gas properties are measured.
+	/// </summary>
+	public readonly (Temperature refT, Pressure refP) ReferenceState;
+
 	public readonly Chemical Species;
 	public (double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT) speciesData;
 	public (double[] vals, double[] lims) speciesCpData;
 	public (double[] vals, double[] lims) speciesHighTempCpData;
 
-	protected EquationOfState(Chemical species, (Temperature T, Pressure P) referenceState = default)
+	protected EquationOfState(Chemical species, (Temperature T, Pressure P) referenceState)
 	{
 		ReferenceState = referenceState;
 		Species = species;
@@ -24,41 +37,80 @@ public abstract class EquationOfState
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
 	}
 
-	/// <summary>
-	/// Returns the pressure of the system in the given state, defined by temperature and molar volume.
-	/// </summary>
-	/// <param name="T">temperature, measured in [K]</param>
-	/// <param name="VMol">molar volume, measured in [m³/mol]</param>
-	/// <returns>pressure, measured in [Pa]</returns>
-	public abstract Pressure Pressure(Temperature T, MolarVolume VMol);
+    protected EquationOfState(Chemical species)
+    {
+        ReferenceState = (298.15, 100e3);
+        Species = species;
+        speciesData = Constants.ChemicalData[species];
+        speciesCpData = Constants.IdealGasCpConstants[species];
+        //TODO: when high-temp calculations are fleshed out, reactivate this line.
+        //speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+    }
 
-	public double CompressibilityFactor(Temperature T, Pressure P, MolarVolume VMol)
+    /// <summary>
+    /// Returns the pressure of the system in the given state, defined by temperature and molar volume.
+    /// </summary>
+    /// <param name="T">temperature, measured in [K]</param>
+    /// <param name="VMol">molar volume, measured in [m³/mol]</param>
+    /// <returns>pressure, measured in [Pa]</returns>
+    public abstract Pressure Pressure(Temperature T, Volume VMol);
+
+    /// <summary>
+    /// Returns the compressibility factor in the given state,
+	/// defined by temperature, pressure, and molar volume.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>compressibility factor = PV/RT, unitless</returns>
+    public double CompressibilityFactor(Temperature T, Pressure P, Volume VMol)
 	{
 		return P * VMol / (R * T);
 	}
 
-	/// <summary>
-	/// Returns the fugacity coefficient of the system in the given state, defined by temperature, pressure, and molar volume.
-	/// </summary>
-	/// <param name="T">temperature, measured in [K]</param>
-	/// <param name="P">pressure, measured in [Pa]</param>
-	/// <param name="VMol">molar volume, measured in [m³/mol]</param>
-	/// <returns>fugacity coefficient f/P, unitless</returns>
-	public abstract double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol);
+    /// <summary>
+    /// Returns the fugacity coefficient of the system in the given state,
+    /// defined by temperature, pressure, and molar volume.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>fugacity coefficient φ, unitless</returns>
+    public abstract double FugacityCoeff(Temperature T, Pressure P, Volume VMol);
 
-	public double Fugacity(Temperature T, Pressure P, MolarVolume VMol) { return FugacityCoeff(T, P, VMol) * P; }
+    /// <summary>
+    /// Calculates the fugacity of the system in the given state.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>fugacity, unitless. f = φP</returns>
+    public double Fugacity(Temperature T, Pressure P, Volume VMol) { return FugacityCoeff(T, P, VMol) * P; }
 
-	#region State Variables - Enthalpy
+    #region State Variables - Enthalpy
 
-	/// <summary>
-	/// Calculates the enthalpy change between two states assuming ideal gas behavior.
-	/// Ideal enthalpy change is a pure function of temperature.
-	/// </summary>
-	/// <param name="T1">Initial temperature</param>
-	/// <param name="T2">Final temperature</param>
-	/// <returns>Molar Enthalpy, change</returns>
-	/// <exception cref="NotImplementedException">Use of high-temperature Cp data is not currently supported.</exception>
-	public MolarEnthalpy IdealMolarEnthalpyChange(Temperature T1, Temperature T2)
+    /// <summary>
+    /// Calculates the departure enthalpy, which is the difference between the real enthalpy and
+    /// the ideal enthalpy at a given state defined by temperature, pressure, and molar volume.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar Enthalpy, departure</returns>
+	/// <remarks>Departure is dependent on the equation of state used, so this must be defined
+	/// for each EoS.</remarks>
+    public abstract Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol);
+
+    /// <summary>
+    /// Calculates the enthalpy change between two states assuming ideal gas behavior.
+    /// Ideal enthalpy change is a pure function of temperature.
+    /// </summary>
+    /// <param name="T1">Initial temperature</param>
+    /// <param name="T2">Final temperature</param>
+    /// <returns>Molar Enthalpy, change</returns>
+    /// <exception cref="NotImplementedException">
+    /// Use of high-temperature Cp data is not currently supported.</exception>
+    public Enthalpy IdealMolarEnthalpyChange(Temperature T1, Temperature T2)
 	{
 		double[] c;
 		if (!UseHighTempData)
@@ -77,40 +129,63 @@ public abstract class EquationOfState
 		var deltaT3 = T2 * T2*T2 - T1 * T1*T1;
 		var deltaT4 = Math.Pow(T2,4) - Math.Pow(T1,4);
 		var value = c[0] * (T2 - T1) + c[1]/2 * deltaT2 + c[2]/3 * deltaT3 + c[3]/4 * deltaT4;
-		return new MolarEnthalpy(value, ThermoVarRelations.Change);
+		return new Enthalpy(value, ThermoVarRelations.Change);
 	}
-
-	public abstract MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol);
 	
 	/// <summary>
 	/// Calculates the enthalpy change between two states using departure functions and convenient paths.
 	/// </summary>
-	/// <returns></returns>
-	public MolarEnthalpy MolarEnthalpyChange
-		(Temperature T1, Pressure P1, MolarVolume VMol1, Temperature T2, Pressure P2, MolarVolume VMol2)
+	/// <returns>Molar Enthalpy, change</returns>
+	public Enthalpy MolarEnthalpyChange
+		(Temperature T1, Pressure P1, Volume VMol1, Temperature T2, Pressure P2, Volume VMol2)
 	{
 		var pathA = DepartureEnthalpy(T1, P1, VMol1);
 		var pathB = IdealMolarEnthalpyChange(T1, T2);
 		var pathC = DepartureEnthalpy(T2, P2, VMol2);
 		var totalPath = -pathA + pathB + pathC;
-		return new MolarEnthalpy(totalPath, ThermoVarRelations.Change);
+		return new Enthalpy(totalPath, ThermoVarRelations.Change);
 	}
-	
-	public MolarEnthalpy ReferenceMolarEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+
+    /// <summary>
+    /// Calculates the enthalpy at a given state with respect to the reference state. 
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar Enthalpy, real</returns>
+    public Enthalpy ReferenceMolarEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
-		var pathB = IdealMolarEnthalpyChange(273.15+25, T);
-		var pathC = DepartureEnthalpy(T, P, VMol);
-		var totalPath = pathB + pathC;
-		return new MolarEnthalpy(totalPath, ThermoVarRelations.Change);
+		var pathA = IdealMolarEnthalpyChange(ReferenceState.refT, T);
+		var pathB = DepartureEnthalpy(T, P, VMol);
+		var totalPath = pathA + pathB;
+		return new Enthalpy(totalPath, ThermoVarRelations.RealMolar);
 	}
 
-	#endregion
+    #endregion
 
-	#region State Variables - Entropy
-	
-	public abstract MolarEntropy DepartureEntropy(Temperature T, Pressure P, MolarVolume VMol);
-	
-	public MolarEntropy IdealMolarEntropyChange(Temperature T1, Pressure P1, Temperature T2, Pressure P2)
+    #region State Variables - Entropy
+
+    /// <summary>
+    /// Calculates the departure entropy, which is the difference between the real entropy and
+    /// the ideal entropy at a given state defined by temperature, pressure, and molar volume.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar Entropy, departure</returns>
+	/// Departure is dependent on the equation of state used, so this must be defined for each EoS.</remarks>
+    public abstract Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol);
+
+    /// <summary>
+    /// Calculates the entropy change between two states assuming ideal gas behavior.
+    /// Ideal entropy change is a pure function of temperature.
+    /// </summary>
+    /// <param name="T1">Initial temperature</param>
+    /// <param name="T2">Final temperature</param>
+    /// <returns>Molar entropy, change</returns>
+    /// <exception cref="NotImplementedException">
+    /// Use of high-temperature Cp data is not currently supported.</exception>
+    public Entropy IdealMolarEntropyChange(Temperature T1, Pressure P1, Temperature T2, Pressure P2)
 	{
 		double[] c;
 		if (!UseHighTempData)
@@ -129,48 +204,80 @@ public abstract class EquationOfState
 		var deltaT3 = T2 * T2*T2 - T1 * T1*T1;
 		var value = c[0] * Math.Log(T2 / T1) + c[1] * (T2 - T1) + c[2] / 2 * deltaT2 + c[3] / 3 * deltaT3;
 		value -= R * Math.Log(P2 / P1);
-		return new MolarEntropy(value, ThermoVarRelations.Change);
+		return new Entropy(value, ThermoVarRelations.Change);
 	}
 
-	public MolarEntropy MolarEntropyChange
-		(Temperature T1, Pressure P1, MolarVolume VMol1, Temperature T2, Pressure P2, MolarVolume VMol2)
+    /// <summary>
+    /// Calculates the entropy change between two states using departure functions and convenient paths.
+    /// </summary>
+    /// <returns>Molar Entropy, change</returns>
+    public Entropy MolarEntropyChange
+		(Temperature T1, Pressure P1, Volume VMol1, Temperature T2, Pressure P2, Volume VMol2)
 	{
 		var pathA = DepartureEntropy(T1, P1, VMol1);
 		var pathB = IdealMolarEntropyChange(T1, P1, T2, P2);
 		var pathC = DepartureEntropy(T2, P2, VMol2);
 		var totalPath = -pathA + pathB + pathC;
-		return new MolarEntropy(totalPath, ThermoVarRelations.Change);
+		return new Entropy(totalPath, ThermoVarRelations.Change);
 	}
-	
-	public MolarEntropy ReferenceMolarEntropy(Temperature T, Pressure P, MolarVolume VMol)
+
+    /// <summary>
+    /// Calculates the entropy at a given state with respect to the reference state.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar entropy, real</returns>
+    public Entropy ReferenceMolarEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		var pathB = IdealMolarEntropyChange(273.15+25, 100e3, T, P);
 		var pathC = DepartureEntropy(T, P, VMol);
 		var totalPath = pathB + pathC;
-		return new MolarEntropy(totalPath);
+		return new Entropy(totalPath);
 	}
 
-	#endregion
+    #endregion
 
-	#region State Variables - other
+    #region State Variables - other
 
-	public MolarInternalEnergy ReferenceMolarInternalEnergy(Temperature T, Pressure P, MolarVolume VMol)
+    /// <summary>
+    /// Calculates the internal energy at a given state with respect to the reference state.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar Internal Energy, real. U = H-PV</returns>
+    public InternalEnergy ReferenceMolarInternalEnergy(Temperature T, Pressure P, Volume VMol)
 	{
-		return new MolarInternalEnergy(ReferenceMolarEnthalpy(T, P, VMol) - P * VMol);
+		return new InternalEnergy(ReferenceMolarEnthalpy(T, P, VMol) - P * VMol);
 	}
 
-	public MolarGibbsEnergy ReferenceMolarGibbsEnergy(Temperature T, Pressure P, MolarVolume VMol)
+    /// <summary>
+    /// Calculates the Gibbs free energy at a given state with respect to the reference state.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar Gibbs Energy, real. G = H-TS</returns>
+    public GibbsEnergy ReferenceMolarGibbsEnergy(Temperature T, Pressure P, Volume VMol)
 	{
 		var H = ReferenceMolarEnthalpy(T, P, VMol);
 		var S = ReferenceMolarEntropy(T, P, VMol);
-		return new MolarGibbsEnergy(H - T * S);
+		return new GibbsEnergy(H - T * S);
 	}
-	
-	public MolarHelmholtzEnergy ReferenceMolarHelmholtzEnergy(Temperature T, Pressure P, MolarVolume VMol)
+
+    /// <summary>
+    /// Calculates the Helmholtz free energy at a given state with respect to the reference state.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume, in [m³/mol]</param>
+    /// <returns>Molar Helmholtz Energy, real. A = U-TS</returns>
+    public HelmholtzEnergy ReferenceMolarHelmholtzEnergy(Temperature T, Pressure P, Volume VMol)
 	{
 		var U = ReferenceMolarInternalEnergy(T, P, VMol);
 		var S = ReferenceMolarEntropy(T, P, VMol);
-		return new MolarHelmholtzEnergy(U - T * S);
+		return new HelmholtzEnergy(U - T * S);
 	}
 
 	#endregion
@@ -179,17 +286,16 @@ public abstract class EquationOfState
 	/// Uses the equation of state to find the phases present in a system given a temperature and pressure.
 	/// Checks for valid equilibrium using the fugacity coefficient.
 	/// </summary>
-	/// <param name="T">temperature, measured in [K]</param>
-	/// <param name="P">pressure, measured in [Pa]</param>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="ignoreEquilibrium">skips fugacity comparison which determines phase equilibrium state</param>
 	/// <returns>
-	/// molar volume at each the liquid and vapor phases, measured in [m³/mol].
+	/// Molar volume at each the liquid and vapor phases, in [m³/mol].
 	/// Returns 0 if the phase is not present.</returns>
-	public abstract (MolarVolume L, MolarVolume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
+	public abstract (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
 
-	public (double Z, MolarInternalEnergy U, MolarEnthalpy H, MolarEntropy S,
-		MolarGibbsEnergy G, MolarHelmholtzEnergy A, double f)
-		GetAllStateVariables(Temperature T, Pressure P, MolarVolume VMol)
+	public (double Z, InternalEnergy U, Enthalpy H, Entropy S, GibbsEnergy G, HelmholtzEnergy A, double f)
+		GetAllStateVariables(Temperature T, Pressure P, Volume VMol)
 	{
 		var Z = CompressibilityFactor(T, P, VMol);
 		var U = ReferenceMolarInternalEnergy(T, P, VMol);

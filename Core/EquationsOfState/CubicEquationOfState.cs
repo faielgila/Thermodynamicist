@@ -2,6 +2,12 @@
 
 namespace Core.EquationsOfState;
 
+/// <summary>
+/// Abstract representation of any cubic equation of state.
+/// Extends <see cref="EquationOfState"/>.
+/// </summary>
+/// See also: <seealso cref="PengRobinsonEOS"/>, <seealso cref="VanDerWaalsEOS"/>.
+/// </summary>
 public abstract class CubicEquationOfState : EquationOfState
 {
 	protected CubicEquationOfState(Chemical species) : base(species) { }
@@ -13,7 +19,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="P">pressure, measured in [Pa]</param>
 	/// <param name="VMol">molar volume, measured in [m³/mol]</param>
 	/// <returns>value defined by the equation z³+αz²+βz+γ.</returns>
-	public abstract double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol);
+	public abstract double ZCubicEqn(Temperature T, Pressure P, Volume VMol);
 
 	/// <summary>
 	/// Represents the derivative of the cubic equation, defined in <see cref="ZCubicEqn"/>.
@@ -22,7 +28,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="P">pressure, measured in [Pa]</param>
 	/// <param name="VMol">molar volume, measured in [m³/mol]</param>
 	/// <returns>value of the derivative of the cubic equation of state</returns>
-	public abstract double ZCubicDerivative(Temperature T, Pressure P, MolarVolume VMol);
+	public abstract double ZCubicDerivative(Temperature T, Pressure P, Volume VMol);
 
 	/// <summary>
 	/// Gives the value of the molar volume of the inflection point of the cubic equation.
@@ -33,7 +39,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	public abstract double ZCubicInflectionPoint(Temperature T, Pressure P);
 	
 	/// <inheritdoc cref="EquationOfState.PhaseFinder"/>
-	public override (MolarVolume L, MolarVolume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
+	public override (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
 	{
 		/*
 		 * In order to find the roots of the cubic equation, the bisection algorithm needs a range to check for which
@@ -49,11 +55,11 @@ public abstract class CubicEquationOfState : EquationOfState
 		 * the bisection algorithm is applied to the cubic equation over each range
 		 * (excluding the root between the turning points, since it does not correspond to any real state).
 		 */
-		MolarVolume inflectionVMol = ZCubicInflectionPoint(T, P);
-		MolarVolume turningPoint1 = ZCubicTurnFinder(T, P, 0, inflectionVMol);
-		MolarVolume turningPoint2 = ZCubicTurnFinder(T, P, inflectionVMol, 1);
-		MolarVolume VMol_L = ZCubicRootFinder(T, P, 0, turningPoint1);
-		MolarVolume VMol_V = ZCubicRootFinder(T, P, turningPoint2, 1);
+		Volume inflectionVMol = ZCubicInflectionPoint(T, P);
+		Volume turningPoint1 = ZCubicTurnFinder(T, P, 0, inflectionVMol);
+		Volume turningPoint2 = ZCubicTurnFinder(T, P, inflectionVMol, 1);
+		Volume VMol_L = ZCubicRootFinder(T, P, 0, turningPoint1);
+		Volume VMol_V = ZCubicRootFinder(T, P, turningPoint2, 1);
 		
 		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
 		if (ignoreEquilibrium) { return (VMol_L, VMol_V); }
@@ -93,7 +99,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="VMol_L">molar volume of liquid phase, measured in [m³/mol]</param>
 	/// <param name="VMol_V">molar volume of vapor phase, measured in [m³/mol]</param>
 	/// <returns>Tuple of boolean values corresponding to each phase</returns>
-	public (bool L, bool V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, MolarVolume VMol_L, MolarVolume VMol_V)
+	public (bool L, bool V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, Volume VMol_L, Volume VMol_V)
 	{
 		double f_L = FugacityCoeff(T, P, VMol_L);
 		double f_V = FugacityCoeff(T, P, VMol_V);
@@ -115,7 +121,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="P">pressure, measured in [Pa]</param>
 	/// <param name="minVMol">minimum molar volume, measured in [m³/mol]</param>
 	/// <param name="maxVMol">maximum molar volume, measured in [m³/mol]</param>
-	public MolarVolume ZCubicTurnFinder(Temperature T, Pressure P, MolarVolume minVMol, MolarVolume maxVMol)
+	public Volume ZCubicTurnFinder(Temperature T, Pressure P, Volume minVMol, Volume maxVMol)
 	{
 		double midVMol = (minVMol + maxVMol) / 2;
 		while ((maxVMol - minVMol) > precisionLimit)
@@ -141,7 +147,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="P">pressure, measured in [Pa]</param>
 	/// <param name="minVMol">minimum molar volume, measured in [m³/mol]</param>
 	/// <param name="maxVMol">maximum molar volume, measured in [m³/mol]</param>
-	public MolarVolume ZCubicRootFinder(Temperature T, Pressure P, MolarVolume minVMol, MolarVolume maxVMol)
+	public Volume ZCubicRootFinder(Temperature T, Pressure P, Volume minVMol, Volume maxVMol)
 	{
 		double midVMol = (minVMol + maxVMol) / 2;
 		while ((maxVMol - minVMol) > precisionLimit)

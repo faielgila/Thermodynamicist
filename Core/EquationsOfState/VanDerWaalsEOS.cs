@@ -3,10 +3,14 @@ using Core.VariableTypes;
 
 namespace Core.EquationsOfState;
 
+/// <summary>
+/// Represents the van der Waals eqauation of state and related functions.
+/// Extends <see cref="CubicEquationOfState"/>.
+/// </summary>
 public class VanDerWaalsEOS : CubicEquationOfState
 {
-	private double a;
-	private double b;
+	private readonly double a;
+	private readonly double b;
 	
 	public VanDerWaalsEOS(Chemical species) : base(species)
 	{
@@ -17,13 +21,13 @@ public class VanDerWaalsEOS : CubicEquationOfState
 
 	private double A(Temperature T, Pressure P) { return a * P / R / R / T / T; }
 	private double B(Temperature T, Pressure P) { return b * P / R / T; }
-	public override Pressure Pressure(Temperature T, MolarVolume VMol)
+	public override Pressure Pressure(Temperature T, Volume VMol)
 	{
 		return R * T / (VMol - b) - a / (VMol * VMol);
 	}
 
 	// from Sandler, eqn 7.4-13
-	public override double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol)
+	public override double FugacityCoeff(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -33,7 +37,7 @@ public class VanDerWaalsEOS : CubicEquationOfState
 
 	#region Cubic and related equations
 
-	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
+	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -45,7 +49,7 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return term0 + term1 + term2 + term3;
 	}
 
-	public override double ZCubicDerivative(Temperature T, Pressure P, MolarVolume VMol)
+	public override double ZCubicDerivative(Temperature T, Pressure P, Volume VMol)
 	{
 		var prt = P / (R * T);
 		var term2 = 3 * Math.Pow(prt * VMol, 2) * prt;
@@ -63,12 +67,12 @@ public class VanDerWaalsEOS : CubicEquationOfState
 
 	#region Depature functions
 
-	public override MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
 		throw new NotImplementedException();
 	}
 
-	public override MolarEntropy DepartureEntropy(Temperature T, Pressure P, MolarVolume VMol)
+	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		throw new NotImplementedException();
 	}

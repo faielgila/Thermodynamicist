@@ -1,18 +1,10 @@
 ﻿namespace Core.VariableTypes;
 
-public struct MolarVolume
+public class Volume : ThermoVariable
 {
-    private readonly double _value;
-    private readonly ThermoVarRelations _relation;
+    public Volume(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
+        : base(value, relation) { }
 
-    public double Value => _value;
-    
-    public static implicit operator double(MolarVolume VMol) => VMol._value;
-    public static implicit operator MolarVolume(double VMol) => new (VMol);
-
-    public MolarVolume(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
-    {
-        _value = value;
-        _relation = relation;
-    }
+    public static implicit operator double(Volume T) => T.Value;
+    public static implicit operator Volume(double T) => new(T);
 }

@@ -1,18 +1,10 @@
 ﻿namespace Core.VariableTypes;
 
-public struct Pressure
+public class Pressure : ThermoVariable
 {
-	private readonly double _value;
-	private readonly ThermoVarRelations _relation;
-	
-	public double Value => _value;
-	
-	public static implicit operator double(Pressure P) => P._value;
-	public static implicit operator Pressure(double P) => new (P);
+    public Pressure(double value, ThermoVarRelations relation = ThermoVarRelations.Pressure)
+        : base(value, relation) { }
 
-	public Pressure(double value, ThermoVarRelations relation = ThermoVarRelations.Pressure)
-	{
-		_value = value;
-		_relation = relation;
-	}
+    public static implicit operator double(Pressure T) => T.Value;
+    public static implicit operator Pressure(double T) => new(T);
 }

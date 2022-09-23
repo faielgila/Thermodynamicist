@@ -16,15 +16,20 @@ using Core;
 using Core.EquationsOfState;
 using Core.VariableTypes;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 namespace ThermodynamicistUWP
 {
-	/// <summary>
-	/// An empty page that can be used on its own or navigated to within a Frame.
-	/// </summary>
 	public sealed partial class MainPage : Page
 	{
+		public MainViewModel ViewModel
+		{
+			get { return (MainViewModel)GetValue(ViewModelProperty); }
+			set { SetValue(ViewModelProperty, value); }
+		}
+
+		// Using a DependencyProperty as the backing store for ViewModel. This enables animation, styling, binding, etc...
+		public static readonly DependencyProperty ViewModelProperty =
+			DependencyProperty.Register(nameof(ViewModel), typeof(MainViewModel), typeof(MainPage), new PropertyMetadata(null));
+
 		public MainPage()
 		{
 			this.InitializeComponent();
@@ -36,9 +41,10 @@ namespace ThermodynamicistUWP
 				DropdownSpecies.Items.Add(item);
 			}
 		}
-		
+
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
 		{
+			// Get molar volumes of each phase, then determines equilibrium
 			var phaseVMols = EoS.PhaseFinder(T, P, true);
 			var phaseEquilibriums = EoS.IsStateInPhaseEquilbirum(T, P, phaseVMols.L, phaseVMols.V);
 
@@ -54,6 +60,10 @@ namespace ThermodynamicistUWP
 			DataLabel.Text = stateData;
 			GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.V, 5);
 			GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
+
+			// Creates a new view model with the new chemical and equation of state, then updates the plot view
+			ViewModel = new MainViewModel(EoS);
+			MainPlotView.InvalidatePlot();
 		}
 
 		private void ButtonRecalc_Click(object sender, RoutedEventArgs e)
@@ -62,10 +72,8 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 			Chemical species = Constants.ChemicalNames.FirstOrDefault(
 				x => x.Value == DropdownSpecies.SelectedValue.ToString()).Key;
-			PengRobinsonEOS PREoS = new PengRobinsonEOS(species);
-			UpdateData(PREoS, T, P);
-
-			this.Frame.Navigate(typeof(PlotPage));
+			var EoS = new PengRobinsonEOS(species);
+			UpdateData(EoS, T, P);
 		}
 	}
 }

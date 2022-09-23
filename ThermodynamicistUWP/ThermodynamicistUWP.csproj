@@ -126,6 +126,9 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plotting\DataHandler.cs" />
+    <Compile Include="Plotting\FunctionFactory.cs" />
+    <Compile Include="Plotting\LinearEnumerable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,10 +2,14 @@
 
 namespace Core.EquationsOfState;
 
+/// <summary>
+/// Represents the Peng-Robinson eqauation of state and related functions.
+/// Extends <see cref="CubicEquationOfState"/>.
+/// </summary>
 public class PengRobinsonEOS : CubicEquationOfState
 {
-	private double b;
-	private double Kappa;
+	private readonly double b;
+	private readonly double Kappa;
 	
 	public PengRobinsonEOS(Chemical species) : base(species)
 	{
@@ -42,13 +46,13 @@ public class PengRobinsonEOS : CubicEquationOfState
 	
 	#endregion
 
-	public override Pressure Pressure(Temperature T, MolarVolume VMol)
+	public override Pressure Pressure(Temperature T, Volume VMol)
 	{
 		return R * T / (VMol - b) - a(T) / (VMol * VMol + 2 * b * VMol - b * b);
 	}
 
 	// from Sandler, eqn 7.4-14
-	public override double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol)
+	public override double FugacityCoeff(Temperature T, Pressure P, Volume VMol)
 	{
 		var sqrt2 = Math.Sqrt(2);
 		var z = CompressibilityFactor(T, P, VMol);
@@ -60,7 +64,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 	}
 
 	#region Cubic and related equations
-	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
+	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -72,7 +76,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return term3 + term2 + term1 + term0;
 	}
 
-	public override double ZCubicDerivative(Temperature T, Pressure P, MolarVolume VMol)
+	public override double ZCubicDerivative(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -89,12 +93,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 	
 	#region Departure functions
 	
-	/// <summary>
-	/// Calculates the difference between the ideal and real enthalpy at the specified state.
-	/// </summary>
-	/// <returns>Molar Enthalpy, departure</returns>
 	// from Sandler, eqn 6.4-29
-	public override MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
 		var sqrt2 = Math.Sqrt(2);
 		var da = this.Da(T);
@@ -103,11 +103,11 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var B = this.B(T, P);
 		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
 		var value = R * T * (z - 1) + (T * da - a) / (2 * sqrt2 * b) * Math.Log(logPiece);
-		return new MolarEnthalpy(value, ThermoVarRelations.Departure);
+		return new Enthalpy(value, ThermoVarRelations.Departure);
 	}
 	
 	// from Sandler, eqn 6.4-30
-	public override MolarEntropy DepartureEntropy(Temperature T, Pressure P, MolarVolume VMol)
+	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		var sqrt2 = Math.Sqrt(2);
 		var da = this.Da(T);
@@ -116,7 +116,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var B = this.B(T, P);
 		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
 		var value = R * Math.Log(z - B) + da / (2 * sqrt2 * b) * Math.Log(logPiece);
-		return new MolarEntropy(value, ThermoVarRelations.Departure);
+		return new Entropy(value, ThermoVarRelations.Departure);
 	}
 	
 	#endregion

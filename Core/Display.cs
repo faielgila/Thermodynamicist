@@ -23,7 +23,7 @@ public static class Display
 		return ToEngrNotation(number.RoundToSigfigs(sigfigs));
     }
 
-	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, MolarVolume VMol)
+	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol)
 	{
 		var stateVars = EoS.GetAllStateVariables(T, P, VMol);
 		var f = EoS.FugacityCoeff(T, P, VMol);
@@ -41,7 +41,7 @@ public static class Display
 		return formatted;
 	}
 
-	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, MolarVolume VMol, int sigfigs)
+	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol, int sigfigs)
 	{
 		var stateVars = EoS.GetAllStateVariables(T, P, VMol);
 		var f = EoS.FugacityCoeff(T, P, VMol);
