@@ -24,7 +24,7 @@ public class Constants
 		(double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT)
 	> ChemicalData = new()
 	{
-		[Chemical.Ammonia]          = (17.031, 405.6, 11.28e6, 0.184, 239.7),
+		[Chemical.Ammonia]          = (17.031, 405.6, 11.28e6, 0.250, 239.7),
 		[Chemical.Benzene]          = (78.114, 562.1, 4.894e6, 0.212, 353.3),
 		[Chemical.NButane]          = (58.124, 425.2, 3.800e6, 0.193, 272.7),
 		[Chemical.Isobutane]        = (58.124, 408.1, 3.648e6, 0.176, 261.3),

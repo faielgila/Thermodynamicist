@@ -32,7 +32,7 @@
 		{
 			Model = new PlotModel { Title = Constants.ChemicalNames[EoS.Species] + " pressure-volume isotherms" };
 
-			Temperature[] temps = { 275, 280, 285, 290, 295, 300, 305};
+			Temperature[] temps = { 275, 280, 285, 290, 295, 300, 305 };
 
 			foreach (Temperature T in temps)
 			{
