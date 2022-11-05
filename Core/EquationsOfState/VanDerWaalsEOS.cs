@@ -35,9 +35,17 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return Math.Exp(z - 1 - Math.Log(z - B) - A / z);
 	}
 
-	#region Cubic and related equations
+    public override Volume IncreasingIsothermFinder(Temperature T)
+    {
+        var VMol = b;
+        Func<double, double> checkVal = v => { return 2 * a / R / T * (VMol - b) * (VMol - b) / Math.Pow(VMol, 3); };
+        while (checkVal(VMol) <= 1 || Pressure(T, VMol) < 0) { VMol += precisionLimit * Math.Pow(10, 10); }
+        return new Volume(VMol);
+    }
 
-	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
+    #region Cubic and related equations
+
+    public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -58,23 +66,26 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return term2 + term1 + term0;
 	}
 
-	public override double ZCubicInflectionPoint(Temperature T, Pressure P)
+	public override Volume ZCubicInflectionPoint(Temperature T, Pressure P)
 	{
-		return R * T / (3 * P) + b / 3;
+		return new Volume(R * T / (3 * P) + b / 3);
 	}
 	
 	#endregion
 
 	#region Depature functions
 
+	// from Sandler, eqn 6.4-27 solved using van der Waals EoS
 	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
-		throw new NotImplementedException();
+		return new Enthalpy(P * VMol - R * T - a / VMol, ThermoVarRelations.Departure);
 	}
 
-	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
+    // from Sandler, eqn 6.4-28 solved using van der Waals EoS
+    public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{
-		throw new NotImplementedException();
+		var z = CompressibilityFactor(T, P, VMol);
+		return new Entropy(R * T * (z - 1) - a / VMol, ThermoVarRelations.Departure);
 	}
 
 	#endregion

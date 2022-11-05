@@ -63,7 +63,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return Math.Exp(LogFugacityCoeff);
 	}
 
-	#region Cubic and related equations
+	#region Cubic form and derivatives
 	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
@@ -81,18 +81,26 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
 		var B = this.B(T, P);
-		return 3 * z * z + 2 * (-1 + B) * z + (A - 3 * B * B - 2 * B);
+		return 3*z*z + (-1 + B) * 2*z + (A - 3*B*B - 2*B);
 	}
 
-	public override double ZCubicInflectionPoint(Temperature T, Pressure P)
+	public override Volume ZCubicInflectionPoint(Temperature T, Pressure P)
 	{
-		return R * T / (3 * P) - b;
+		return new Volume( R*T/3/P - b/3);
 	}
-	
+
 	#endregion
-	
+
+	public override Volume IncreasingIsothermFinder(Temperature T)
+	{
+		var VMol = b;
+		Func<double, double> checkVal = v => { return 2 * a(T) / R / T * (VMol + b) * (VMol - b) * (VMol - b) / Math.Pow(VMol * VMol + 2 * b * VMol - b * b,2); };
+		while(checkVal(VMol) <= 1 || Pressure(T,VMol) < 0) { VMol += precisionLimit*Math.Pow(10,10); }
+		return new Volume(VMol);
+	}
+
 	#region Departure functions
-	
+
 	// from Sandler, eqn 6.4-29
 	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{

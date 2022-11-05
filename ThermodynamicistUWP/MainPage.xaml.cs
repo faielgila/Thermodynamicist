@@ -44,39 +44,46 @@ namespace ThermodynamicistUWP
 
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
 		{
-			// Get molar volumes of each phase, then determines equilibrium
+			// Get molar volumes of each phase, then determine equilibrium states
 			var phaseVMols = EoS.PhaseFinder(T, P, true);
 			var phaseEquilibriums = EoS.IsStateInPhaseEquilbirum(T, P, phaseVMols.L, phaseVMols.V);
 
-			string phasesString = "";
-			if (phaseEquilibriums.L == 1 && phaseEquilibriums.V == 1) phasesString = "liquid, vapor";
-			if ((phaseEquilibriums.L == 0 || phaseEquilibriums.L == 2)	&& phaseEquilibriums.V == 1) phasesString = "vapor";
-			if (phaseEquilibriums.L == 1 && (phaseEquilibriums.V == 0 || phaseEquilibriums.V == 2)) phasesString = "liquid";
+			string phasesString = "\nPhases at equilibrium: ";
+			if (phaseEquilibriums.L == 1) phasesString += "liquid";
+			if (phaseEquilibriums.L == 1 && phaseEquilibriums.V == 1) phasesString += ", ";
+			if (phaseEquilibriums.V == 1) phasesString += "vapor";
+
+			var Pvap = EoS.VaporPressure(T);
+			string PvapString;
+			if (!Double.IsNaN(Pvap.Value))
+			{
+				PvapString = "\nVapor pressure: " + EoS.VaporPressure(T).Value.ToEngrNotation(5) + " Pa";
+			} else PvapString = "";
 
 			var stateData =
-				"Reference state: (" + 298.15.ToEngrNotation() + " K, " + 100e3.ToEngrNotation() + " Pa) \n" +
-				"Phases at equilibrium: " + phasesString;
+				"Reference state: (" + EoS.ReferenceState.refT.Value.ToEngrNotation() + " K, " + EoS.ReferenceState.refP.Value.ToEngrNotation() + " Pa)" +
+				phasesString + PvapString;
 
 			DataLabel.Text = stateData;
-            if (phaseEquilibriums.V != 2)
-            {
-                GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.V, 5);
-            }
-            else
-            {
-                GroupBoxVapor.Text = "Vapor phase data: \n indeterminate";
-            }
-            if (phaseEquilibriums.L != 2)
-            {
-                GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
-            }
-            else
-            {
-                GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
-            }
+			if (phaseEquilibriums.V != 2)
+			{
+				GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.V, 5);
+			}
+			else
+			{
+				GroupBoxVapor.Text = "Vapor phase data: \n indeterminate";
+			}
+			if (phaseEquilibriums.L != 2)
+			{
+				GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
+			}
+			else
+			{
+				GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
+			}
 
-            // Creates a new view model with the new chemical and equation of state, then updates the plot view
-            ViewModel = new MainViewModel(EoS);
+			// Creates a new view model with the new chemical and equation of state, then updates the plot view
+			ViewModel = new MainViewModel(EoS);
 			MainPlotView.InvalidatePlot();
 		}
 

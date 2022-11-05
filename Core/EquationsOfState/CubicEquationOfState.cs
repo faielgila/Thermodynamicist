@@ -36,7 +36,7 @@ public abstract class CubicEquationOfState : EquationOfState
 	/// <param name="T">temperature, measured in [K]</param>
 	/// <param name="P">pressure, measured in [Pa]</param>
 	/// <returns>molar volume, measured in [m³/mol]</returns>
-	public abstract double ZCubicInflectionPoint(Temperature T, Pressure P);
+	public abstract Volume ZCubicInflectionPoint(Temperature T, Pressure P);
 	
 	/// <inheritdoc cref="EquationOfState.PhaseFinder"/>
 	public override (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
