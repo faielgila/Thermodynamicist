@@ -9,10 +9,6 @@ using System.Threading.Tasks;
 namespace ThermodynamicistUWP.Plotting
 {
 
-	/// <summary>
-	/// 
-	/// </summary>
-	/// <remarks>Contributed by Yoshi Askharoun.</remarks>
 	public static class FunctionFactory
 	{
 		/// <summary>

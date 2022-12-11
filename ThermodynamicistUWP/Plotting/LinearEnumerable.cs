@@ -4,7 +4,11 @@ using System.Collections.Generic;
 
 namespace ThermodynamicistUWP.Plotting
 {
-    public class LinearEnumerable : IEnumerable<double>
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <remarks>Contributed by Yoshi Askharoun.</remarks>
+	public class LinearEnumerable : IEnumerable<double>
     {
         public double Min { get; }
         public double Max { get; }

@@ -40,6 +40,10 @@ namespace ThermodynamicistUWP
 				string item = Constants.ChemicalNames[chemical];
 				DropdownSpecies.Items.Add(item);
 			}
+
+			// Initializes equation of state list in EoS dropdown
+			DropdownEoS.Items.Add("van der Waals");
+			DropdownEoS.Items.Add("Peng-Robinson");
 		}
 
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
@@ -93,7 +97,19 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 			Chemical species = Constants.ChemicalNames.FirstOrDefault(
 				x => x.Value == DropdownSpecies.SelectedValue.ToString()).Key;
-			var EoS = new PengRobinsonEOS(species);
+			CubicEquationOfState EoS;
+			switch (DropdownEoS.SelectedValue.ToString())
+			{
+				case "van der Waals":
+					EoS = new VanDerWaalsEOS(species);
+					break;
+				case "Peng-Robinson":
+					EoS = new PengRobinsonEOS(species);
+					break;
+				default:
+					EoS = new PengRobinsonEOS(species);
+					break;
+			}
 			UpdateData(EoS, T, P);
 		}
 	}

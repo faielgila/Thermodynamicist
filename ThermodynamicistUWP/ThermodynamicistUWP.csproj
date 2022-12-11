@@ -127,6 +127,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plotting\DataHandler.cs" />
+    <Compile Include="Plotting\EOSPlotting.cs" />
     <Compile Include="Plotting\FunctionFactory.cs" />
     <Compile Include="Plotting\LinearEnumerable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

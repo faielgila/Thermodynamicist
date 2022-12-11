@@ -28,6 +28,7 @@
             <muxc:NumberBox x:Name="NumBoxP" PlaceholderText="pressure" AcceptsExpression="True"/>
             <TextBlock Text="Pa)" VerticalAlignment="Center" Margin="5, 0, 0, 0"/>
             <ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species" Margin="20, 0, 0, 0"/>
+			<ComboBox x:Name="DropdownEoS" PlaceholderText="Pick an EoS" Margin="20, 0, 0, 0"/>
             <Button x:Name="ButtonRecalc" Click="ButtonRecalc_Click" Style="{StaticResource AccentButtonStyle}" Content="Recalculate" Margin="20, 0, 0, 0" Grid.Row="1"/>
         </StackPanel>
         <TextBlock x:Name="DataLabel" Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0" />
