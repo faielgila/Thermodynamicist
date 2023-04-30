@@ -6,6 +6,9 @@ namespace Core;
 
 public static class Display
 {
+	/// <summary>
+	/// Generates a text-form of a number in engineering notation.
+	/// </summary>
 	public static string ToEngrNotation(this double number)
 	{
 		if (number == 0) return number.ToString(CultureInfo.CurrentCulture);
@@ -18,45 +21,62 @@ public static class Display
 		return mantissa + "×10" + exponent.IntToSuperscript();
 	}
 
-	public static string ToEngrNotation(this double number, int sigfigs)
+    /// <summary>
+    /// Generates a text-form of a number rounded to the specified significant figures in engineering notation.
+    /// </summary>
+    public static string ToEngrNotation(this double number, int sigfigs)
     {
 		return ToEngrNotation(number.RoundToSigfigs(sigfigs));
     }
 
-	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol)
+    /// <summary>
+    /// Generates a list of the values of every state variable for the system.
+    /// </summary>
+    /// <param name="EoS">Equation of state, contains equations for calculating state variables</param>
+    /// <param name="T">Temperature of the system, in [K]</param>
+    /// <param name="P">Pressure of the system, in [P]</param>
+    /// <param name="VMol">Molar volume of the system, in [m³/mol]</param>
+    public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol)
 	{
-		var stateVars = EoS.GetAllStateVariables(T, P, VMol);
-		var f = EoS.FugacityCoeff(T, P, VMol);
+		var (Z, U, H, S, G, A, f) = EoS.GetAllStateVariables(T, P, VMol);
 
 		var formatted =
-			"Z = " + stateVars.Z.ToEngrNotation() + "\n" +
+			"Z = " + Z.ToEngrNotation() + "\n" +
 			"V = " + VMol.Value.ToEngrNotation() + " m³/mol \n" +
-			"U = " + stateVars.U.Value.ToEngrNotation() + " J/mol \n" +
-			"H = " + stateVars.H.Value.ToEngrNotation() + " J/mol \n" +
-			"S = " + stateVars.S.Value.ToEngrNotation() + " J/mol/K \n" +
-			"G = " + stateVars.G.Value.ToEngrNotation() + " J/mol/K \n" +
-			"A = " + stateVars.A.Value.ToEngrNotation() + " J/mol/K \n" +
+			"U = " + U.Value.ToEngrNotation() + " J/mol \n" +
+			"H = " + H.Value.ToEngrNotation() + " J/mol \n" +
+			"S = " + S.Value.ToEngrNotation() + " J/mol/K \n" +
+			"G = " + G.Value.ToEngrNotation() + " J/mol/K \n" +
+			"A = " + A.Value.ToEngrNotation() + " J/mol/K \n" +
+			"f = " + (f*P).ToEngrNotation() + " Pa \n" +
 			"φ = " + f.ToEngrNotation();
 
 		return formatted;
 	}
 
-	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol, int sigfigs)
+    /// <summary>
+    /// Generates a list of the values of every state variable for the system rounded to the significant figures provided.
+    /// </summary>
+    /// <param name="EoS">Equation of state, contains equations for calculating state variables</param>
+    /// <param name="T">Temperature of the system, in [K]</param>
+    /// <param name="P">Pressure of the system, in [P]</param>
+    /// <param name="VMol">Molar volume of the system, in [m³/mol]</param>
+    public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol, int sigfigs)
 	{
-		var stateVars = EoS.GetAllStateVariables(T, P, VMol);
-		var f = EoS.FugacityCoeff(T, P, VMol);
+		var (Z, U, H, S, G, A, f) = EoS.GetAllStateVariables(T, P, VMol);
 
 		var formatted =
-			"Z = " + stateVars.Z.ToEngrNotation(sigfigs) + "\n" +
+			"Z = " + Z.ToEngrNotation(sigfigs) + "\n" +
 			"V = " + VMol.Value.ToEngrNotation(sigfigs) + " m³/mol \n" +
-			"U = " + stateVars.U.Value.ToEngrNotation(sigfigs) + " J/mol \n" +
-			"H = " + stateVars.H.Value.ToEngrNotation(sigfigs) + " J/mol \n" +
-			"S = " + stateVars.S.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"G = " + stateVars.G.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"A = " + stateVars.A.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"φ = " + f.ToEngrNotation(sigfigs);
+			"U = " + U.Value.ToEngrNotation(sigfigs) + " J/mol \n" +
+			"H = " + H.Value.ToEngrNotation(sigfigs) + " J/mol \n" +
+			"S = " + S.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
+			"G = " + G.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
+			"A = " + A.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
+            "f = " + (f * P).ToEngrNotation() + " Pa \n" +
+            "φ = " + f.ToEngrNotation();
 
-		return formatted;
+        return formatted;
 	}
 
 	static double RoundToSigfigs(this double d, int digits)
@@ -68,6 +88,9 @@ public static class Display
 		return scale * Math.Round(d / scale, digits);
 	}
 
+	/// <summary>
+	/// Returns the superscript Unicode character for the integer provided.
+	/// </summary>
 	static string IntToSuperscript(this int exp)
     {
 		char[] chars = exp.ToString().ToArray();
@@ -94,4 +117,23 @@ public static class Display
 		{ '-', "⁻" }
 	};
 
+	public static class Colors
+	{
+		/// <summary>
+		/// Assigns a hue to each temperature relative to the critical temperature.
+		/// </summary>
+		/// <param name="T">Temperature, in [K]</param>
+		/// <param name="critT">Critical temperature, in [K]</param>
+		/// <returns>Blue if 50 K below critical or more, red if at critical,
+		/// purple if 25 K above critical or more, interpolated colors inbetween.</returns>
+		public static double HueTemperatureMap(Temperature T, Temperature critT)
+		{
+            double t = T - critT;
+            if (t <= -50) return 0.5;
+            if (t >= 25) return 0.75;
+            if (t > -50 && t < 0) return -t / 100;
+			if (t > 0 && t < 25) return 1 - t / 100;
+			else return 0;
+        }
+	}
 }

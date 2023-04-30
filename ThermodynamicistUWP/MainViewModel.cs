@@ -11,7 +11,6 @@
 	using ThermodynamicistUWP.Plotting;
 	using Core;
 	using System.Threading.Tasks;
-	using System.Xml.Linq;
 
 	public class MainViewModel
 	{
@@ -33,12 +32,17 @@
 		public void Update()
 		{
 			Model = new PlotModel { Title = Constants.ChemicalNames[EoS.Species] + " pressure-volume isotherms" };
-			var critT = Constants.ChemicalData[EoS.Species].critT;
+			var critT = EoS.speciesData.critT;
 
-			Temperature[] temps = { critT-30, critT-20, critT-10, critT-5, critT, critT+5 };
+			Temperature[] temps = {
+				critT-50, critT-20, critT-10, critT-5,
+				critT, 273.15,
+				critT+5, critT+10, critT+20, critT+50 };
 
 			// Add the pressure-volume (true) isotherm for each temperature to the plot. Uses parallelization.
-			Parallel.ForEach(temps, T => Model.Series.Add(new FunctionSeries(FunctionFactory.PVTrueIsotherm(EoS, T), 3e-5, 5e-4, 500, "T = " + (double)T + "K")));
+			Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T)));
+            // Add the pressure-volume s-curve isotherm for each temperature to the plot. Uses parallelization.
+            Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T, false)));
 
 			Model.Axes.Add(new LinearAxis {
 				Position = AxisPosition.Bottom, Minimum = 3e-5, Maximum = 5e-4, Title = "Molar Volume [m³/mol]"

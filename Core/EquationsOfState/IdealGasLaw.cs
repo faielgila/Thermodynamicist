@@ -19,6 +19,6 @@ public static class IdealGasLaw
 	/// </summary>
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
-	/// <returns>Molar Volume, ideal gas</returns>
+	/// <returns>ideal gas molar volume, in [m³/mol]</returns>
 	public static Volume Volume(Temperature T, Pressure P) { return R * T / P; }
 }
