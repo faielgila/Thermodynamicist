@@ -57,17 +57,20 @@ namespace ThermodynamicistUWP
 			if (phaseEquilibriums.L == 1 && phaseEquilibriums.V == 1) phasesString += ", ";
 			if (phaseEquilibriums.V == 1) phasesString += "vapor";
 
+			// Calculate and display vapor pressure, if applicable
 			var Pvap = EoS.VaporPressure(T);
 			string PvapString;
 			if (!Double.IsNaN(Pvap.Value))
 			{
 				PvapString = "\nVapor pressure: " + EoS.VaporPressure(T).Value.ToEngrNotation(5) + " Pa";
 			} else PvapString = "";
-
+			
+			// Display reference state used for calculations
 			var stateData =
 				"Reference state: (" + EoS.ReferenceState.refT.Value.ToEngrNotation() + " K, " + EoS.ReferenceState.refP.Value.ToEngrNotation() + " Pa)" +
 				phasesString + PvapString;
 
+			// Calculate and display state variables for each phase
 			DataLabel.Text = stateData;
 			if (phaseEquilibriums.V != 2)
 			{

@@ -20,6 +20,11 @@ public class PengRobinsonEOS : CubicEquationOfState
 
 	#region Parameters
 
+	/// <summary>
+	/// Calculates the parameter "a" for the PR EoS.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <returns>unitless empirical constant</returns>
 	private double a(Temperature T)
 	{
 		var critT = speciesData.critT;
@@ -29,21 +34,20 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return aleph * alpha;
 	}
 	
+	// The following four methods evaluate expressions that are common in equations derived from the Peng-Robinson EoS.
 	private double A(Temperature T, Pressure P) { return a(T) * P / R / R / T / T; }
 	private double B(Temperature T, Pressure P) { return b * P / R / T; }
-
 	private double Alpha(Temperature T)
 	{
 		return Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / speciesData.critT)), 2);
 	}
-
 	private double Da(Temperature T)
 	{
 		var critTemp = speciesData.critT;
 		var critPres = speciesData.critP;
 		return -0.45724 * Math.Pow(R * critTemp, 2) / critPres * Kappa * Math.Sqrt(Alpha(T) / critTemp / T);
 	}
-	
+
 	#endregion
 
 	public override Pressure Pressure(Temperature T, Volume VMol)
@@ -113,7 +117,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var value = R * T * (z - 1) + (T * da - a) / (2 * sqrt2 * b) * Math.Log(logPiece);
 		return new Enthalpy(value, ThermoVarRelations.Departure);
 	}
-	
+
 	// from Sandler, eqn 6.4-30
 	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{

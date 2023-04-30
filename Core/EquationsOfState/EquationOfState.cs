@@ -87,6 +87,12 @@ public abstract class EquationOfState
 	/// <returns>fugacity, unitless. f = φP</returns>
 	public double Fugacity(Temperature T, Pressure P, Volume VMol) { return FugacityCoeff(T, P, VMol) * P; }
 
+	/// <summary>
+	/// Calculates the saturation pressure for liquid-vapor equilibrium, i.e. the vapor pressure.
+	/// If the temperature is above the critical temperature, the vapor pressure will be returned as NaN.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
 	public Pressure? VaporPressure(Temperature T)
 	{
 		// Check if a vapor pressure exists at the temperature.
@@ -206,7 +212,6 @@ public abstract class EquationOfState
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
 	/// <returns>Molar Entropy, departure</returns>
-	/// Departure is dependent on the equation of state used, so this must be defined for each EoS.</remarks>
 	public abstract Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol);
 
 	/// <summary>
@@ -216,8 +221,7 @@ public abstract class EquationOfState
 	/// <param name="T1">Initial temperature</param>
 	/// <param name="T2">Final temperature</param>
 	/// <returns>Molar entropy, change</returns>
-	/// <exception cref="NotImplementedException">
-	/// Use of high-temperature Cp data is not currently supported.</exception>
+	/// <exception cref="NotImplementedException"> Use of high-temperature Cp data is not currently supported.</exception>
 	public Entropy IdealMolarEntropyChange(Temperature T1, Pressure P1, Temperature T2, Pressure P2)
 	{
 		double[] c;
@@ -327,6 +331,14 @@ public abstract class EquationOfState
 	/// Returns 0 if the phase is not present.</returns>
 	public abstract (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
 
+	/// <summary>
+	/// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <param name="VMol">molar volume of phase, in [m³/mol]</param>
+	/// <returns>List of variables: compressibility factor, molar internal energy,
+	/// molar enthalpy, molar entropy, molar Gibbs energy, molar Helmholtz energy, and fugacity coefficient.</returns>
 	public (double Z, InternalEnergy U, Enthalpy H, Entropy S, GibbsEnergy G, HelmholtzEnergy A, double f)
 		GetAllStateVariables(Temperature T, Pressure P, Volume VMol)
 	{
