@@ -44,6 +44,13 @@ namespace ThermodynamicistUWP
 			// Initializes equation of state list in EoS dropdown
 			DropdownEoS.Items.Add("van der Waals");
 			DropdownEoS.Items.Add("Peng-Robinson");
+
+			// Sets values to defaults
+			NumBoxT.Value = 273;
+			NumBoxP.Value = 101325;
+			DropdownSpecies.SelectedValue = "Water";
+			DropdownEoS.SelectedValue = "Peng-Robinson";
+			ToggleSCurve.IsOn = false;
 		}
 
 		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
@@ -90,12 +97,20 @@ namespace ThermodynamicistUWP
 			}
 
 			// Creates a new view model with the new chemical and equation of state, then updates the plot view
-			ViewModel = new MainViewModel(EoS);
+			ViewModel = new MainViewModel(EoS, ToggleSCurve.IsOn);
 			MainPlotView.InvalidatePlot();
 		}
 
-		private void ButtonRecalc_Click(object sender, RoutedEventArgs e)
+		private void RefreshCalculations(object sender, RoutedEventArgs e)
 		{
+			// If any inputs are not set, do not attempt to run calculations!
+			if (
+				Double.IsNaN(NumBoxT.Value) ||
+				Double.IsNaN(NumBoxP.Value) ||
+				DropdownSpecies.SelectedItem == null ||
+				DropdownEoS.SelectedItem == null
+				) return;
+
 			var T = new Temperature(NumBoxT.Value);
 			var P = new Pressure(NumBoxP.Value);
 			Chemical species = Constants.ChemicalNames.FirstOrDefault(
@@ -115,5 +130,11 @@ namespace ThermodynamicistUWP
 			}
 			UpdateData(EoS, T, P);
 		}
-	}
+
+        // TODO: This seems like a terrible hack for this problem...
+        private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
+        {
+			RefreshCalculations(sender, null);
+        }
+    }
 }

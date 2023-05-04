@@ -54,7 +54,7 @@ namespace ThermodynamicistUWP.Plotting
         /// <param name="usePvap">Option to ignore vapor pressure in favor of the s-curve in the VLE region.</param>
         public static FunctionSeries FS_PVIsotherm(EquationOfState EoS, Temperature T, bool usePvap = true)
 		{
-            var FS = new FunctionSeries(PVIsotherm(EoS, T, usePvap), 3e-5, 5e-4, 500, "T = " + (double)T + "K")
+            var FS = new FunctionSeries(PVIsotherm(EoS, T, usePvap), 3e-5, .002, 1000, "T = " + (double)T + "K")
             {
                 Color = OxyColor.FromHsv(new double[] { Display.Colors.HueTemperatureMap(T, EoS.speciesData.critT), 1, 1 })
             };

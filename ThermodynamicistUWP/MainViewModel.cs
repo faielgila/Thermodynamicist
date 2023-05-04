@@ -18,9 +18,12 @@
 
 		public EquationOfState EoS { get; set; }
 
-		public MainViewModel(EquationOfState equationOfState)
+		private bool ShowSCurves { get; set; }
+
+		public MainViewModel(EquationOfState equationOfState, bool showSCurves = false)
 		{
 			EoS = equationOfState;
+			ShowSCurves = showSCurves;
 			Update();
 		}
 
@@ -36,19 +39,18 @@
 
 			Temperature[] temps = {
 				critT-50, critT-20, critT-10, critT-5,
-				critT, 273.15,
-				critT+5, critT+10, critT+20, critT+50 };
+				critT, 273.15 };
 
 			// Add the pressure-volume (true) isotherm for each temperature to the plot. Uses parallelization.
 			Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T)));
             // Add the pressure-volume s-curve isotherm for each temperature to the plot. Uses parallelization.
-            Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T, false)));
+			if (ShowSCurves) Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T, false)));
 
 			Model.Axes.Add(new LinearAxis {
-				Position = AxisPosition.Bottom, Minimum = 3e-5, Maximum = 5e-4, Title = "Molar Volume [m³/mol]"
+				Position = AxisPosition.Bottom, Minimum = 3e-5, Maximum = .001, Title = "Molar Volume [m³/mol]"
 			});
 			Model.Axes.Add(new LinearAxis {
-				Position = AxisPosition.Left, Minimum = 1e6, Maximum = 1e8, Title = "Pressure [Pa]"
+				Position = AxisPosition.Left, Minimum = 1e5, Maximum = 4e7, Title = "Pressure [Pa]"
 			});
 		}
 	}
