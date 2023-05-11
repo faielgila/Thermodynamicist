@@ -1,7 +1,7 @@
 # Thermodynamicist
-Does some thermodynamic calculations for chemical engineering.
-Many equations as well as the built-in data tables are pulled from Sandler's *Chemical, Biochemical, and Engineering Thermodynamics (5th edition)*.
-Those equations are referenced with comments above the relevant code.
+*Thermodynamicist* is a thermodynamics calculator and process simulation program, built to be simple-to-use while also being widely applicable.
+
+Most equations are pulled from Sandler's *Chemical, Biochemical, and Engineering Thermodynamics (5th edition)*, while most of the chemical data comes from *Perry's Chemical Engineering Handbook*. These references are cited in the relevant code which makes use of them.
 
 ## History
 The spiritual predecessor to this program was written in MATLAB by Professor Ali Mohraz from the University of California, Irvine.
