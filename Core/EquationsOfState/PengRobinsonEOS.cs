@@ -67,6 +67,14 @@ public class PengRobinsonEOS : CubicEquationOfState
 		return Math.Exp(LogFugacityCoeff);
 	}
 
+	#region Partial derivatives
+	public override double PVPartialDerivative(Temperature T, Volume VMol)
+	{
+		return -R * T / Math.Pow(VMol - b, 2) + 2 * a(T) * (VMol - b) / Math.Pow(VMol * VMol + 2 * b * VMol - b * b, 2);
+	}
+
+	#endregion
+
 	#region Cubic form and derivatives
 	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
@@ -95,11 +103,13 @@ public class PengRobinsonEOS : CubicEquationOfState
 
 	#endregion
 
+	// TODO: Employ a better root-finding algorithm on the first derivative to make this function more robust for temperatures
+	// very close to the critical temperature, where the s-curve region is very small and easy to miss using the current method.
 	public override Volume IncreasingIsothermFinder(Temperature T)
 	{
 		var VMol = b;
-		Func<double, double> checkVal = v => { return 2 * a(T) / R / T * (VMol + b) * (VMol - b) * (VMol - b) / Math.Pow(VMol * VMol + 2 * b * VMol - b * b,2); };
-		while(checkVal(VMol) <= 1 || Pressure(T,VMol) < 0) { VMol += precisionLimit*Math.Pow(10,10); }
+		double checkVal(double v) { return 2 * a(T) / R / T * (v + b) * (v - b) * (v - b) / Math.Pow(v * v + 2 * b * v - b * b, 2); }
+		while (checkVal(VMol) <= 1 || Pressure(T,VMol) < 0) { VMol += precisionLimit*Math.Pow(10,10); }
 		return new Volume(VMol);
 	}
 
@@ -123,7 +133,6 @@ public class PengRobinsonEOS : CubicEquationOfState
 	{
 		var sqrt2 = Math.Sqrt(2);
 		var da = this.Da(T);
-		var a = this.a(T);
 		var z = CompressibilityFactor(T, P, VMol);
 		var B = this.B(T, P);
 		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);

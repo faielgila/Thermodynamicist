@@ -19,8 +19,11 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		b = R * speciesData.critT / (8 * speciesData.critP);
 	}
 
+	#region Parameters
 	private double A(Temperature T, Pressure P) { return a * P / R / R / T / T; }
 	private double B(Temperature T, Pressure P) { return b * P / R / T; }
+
+	#endregion
 	public override Pressure Pressure(Temperature T, Volume VMol)
 	{
 		return R * T / (VMol - b) - a / (VMol * VMol);
@@ -35,15 +38,23 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return Math.Exp(z - 1 - Math.Log(z - B) - A / z);
 	}
 
-    public override Volume IncreasingIsothermFinder(Temperature T)
+	#region Partial derivatives
+	public override double PVPartialDerivative(Temperature T, Volume VMol)
+	{
+		return -R * T / Math.Pow(VMol - b, 2) + 2 * a / Math.Pow(VMol, 3);
+	}
+
+	#endregion
+
+	public override Volume IncreasingIsothermFinder(Temperature T)
     {
         var VMol = b;
-        Func<double, double> checkVal = v => { return 2 * a / R / T * (VMol - b) * (VMol - b) / Math.Pow(VMol, 3); };
-        while (checkVal(VMol) <= 1 || Pressure(T, VMol) < 0) { VMol += precisionLimit * Math.Pow(10, 10); }
+		double checkVal(double v) { return 2 * a / R / T * (v - b) * (v - b) / Math.Pow(VMol, 3); }
+		while (checkVal(VMol) <= 1 || Pressure(T, VMol) < 0) { VMol += precisionLimit * Math.Pow(10, 10); }
         return new Volume(VMol);
     }
 
-    #region Cubic and related equations
+    #region Cubic form and derivatives
 
     public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{

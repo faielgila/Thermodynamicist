@@ -56,6 +56,12 @@ public abstract class EquationOfState
 	public abstract Pressure Pressure(Temperature T, Volume VMol);
 
 	/// <summary>
+	/// Calculates the molar volume of the species at the critical point using the given equation of state.
+	/// </summary>
+	/// <returns>critical molar volume</returns>
+	public abstract Volume CriticalMolarVolume();
+
+	/// <summary>
 	/// Returns the compressibility factor in the given state,
 	/// defined by temperature, pressure, and molar volume.
 	/// </summary>
@@ -93,10 +99,10 @@ public abstract class EquationOfState
 	/// </summary>
 	/// <param name="T">temperature, in [K]</param>
 	/// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
-	public Pressure? VaporPressure(Temperature T)
+	public virtual Pressure? VaporPressure(Temperature T)
 	{
 		// Check if a vapor pressure exists at the temperature.
-		if (T > speciesData.critT) { return new Pressure(Double.NaN, ThermoVarRelations.VaporPressure); }
+		if (T >= speciesData.critT) { return new Pressure(Double.NaN, ThermoVarRelations.VaporPressure); }
 
 		// Come up with an initial guess for the pressure.
 		// Guess must be within the S-curve region of the isotherm or this method will not converge.
@@ -164,10 +170,15 @@ public abstract class EquationOfState
 			throw new NotImplementedException();
 		}
 
-		var deltaT2 = T2 * T2 - T1 * T1;
-		var deltaT3 = T2 * T2*T2 - T1 * T1*T1;
-		var deltaT4 = Math.Pow(T2,4) - Math.Pow(T1,4);
-		var value = c[0] * (T2 - T1) + c[1]/2 * deltaT2 + c[2]/3 * deltaT3 + c[3]/4 * deltaT4;
+		// Evaluates the integral of ideal heat capacity with respect to temperature from T1 to T2.
+		// ΔH* = ∫ Cp* dT
+		double value = 0;
+		var deltaT = new double[c.Length];
+		for (int i = 0; i < c.Length; i++)
+		{
+			deltaT[i] = Math.Pow(T2, i + 1) - Math.Pow(T1, i + 1);
+			value += c[i] * deltaT[i] / (i + 1);
+		}
 		return new Enthalpy(value, ThermoVarRelations.Change);
 	}
 	
@@ -328,7 +339,7 @@ public abstract class EquationOfState
 	/// <param name="ignoreEquilibrium">skips fugacity comparison which determines phase equilibrium state</param>
 	/// <returns>
 	/// Molar volume at each the liquid and vapor phases, in [m³/mol].
-	/// Returns 0 if the phase is not present.</returns>
+	/// Returns NaN if the phase is not present.</returns>
 	public abstract (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
 
 	/// <summary>
