@@ -70,7 +70,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 	#region Partial derivatives
 	public override double PVPartialDerivative(Temperature T, Volume VMol)
 	{
-		return -R * T / Math.Pow(VMol - b, 2) + 2 * a(T) * (VMol - b) / Math.Pow(VMol * VMol + 2 * b * VMol - b * b, 2);
+		return -R * T / Math.Pow(VMol - b, 2) + 2 * a(T) * (VMol + b) / Math.Pow(VMol * VMol + 2 * b * VMol - b * b, 2);
 	}
 
 	#endregion
