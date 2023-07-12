@@ -55,10 +55,20 @@ public abstract class EquationOfState
 	/// <returns>pressure, measured in [Pa]</returns>
 	public abstract Pressure Pressure(Temperature T, Volume VMol);
 
+	#region Pressure partial derivatives
+	/// <summary>
+	/// Analytically calculates the derivative of pressure with respect to molar volume, holding temperature constant.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="VMol">molar volume, in [m³/mol]</param>
+	/// <returns>change in P relative to change in V, (∂P/∂V)|T, in [J/mol]</returns>
+	public abstract double PVPartialDerivative(Temperature T, Volume VMol);
+	#endregion
+
 	/// <summary>
 	/// Calculates the molar volume of the species at the critical point using the given equation of state.
 	/// </summary>
-	/// <returns>critical molar volume</returns>
+	/// <returns>critical molar volume, in [m³/mol]</returns>
 	public abstract Volume CriticalMolarVolume();
 
 	/// <summary>
@@ -102,35 +112,47 @@ public abstract class EquationOfState
 	public virtual Pressure? VaporPressure(Temperature T)
 	{
 		// Check if a vapor pressure exists at the temperature.
-		if (T >= speciesData.critT) { return new Pressure(Double.NaN, ThermoVarRelations.VaporPressure); }
+		if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
 
-		// Come up with an initial guess for the pressure.
-		// Guess must be within the S-curve region of the isotherm or this method will not converge.
-		var P = Pressure(T, IncreasingIsothermFinder(T));
+		/* Initial guess must be within the S-curve region of the isotherm or this method will not converge.
+		 * Because the critical point is the state for which the liquid and vapor phases will diverge from
+		 * (as the temperature and/or pressure drops below the critical point), the critical volume must
+		 * be in-between the volumes of the liquid and vapor phases; that is, the critical volume always
+		 * lies inside the s-curve region. That means that the critical volume provides a perfect starting point.
+		 * This fulfills the first of two requirements for a good initial guess for the Sandler algorithm employed below.
+		 */
+		var VMol = CriticalMolarVolume();
+
+		/* Because the critical molar volume is guaranteed to be inside the s-curve region, simple
+		 * gradient ascent can be applied until the pressure is positive. If the pressure is already positive,
+		 * then the ascent loop is skipped.
+		 * This fulfills the second requirement for a good initial guess.
+		 */
+		// The learning rate has to adapt to the exaggerated shape of isotherms far below the critical temperature.
+		var h = Math.Pow(10, -16.5 + 2 / speciesData.critT - 2 / T);
+		var P = Pressure(T, VMol);
+		while (P <= 0)
+		{
+			VMol += h * PVPartialDerivative(T, VMol);
+			P = Pressure(T, VMol);
+		}
 
 		var v = PhaseFinder(T, P, true); // get the molar volumes for the two phases
-		var f_L = Fugacity(T, P, v.L); // fugacity for the liquid phase
-		var f_V = Fugacity(T, P, v.V); // fugacity for the vapor phase
+		var f_L = Fugacity(T, P, v["liquid"]); // fugacity for the liquid phase
+		var f_V = Fugacity(T, P, v["vapor"]); // fugacity for the vapor phase
 
 		// Increment the initial pressure guess until precision is reached.
 		// taken from Sandler, Figure 7.5-1
-		while (Math.Abs(f_L/f_V - 1) > precisionLimit*Math.Pow(10,5))
+		while (Math.Abs(f_L / f_V - 1) > precisionLimit * Math.Pow(10, 5))
 		{
 			P = P * f_L / f_V;
 			v = PhaseFinder(T, P, true);
-			f_L = Fugacity(T, P, v.L);
-			f_V = Fugacity(T, P, v.V);
+			f_L = Fugacity(T, P, v["liquid"]);
+			f_V = Fugacity(T, P, v["vapor"]);
 		}
 
-		return new Pressure(P,ThermoVarRelations.VaporPressure);
+		return new Pressure(P, ThermoVarRelations.VaporPressure);
 	}
-
-	/// <summary>
-	/// Finds the molar volume of the lower bound of the S-curve region of an isotherm.
-	/// </summary>
-	/// <param name="T">temperature, in [K]</param>
-	/// <returns>molar volume, in [m³/mol]</returns>
-	public abstract Volume IncreasingIsothermFinder(Temperature T);
 
 	#region State Variables - Enthalpy
 
@@ -337,10 +359,34 @@ public abstract class EquationOfState
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="ignoreEquilibrium">skips fugacity comparison which determines phase equilibrium state</param>
-	/// <returns>
-	/// Molar volume at each the liquid and vapor phases, in [m³/mol].
-	/// Returns NaN if the phase is not present.</returns>
-	public abstract (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
+	/// <returns> Dictionary: phase name stored as the keystring, and molar volume for each phase [m³/mol].</returns>
+	public abstract Dictionary<string, Volume> PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false);
+
+	/// <summary>
+	/// Creates a list of the phases present at equilibrium by comparing fugacities.
+	/// </summary>
+	/// <param name="T">temperature, measured in [K]</param>
+	/// <param name="P">pressure, measured in [Pa]</param>
+	/// <returns> Dictionary: phase name stored as the keystring, and molar volume for each phase [m³/mol].</returns>
+	public Dictionary<string, Volume> EquilibriumPhases(Temperature T, Pressure P)
+	{
+		var phases = PhaseFinder(T, P, ignoreEquilibrium: true);
+		var phasesEquil = new Dictionary<string, Volume>();
+		
+		var minFugacityCoeff = FugacityCoeff(T, P, phases.Values.Min());
+		foreach (var currentKey in phases.Keys)
+		{
+			// Calculate the fugacity for the current phase.
+			var currentFugacityCoeff = FugacityCoeff(T, P, phases[currentKey]);
+
+			// If the fugacity is close to the minimum fugacity phase, it's probably in equilibrium.
+			if (Math.Abs(currentFugacityCoeff - minFugacityCoeff) < 0.1) { continue; }
+
+			// Otherwise, it is larger and will not be present in equilibrium.
+			else { phasesEquil.Add(currentKey, phases[currentKey]); }
+		}
+		return phasesEquil;
+	}
 
 	/// <summary>
 	/// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.

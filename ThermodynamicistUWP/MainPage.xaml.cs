@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using Core;
 using Core.EquationsOfState;
 using Core.VariableTypes;
@@ -20,19 +10,9 @@ namespace ThermodynamicistUWP
 {
 	public sealed partial class MainPage : Page
 	{
-		public MainViewModel ViewModel
-		{
-			get { return (MainViewModel)GetValue(ViewModelProperty); }
-			set { SetValue(ViewModelProperty, value); }
-		}
-
-		// Using a DependencyProperty as the backing store for ViewModel. This enables animation, styling, binding, etc...
-		public static readonly DependencyProperty ViewModelProperty =
-			DependencyProperty.Register(nameof(ViewModel), typeof(MainViewModel), typeof(MainPage), new PropertyMetadata(null));
-
 		public MainPage()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 
 			// Initializes chemical list in species dropdown
 			foreach (Chemical chemical in Enum.GetValues(typeof(Chemical)))
@@ -44,32 +24,34 @@ namespace ThermodynamicistUWP
 			// Initializes equation of state list in EoS dropdown
 			DropdownEoS.Items.Add("van der Waals");
 			DropdownEoS.Items.Add("Peng-Robinson");
+			DropdownEoS.Items.Add("modified Solid-Liquid-Vapor");
 
-			// Sets values to defaults
+			// Sets input values to defaults
 			NumBoxT.Value = 273;
 			NumBoxP.Value = 101325;
-			DropdownSpecies.SelectedValue = "Water";
+			DropdownSpecies.SelectedValue = "Carbon dioxide";
 			DropdownEoS.SelectedValue = "Peng-Robinson";
 			ToggleSCurve.IsOn = false;
+
+			// Update all outputs
+			UpdateData(new PengRobinsonEOS(Chemical.CarbonDioxide), NumBoxT.Value, NumBoxP.Value);
 		}
 
-		private void UpdateData(CubicEquationOfState EoS, Temperature T, Pressure P)
+		private void UpdateData(EquationOfState EoS, Temperature T, Pressure P)
 		{
 			// Get molar volumes of each phase, then determine equilibrium states
-			var phaseVMols = EoS.PhaseFinder(T, P, true);
-			var phaseEquilibriums = EoS.IsStateInPhaseEquilbirum(T, P, phaseVMols.L, phaseVMols.V);
+			var phases = EoS.PhaseFinder(T, P, true);
 
 			string phasesString = "\nPhases at equilibrium: ";
-			if (phaseEquilibriums.L == 1) phasesString += "liquid";
-			if (phaseEquilibriums.L == 1 && phaseEquilibriums.V == 1) phasesString += ", ";
-			if (phaseEquilibriums.V == 1) phasesString += "vapor";
+			foreach (string phase in EoS.EquilibriumPhases(T, P).Keys) { phasesString += phase + ", "; }
+			phasesString.Remove(phasesString.Length - 2);
 
 			// Calculate and display vapor pressure, if applicable
 			var Pvap = EoS.VaporPressure(T);
 			string PvapString;
-			if (!Double.IsNaN(Pvap.Value))
+			if (!double.IsNaN(Pvap.Value))
 			{
-				PvapString = "\nVapor pressure: " + EoS.VaporPressure(T).Value.ToEngrNotation(5) + " Pa";
+				PvapString = "\nVapor pressure: " + Pvap.Value.ToEngrNotation(5) + " Pa";
 			} else PvapString = "";
 			
 			// Display reference state used for calculations
@@ -79,34 +61,34 @@ namespace ThermodynamicistUWP
 
 			// Calculate and display state variables for each phase
 			DataLabel.Text = stateData;
-			if (phaseEquilibriums.V != 2)
+			if (phases.ContainsKey("vapor"))
 			{
-				GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.V, 5);
+				GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["vapor"], 5);
 			}
 			else
 			{
 				GroupBoxVapor.Text = "Vapor phase data: \n indeterminate";
 			}
-			if (phaseEquilibriums.L != 2)
+			if (phases.ContainsKey("liquid"))
 			{
-				GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phaseVMols.L, 5);
+				GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["liquid"], 5);
 			}
 			else
 			{
 				GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
 			}
 
-			// Creates a new view model with the new chemical and equation of state, then updates the plot view
-			ViewModel = new MainViewModel(EoS, ToggleSCurve.IsOn);
-			MainPlotView.InvalidatePlot();
+			// Fills in the plot view with a view model using the new settings
+			PlotViewPV.Model = new PVViewModel(EoS, ToggleSCurve.IsOn).Model;
+			PlotViewPT.Model = new PTViewModel(EoS).Model;
 		}
 
 		private void RefreshCalculations(object sender, RoutedEventArgs e)
 		{
 			// If any inputs are not set, do not attempt to run calculations!
 			if (
-				Double.IsNaN(NumBoxT.Value) ||
-				Double.IsNaN(NumBoxP.Value) ||
+				double.IsNaN(NumBoxT.Value) ||
+				double.IsNaN(NumBoxP.Value) ||
 				DropdownSpecies.SelectedItem == null ||
 				DropdownEoS.SelectedItem == null
 				) return;
@@ -115,7 +97,7 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 			Chemical species = Constants.ChemicalNames.FirstOrDefault(
 				x => x.Value == DropdownSpecies.SelectedValue.ToString()).Key;
-			CubicEquationOfState EoS;
+			EquationOfState EoS;
 			switch (DropdownEoS.SelectedValue.ToString())
 			{
 				case "van der Waals":
@@ -123,6 +105,9 @@ namespace ThermodynamicistUWP
 					break;
 				case "Peng-Robinson":
 					EoS = new PengRobinsonEOS(species);
+					break;
+				case "modified Solid-Liquid-Vapor":
+					EoS = new ModSolidLiquidVaporEOS(species);
 					break;
 				default:
 					EoS = new PengRobinsonEOS(species);

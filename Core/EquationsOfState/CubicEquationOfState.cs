@@ -5,7 +5,6 @@ namespace Core.EquationsOfState;
 /// <summary>
 /// Abstract representation of any cubic equation of state.
 /// Extends <see cref="EquationOfState"/>.
-/// </summary>
 /// See also: <seealso cref="PengRobinsonEOS"/>, <seealso cref="VanDerWaalsEOS"/>.
 /// </summary>
 public abstract class CubicEquationOfState : EquationOfState
@@ -16,18 +15,6 @@ public abstract class CubicEquationOfState : EquationOfState
 	{
 		return ZCubicInflectionPoint(speciesData.critT, speciesData.critP);
 	}
-
-	#region Partial derivatives
-
-	/// <summary>
-	/// Analytically calculates the derivative of pressure with respect to molar volume, holding temperature constant.
-	/// </summary>
-	/// <param name="T">temperature, in [K]</param>
-	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>change in P relative to change in V, (∂P/∂V)|T, in [J/mol]</returns>
-	public abstract double PVPartialDerivative(Temperature T, Volume VMol);
-
-	#endregion
 
 	#region Cubic form and derivatives
 
@@ -110,8 +97,11 @@ public abstract class CubicEquationOfState : EquationOfState
 
 	#endregion
 
-	public override (Volume L, Volume V) PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
+	public override Dictionary<string, Volume> PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
 	{
+		// Define the empty list.
+		var list = new Dictionary<string, Volume>();
+
 		/* In order to find the roots of the cubic equation, the bisection algorithm needs a range to check for which
 		 * there is only one root (or no roots; the algorithm has been implemented to return 0 if a root is not found).
 		 * Calculus guarantees that there is only one root between each turning point of the function, which means there
@@ -132,7 +122,7 @@ public abstract class CubicEquationOfState : EquationOfState
 		Volume VMol_V = ZCubicRootFinder(T, P, turningPoint2, 1);
 		
 		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
-		if (ignoreEquilibrium) { return (VMol_L, VMol_V); }
+		if (ignoreEquilibrium) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
 		
 		/* Now that the predicted phases have been found, we can calculate the fugacity of each phase to determine whether
 		 * the predicted phase equilibrium corresponds to a real equilibrium state. If the fugacities are roughly equal,
@@ -149,13 +139,11 @@ public abstract class CubicEquationOfState : EquationOfState
 		 * numerical solutions for these kinds of equations, a difference between fugacities of 0.1 is more than enough
 		 * to conclude that the system in is phase equilibrium.
 		 */
-		if (Math.Abs(f_L - f_V) < 0.1) return (VMol_L, VMol_V);
-		if (f_L > f_V) return (double.NaN, VMol_V);
-		if (f_L < f_V) return (VMol_L, double.NaN);
+		if (Math.Abs(f_L - f_V) < 0.1) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
+		if (f_L > f_V) list.Add("vapor", VMol_V);
+		if (f_L < f_V) list.Add("liquid", VMol_L);
 		
-		// This statement should never be reached! No phases were found.
-		// TODO: Throw an exception if this line is reached.
-		return (double.NaN, double.NaN);
+		return list;
 	}
 
 	public override Pressure? VaporPressure(Temperature T)
@@ -187,8 +175,8 @@ public abstract class CubicEquationOfState : EquationOfState
 		}
 
 		var v = PhaseFinder(T, P, true); // get the molar volumes for the two phases
-		var f_L = Fugacity(T, P, v.L); // fugacity for the liquid phase
-		var f_V = Fugacity(T, P, v.V); // fugacity for the vapor phase
+		var f_L = Fugacity(T, P, v["liquid"]); // fugacity for the liquid phase
+		var f_V = Fugacity(T, P, v["vapor"]); // fugacity for the vapor phase
 
 		// Increment the initial pressure guess until precision is reached.
 		// taken from Sandler, Figure 7.5-1
@@ -196,39 +184,10 @@ public abstract class CubicEquationOfState : EquationOfState
 		{
 			P = P * f_L / f_V;
 			v = PhaseFinder(T, P, true);
-			f_L = Fugacity(T, P, v.L);
-			f_V = Fugacity(T, P, v.V);
+			f_L = Fugacity(T, P, v["liquid"]);
+			f_V = Fugacity(T, P, v["vapor"]);
 		}
 
 		return new Pressure(P, ThermoVarRelations.VaporPressure);
-	}
-
-	/// <summary>
-	/// Determines which phases are present at equilibrium given the state.
-	/// Compares fugacity coefficients of each phase.
-	/// </summary>
-	/// <param name="T">temperature, measured in [K]</param>
-	/// <param name="P">pressure, measured in [Pa]</param>
-	/// <param name="VMol_L">molar volume of liquid phase, measured in [m³/mol]</param>
-	/// <param name="VMol_V">molar volume of vapor phase, measured in [m³/mol]</param>
-	/// <returns>
-	/// "0" for phase if phase is not preferred in equilibrium.
-	/// "1" for phase if phase is preferred in equilibrium.
-	/// "2" for phase if phase is non-physical (if fugacity returns "NaN").
-	/// </returns>
-	/// TODO: Figure out how to make this a method (moved to EquationOfState.cs) which is generalized to work with any number of output phases.
-	public (int L, int V) IsStateInPhaseEquilbirum(Temperature T, Pressure P, Volume VMol_L, Volume VMol_V)
-	{
-		double f_L = FugacityCoeff(T, P, VMol_L);
-		double f_V = FugacityCoeff(T, P, VMol_V);
-		if (Math.Abs(f_L - f_V) < 0.1) return (1, 1);
-		if (f_L > f_V) return (0, 1);
-		if (f_L < f_V) return (1, 0);
-		if (double.IsNaN(f_L) && !double.IsNaN(f_V)) return (2, 1);
-		if (!double.IsNaN(f_L) && double.IsNaN(f_V)) return (1, 2);
-
-		// This statement should never be reached!
-		// TODO: Throw an exception if this line is reached.
-		return (0, 0);
 	}
 }

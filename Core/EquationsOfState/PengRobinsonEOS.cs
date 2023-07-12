@@ -30,8 +30,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var critT = speciesData.critT;
 		var critP = speciesData.critP;
 		var aleph = 0.45724 * Math.Pow(R * critT, 2) / critP;
-		var alpha = Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / critT)), 2);
-		return aleph * alpha;
+		return aleph * Alpha(T);
 	}
 	
 	// The following four methods evaluate expressions that are common in equations derived from the Peng-Robinson EoS.
@@ -43,9 +42,9 @@ public class PengRobinsonEOS : CubicEquationOfState
 	}
 	private double Da(Temperature T)
 	{
-		var critTemp = speciesData.critT;
-		var critPres = speciesData.critP;
-		return -0.45724 * Math.Pow(R * critTemp, 2) / critPres * Kappa * Math.Sqrt(Alpha(T) / critTemp / T);
+		var critT = speciesData.critT;
+		var critP = speciesData.critP;
+		return -0.45724 * Math.Pow(R * critT, 2) / critP * Kappa * Math.Sqrt(Alpha(T) / critT / T);
 	}
 
 	#endregion
@@ -102,16 +101,6 @@ public class PengRobinsonEOS : CubicEquationOfState
 	}
 
 	#endregion
-
-	// TODO: Employ a better root-finding algorithm on the first derivative to make this function more robust for temperatures
-	// very close to the critical temperature, where the s-curve region is very small and easy to miss using the current method.
-	public override Volume IncreasingIsothermFinder(Temperature T)
-	{
-		var VMol = b;
-		double checkVal(double v) { return 2 * a(T) / R / T * (v + b) * (v - b) * (v - b) / Math.Pow(v * v + 2 * b * v - b * b, 2); }
-		while (checkVal(VMol) <= 1 || Pressure(T,VMol) < 0) { VMol += precisionLimit*Math.Pow(10,10); }
-		return new Volume(VMol);
-	}
 
 	#region Departure functions
 

@@ -46,7 +46,7 @@ public class VanDerWaalsEOS : CubicEquationOfState
 
 	#endregion
 
-	public override Volume IncreasingIsothermFinder(Temperature T)
+	public Volume IncreasingIsothermFinder(Temperature T)
     {
         var VMol = b;
 		double checkVal(double v) { return 2 * a / R / T * (v - b) * (v - b) / Math.Pow(VMol, 3); }

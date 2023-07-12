@@ -119,15 +119,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PlotPage.xaml.cs">
-      <DependentUpon>PlotPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MainViewModel.cs" />
+    <Compile Include="Plotting\Common.cs" />
+    <Compile Include="PVViewModel.cs" />
+    <Compile Include="PTViewModel.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plotting\DataHandler.cs" />
-    <Compile Include="Plotting\EOSPlotting.cs" />
     <Compile Include="Plotting\FunctionFactory.cs" />
     <Compile Include="Plotting\LinearEnumerable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -152,10 +149,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="PlotPage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

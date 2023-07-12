@@ -1,20 +1,15 @@
 ﻿namespace ThermodynamicistUWP
 {
-	using System;
-
 	using OxyPlot;
 	using OxyPlot.Axes;
-	using OxyPlot.Series;
 
 	using Core.VariableTypes;
 	using Core.EquationsOfState;
 	using ThermodynamicistUWP.Plotting;
 	using Core;
 	using System.Threading.Tasks;
-	using System.Linq;
-	using Windows.UI.Xaml;
 
-	public class MainViewModel
+	public class PVViewModel
 	{
 		public PlotModel Model { get; private set; }
 
@@ -22,15 +17,10 @@
 
 		private bool ShowSCurves { get; set; }
 
-		public MainViewModel(EquationOfState equationOfState, bool showSCurves = false)
+		public PVViewModel(EquationOfState equationOfState, bool showSCurves = false)
 		{
 			EoS = equationOfState;
 			ShowSCurves = showSCurves;
-			Update();
-		}
-
-		public MainViewModel() {
-			EoS = new VanDerWaalsEOS(Chemical.Water);
 			Update();
 		}
 
@@ -51,14 +41,12 @@
 			Volume maxVMol = 0.001;
 
 			// Add the vapor-liquid equilibrium region to the plot.
-			Model.Series.Add(FunctionFactory.PS_PVVaporLiquidEqRegion(EoS));
+			Model.Series.Add(FunctionFactory.LS_PVVaporLiquidEqRegion(EoS));
 
 			Model.Axes.Add(new LinearAxis {
 				Position = AxisPosition.Bottom, Minimum = 3e-5, Maximum = maxVMol, Title = "Molar Volume [m³/mol]"
 			});
-			Model.Axes.Add(new LinearAxis {
-				Position = AxisPosition.Left, Minimum = 1e5, Maximum = 4e7, Title = "Pressure [Pa]"
-			});
+			Model.Axes.Add(Common.PressureLogarithmicAxis());
 		}
 	}
 }
