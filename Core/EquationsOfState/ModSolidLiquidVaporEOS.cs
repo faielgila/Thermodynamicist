@@ -171,33 +171,21 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return 3 * 2 * (C(T, P) - B(T, P) + 1) - 4 * 3 * 2 * P * VMol / R / T;
 	}
 
-	public double ZFluidInflectionFinder(Temperature T, Pressure P)
+	public double ZJoltPoint(Temperature T, Pressure P)
 	{
-		// First, find the zero of the third derivative.
-		// There is guaranteed to be exactly one inflection point on either side of that zero.
-		double maxVMol = 1;
-		double minVMol = c;
-		double midVMol = (maxVMol + minVMol) / 2;
-		while ((maxVMol - minVMol) > precisionLimit)
-		{
-			int maxVMolSign = Math.Sign(ZThirdDerivative(T, P, maxVMol));
-			int midVMolSign = Math.Sign(ZThirdDerivative(T, P, midVMol));
-			int minVMolSign = Math.Sign(ZThirdDerivative(T, P, minVMol));
-			if (midVMolSign == maxVMolSign) maxVMol = midVMol;
-			if (midVMolSign == minVMolSign) minVMol = midVMol;
-			if (midVMolSign == 0) return midVMol;
-			midVMol = (minVMol + maxVMol) / 2;
-		}
+		return R * T / P * (C(T, P) - B(T, P) + 1) / 4;
+	}
 
-		// Now, the inflection point of interest will be between the fitting parameter "c" and that zero.
-		minVMol = c;
-		maxVMol = midVMol;
-		midVMol = (maxVMol + minVMol) / 2;
+	public double ZInflectionFinder(Temperature T, Pressure P, Volume minVMol, Volume maxVMol)
+	{
+		// Now, the inflection point of interest will be between the fitting parameter "c" and the jolt point.
+		double midVMol = (maxVMol + minVMol) / 2;
 		while ((maxVMol - minVMol) > precisionLimit)
 		{
 			int maxVMolSign = Math.Sign(ZSecondDerivative(T, P, maxVMol));
 			int midVMolSign = Math.Sign(ZSecondDerivative(T, P, midVMol));
 			int minVMolSign = Math.Sign(ZSecondDerivative(T, P, minVMol));
+//			if (minVMolSign == maxVMolSign) throw new ArithmeticException("Bisection root-finding algorithm failed: boundary signs are equal.");
 			if (midVMolSign == maxVMolSign) maxVMol = midVMol;
 			if (midVMolSign == minVMolSign) minVMol = midVMol;
 			if (midVMolSign == 0) return midVMol;
@@ -240,16 +228,20 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		 */
 		var VMol_S = ZRootFinder(T, P, b, d);
 
-		/* The fluid roots are a little more complex than that, but because this EoS guarntees that the two fluid roots exist above
-		 * the fitting parameter c, the same rootfinding method used for the cubic equation works here as well. The only major
-		 * difference is that the inflection point cannot easily be calculated analytically, so instead bisection will be used to
-		 * find the inflection point between the liquid and vapor phases.
+		/* The fluid roots are a little more complex than that, but because this EoS is still a polynomial in terms of z,
+		 * derivatives w/rt z are easy to calculate and Rolle's theorem can easily be used to find regions of the function
+		 * with only one root. However, this is a degree 4 polynomial, so the third derivative is linear and not the second.
+		 * The root between turningPoint1 and turningPoint2 is the s-curve root and is non-physical, so is not calculated.
+		 * The root below turningPoint0 is the solid root and was already calculated.
 		 */
-		Volume fluidInflectionPoint = ZFluidInflectionFinder(T, P);
-		Volume fluidTurningPoint1 = ZTurnFinder(T, P, c, fluidInflectionPoint);
-		Volume fluidTurningPoint2 = ZTurnFinder(T, P, fluidInflectionPoint, 1);
-		Volume VMol_L = ZRootFinder(T, P, c, fluidTurningPoint1);
-		Volume VMol_V = ZRootFinder(T, P, fluidTurningPoint2, 1);
+		Volume joltPoint = ZJoltPoint(T, P);
+		Volume inflectionPoint0 = ZInflectionFinder(T, P, b, joltPoint);
+		Volume inflectionPoint1 = ZInflectionFinder(T, P, joltPoint, 1);
+		Volume turningPoint0 = ZTurnFinder(T, P, b, inflectionPoint0);
+		Volume turningPoint1 = ZTurnFinder(T, P, inflectionPoint0, inflectionPoint1);
+		Volume turningPoint2 = ZTurnFinder(T, P, inflectionPoint1, 1);
+		Volume VMol_L = ZRootFinder(T, P, turningPoint0, turningPoint1);
+		Volume VMol_V = ZRootFinder(T, P, turningPoint2, 1);
 
 		// Initialize an empty dictionary.
 		var list = new Dictionary<string, Volume>();

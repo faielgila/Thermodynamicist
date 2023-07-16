@@ -44,7 +44,7 @@ namespace ThermodynamicistUWP
 
 			string phasesString = "\nPhases at equilibrium: ";
 			foreach (string phase in EoS.EquilibriumPhases(T, P).Keys) { phasesString += phase + ", "; }
-			phasesString.Remove(phasesString.Length - 2);
+			phasesString = phasesString.Remove(phasesString.Length - 2);
 
 			// Calculate and display vapor pressure, if applicable
 			var Pvap = EoS.VaporPressure(T);
@@ -76,6 +76,15 @@ namespace ThermodynamicistUWP
 			else
 			{
 				GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
+			}
+
+			if (phases.ContainsKey("solid"))
+			{
+				GroupBoxSolid.Text = "Solid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["solid"], 5);
+			}
+			else
+			{
+				GroupBoxSolid.Text = "Solid phase data: \n not calculated";
 			}
 
 			// Fills in the plot view with a view model using the new settings
@@ -110,7 +119,7 @@ namespace ThermodynamicistUWP
 					EoS = new ModSolidLiquidVaporEOS(species);
 					break;
 				default:
-					EoS = new PengRobinsonEOS(species);
+					EoS = new VanDerWaalsEOS(species);
 					break;
 			}
 			UpdateData(EoS, T, P);

@@ -379,10 +379,10 @@ public abstract class EquationOfState
 			// Calculate the fugacity for the current phase.
 			var currentFugacityCoeff = FugacityCoeff(T, P, phases[currentKey]);
 
-			// If the fugacity is close to the minimum fugacity phase, it's probably in equilibrium.
-			if (Math.Abs(currentFugacityCoeff - minFugacityCoeff) < 0.1) { continue; }
+			// If the fugacity is not close to the minimum fugacity phase, it's probably not in equilibrium.
+			if (Math.Abs(currentFugacityCoeff - minFugacityCoeff) >= 0.1) { continue; }
 
-			// Otherwise, it is larger and will not be present in equilibrium.
+			// Otherwise, it is rougly equal and will be in equilibrium.
 			else { phasesEquil.Add(currentKey, phases[currentKey]); }
 		}
 		return phasesEquil;
