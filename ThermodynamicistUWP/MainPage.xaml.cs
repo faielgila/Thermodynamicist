@@ -51,12 +51,12 @@ namespace ThermodynamicistUWP
 			string PvapString;
 			if (!double.IsNaN(Pvap.Value))
 			{
-				PvapString = "\nVapor pressure: " + Pvap.Value.ToEngrNotation(5) + " Pa";
+				PvapString = "\nVapor pressure: " + Pvap.ToEngrNotation(5) + " Pa";
 			} else PvapString = "";
 			
 			// Display reference state used for calculations
 			var stateData =
-				"Reference state: (" + EoS.ReferenceState.refT.Value.ToEngrNotation() + " K, " + EoS.ReferenceState.refP.Value.ToEngrNotation() + " Pa)" +
+				"Reference state: (" + EoS.ReferenceState.refT.ToEngrNotation() + " K, " + EoS.ReferenceState.refP.ToEngrNotation() + " Pa)" +
 				phasesString + PvapString;
 
 			// Calculate and display state variables for each phase
@@ -89,7 +89,7 @@ namespace ThermodynamicistUWP
 
 			// Fills in the plot view with a view model using the new settings
 			PlotViewPV.Model = new PVViewModel(EoS, ToggleSCurve.IsOn).Model;
-			PlotViewPT.Model = new PTViewModel(EoS).Model;
+			PlotViewPT.Model = new GTViewModel(EoS).Model;
 		}
 
 		private void RefreshCalculations(object sender, RoutedEventArgs e)
@@ -125,10 +125,10 @@ namespace ThermodynamicistUWP
 			UpdateData(EoS, T, P);
 		}
 
-        // TODO: This seems like a terrible hack for this problem...
-        private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
-        {
+		// TODO: This seems like a terrible hack for this problem...
+		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
+		{
 			RefreshCalculations(sender, null);
-        }
-    }
+		}
+	}
 }

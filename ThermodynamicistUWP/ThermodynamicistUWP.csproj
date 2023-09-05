@@ -120,6 +120,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plotting\Common.cs" />
+    <Compile Include="GTViewModel.cs" />
     <Compile Include="PVViewModel.cs" />
     <Compile Include="PTViewModel.cs" />
     <Compile Include="MainPage.xaml.cs">

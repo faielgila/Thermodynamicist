@@ -63,7 +63,6 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 	private readonly double d;
 	private readonly double Kappa;
 
-	// The following four methods evaluate expressions that are common in equations derived from the Peng-Robinson EoS.
 	private double A(Temperature T, Pressure P) { return a(T) * P / R / R / T / T; }
 	private double B(Temperature T, Pressure P) { return b * P / R / T; }
 	private double C(Temperature T, Pressure P) { return c * P / R / T; }
@@ -72,10 +71,10 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 	{
 		return Math.Pow(1 + Kappa * (1 - Math.Sqrt(T / speciesData.critT)), 2);
 	}
-	private double Da(Temperature T)
+	private double aRedTDerivative(Temperature T)
 	{
-		return -ReducedCriticalEoSFittingParameters[Species].a *
-			Math.Pow(R * speciesData.critT, 2) / speciesData.critP * Kappa * Math.Sqrt(Alpha(T) / speciesData.critT / T);
+		var aRedCrit = ReducedCriticalEoSFittingParameters[Species].a;
+		return -aRedCrit * Kappa / Math.Sqrt(T / speciesData.critT) * (Kappa + 1) + aRedCrit * Kappa * Kappa;
 	}
 	#endregion
 
@@ -123,7 +122,7 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		var term2 = Math.Log(Math.Abs((VMol + b * (1 + sqrt2)) / VMol + b * (1 - sqrt2)));
 		term2 *= -a(T) / R / T / 2 / sqrt2 / b;
 		var z = CompressibilityFactor(T, P, VMol);
-		return term1 + term2 + z - Math.Log(z) - 1;
+		return Math.Exp(term1 + term2 + z - Math.Log(z) - 1);
 	}
 
 	#region Z-equation and related methods
@@ -271,23 +270,74 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return midVMol;
 	}
 
+	public override Pressure VaporPressure(Temperature T)
+	{
+		return double.NaN;
+	}
+	
 	public Pressure SublimationPressure(Temperature T)
 	{
-		throw new NotImplementedException();
+		return double.NaN;
 	}
 
 	#region Departure functions
 	
 	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
-		//throw new NotImplementedException();
-		return 1;
+		var PCrit = speciesData.critP;
+		var TCrit = speciesData.critT;
+		var VMolCrit = CriticalMolarVolume();
+		double zCrit = PCrit * VMolCrit / TCrit / R;
+
+		double TRed = T / TCrit;
+		double VMolRed = VMol / VMolCrit;
+		// See eqns 27 and 28 in the cited paper
+		double aRed = PCrit * a(T) / R / R / TCrit / TCrit;
+		double bRed = ReducedCriticalEoSFittingParameters[Species].b;
+		double cRed = ReducedCriticalEoSFittingParameters[Species].c;
+		double dRed = ReducedCriticalEoSFittingParameters[Species].d;
+
+		// See eqn 6 in the cited paper (w/ some simplifications)
+		var val = aRedTDerivative(T) - aRed / TRed;
+		var sqrt2 = Math.Sqrt(2);
+		val *= Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / (VMolRed + bRed * (1 - sqrt2))));
+		val /= 2 * sqrt2 * bRed * zCrit;
+		val += (cRed - dRed) / (VMolRed - cRed) + (bRed - dRed) / (VMolRed - bRed);
+		val += CompressibilityFactor(T, P, VMol) - 1;
+
+		return val * R * T;
 	}
 
 	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{
-		//throw new NotImplementedException();
-		return 1;
+		var PCrit = speciesData.critP;
+		var TCrit = speciesData.critT;
+		var VMolCrit = CriticalMolarVolume();
+		double zCrit = PCrit * VMolCrit / TCrit / R;
+
+		double TRed = T / TCrit;
+		double VMolRed = VMol / VMolCrit;
+		// See eqns 27 and 28 in the cited paper
+		double aRed = PCrit * a(T) / R / R / TCrit / TCrit;
+		double bRed = ReducedCriticalEoSFittingParameters[Species].b;
+		double cRed = ReducedCriticalEoSFittingParameters[Species].c;
+		double dRed = ReducedCriticalEoSFittingParameters[Species].d;
+
+		// See eqn 5 in the cited paper (w/ some simplifications)
+		var term1 = cRed * Math.Log(Math.Abs(1 - cRed / VMolRed));
+		term1 += dRed * Math.Log(Math.Abs((VMolRed - bRed) / (VMolRed - cRed)));
+		term1 -= bRed * Math.Log(Math.Abs(1 - bRed / VMolRed));
+		term1 /= cRed - bRed;
+		var sqrt2 = Math.Sqrt(2);
+		var term2 = Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / VMolRed + bRed * (1 - sqrt2)));
+		term2 *= aRed / TRed / zCrit / bRed / 2 / sqrt2;
+		term2 += (bRed - dRed) / (VMolRed - bRed);
+		term2 += (cRed - dRed) / (VMolRed - cRed);
+		var term3 = Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / VMolRed + bRed * (1 - sqrt2)));
+		term3 *= (aRedTDerivative(T) - aRed/TRed) / zCrit / bRed / 2 / sqrt2;
+
+		var val = term1 + term2 + term3 + Math.Log(CompressibilityFactor(T,P,VMol));
+		return val * R;
 	}
 
 	#endregion

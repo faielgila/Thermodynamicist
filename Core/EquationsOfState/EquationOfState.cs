@@ -372,18 +372,27 @@ public abstract class EquationOfState
 	{
 		var phases = PhaseFinder(T, P, ignoreEquilibrium: true);
 		var phasesEquil = new Dictionary<string, Volume>();
-		
-		var minFugacityCoeff = FugacityCoeff(T, P, phases.Values.Min());
+
+		// First, calculate the fugacity coefficient for all phases.
+		var fugacityCoeffs = new Dictionary<string, double>();
+        foreach (var phaseKey in phases.Keys)
+        {
+            fugacityCoeffs.Add(phaseKey, FugacityCoeff(T, P, phases[phaseKey]));
+		}
+
+		var minFugacityCoeff = fugacityCoeffs.Values.Min();
 		foreach (var currentKey in phases.Keys)
 		{
 			// Calculate the fugacity for the current phase.
 			var currentFugacityCoeff = FugacityCoeff(T, P, phases[currentKey]);
 
+			// If the fugacity does not exist (i.e., imaginary and represented by NaN), it's definitely not in equilibrium.
+			if (double.IsNaN(currentFugacityCoeff)) { continue; }
 			// If the fugacity is not close to the minimum fugacity phase, it's probably not in equilibrium.
-			if (Math.Abs(currentFugacityCoeff - minFugacityCoeff) >= 0.1) { continue; }
+			if (Math.Abs(currentFugacityCoeff - minFugacityCoeff) >= 0.01) { continue; }
 
 			// Otherwise, it is rougly equal and will be in equilibrium.
-			else { phasesEquil.Add(currentKey, phases[currentKey]); }
+			phasesEquil.Add(currentKey, phases[currentKey]);
 		}
 		return phasesEquil;
 	}

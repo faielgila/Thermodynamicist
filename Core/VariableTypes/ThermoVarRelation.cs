@@ -14,7 +14,7 @@ public enum ThermoVarRelations
 	OfVaporization, OfSublimation, OfFusion,
 	OfFormation,
 	
-	Temperature,
+	Temperature, SaturationTemperature,
 	
 	Pressure, VaporPressure, PartialPressure,
 	

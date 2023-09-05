@@ -202,5 +202,52 @@ namespace ThermodynamicistUWP.Plotting
 		}
 
 		#endregion
+
+		#region Gibbs free energy-Temperature (GT) plotting
+
+		public static List<(double G, double T)> GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
+		{
+			// Initialize output list.
+			var points = new List<(double T, double G)>();
+
+			var critT = EoS.speciesData.critT;
+			var minTemp = critT - 200;
+			var maxTemp = critT - 100;
+			var temps = new LinearEnumerable(minTemp, maxTemp, 0.1);
+
+			foreach(var T in temps)
+			{
+				var phases = EoS.PhaseFinder(T, P, ignoreEquilibrium: true);
+				if (!phases.ContainsKey(phaseKey)) continue;
+				var VMol = phases[phaseKey];
+				var G = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
+				points.Add((T, G));
+			}
+
+			//points.Sort();
+
+			return points;
+		}
+
+		public static LineSeries LS_GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
+		{
+			var line = new LineSeries
+			{
+				LineStyle = LineStyle.Solid,
+				Color = OxyColors.Black,
+				StrokeThickness = 4,
+				LineJoin = LineJoin.Round,
+			};
+
+			var points = GTCurve(EoS, P, phaseKey);
+			foreach (var (T, G) in points)
+			{
+				line.Points.Add(new DataPoint(T, G));
+			}
+
+			return line;
+		}
+
+		#endregion
 	}
 }

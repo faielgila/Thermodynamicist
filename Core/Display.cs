@@ -42,12 +42,12 @@ public static class Display
 
 		var formatted =
 			"Z = " + Z.ToEngrNotation() + "\n" +
-			"V = " + VMol.Value.ToEngrNotation() + " m³/mol \n" +
-			"U = " + U.Value.ToEngrNotation() + " J/mol \n" +
-			"H = " + H.Value.ToEngrNotation() + " J/mol \n" +
-			"S = " + S.Value.ToEngrNotation() + " J/mol/K \n" +
-			"G = " + G.Value.ToEngrNotation() + " J/mol/K \n" +
-			"A = " + A.Value.ToEngrNotation() + " J/mol/K \n" +
+			"V = " + VMol.ToEngrNotation() + " m³/mol \n" +
+			"U = " + U.ToEngrNotation() + " J/mol \n" +
+			"H = " + H.ToEngrNotation() + " J/mol \n" +
+			"S = " + S.ToEngrNotation() + " J/mol/K \n" +
+			"G = " + G.ToEngrNotation() + " J/mol/K \n" +
+			"A = " + A.ToEngrNotation() + " J/mol/K \n" +
 			"f = " + (f*P).ToEngrNotation() + " Pa \n" +
 			"φ = " + f.ToEngrNotation();
 
@@ -67,12 +67,12 @@ public static class Display
 
 		var formatted =
 			"Z = " + Z.ToEngrNotation(sigfigs) + "\n" +
-			"V = " + VMol.Value.ToEngrNotation(sigfigs) + " m³/mol \n" +
-			"U = " + U.Value.ToEngrNotation(sigfigs) + " J/mol \n" +
-			"H = " + H.Value.ToEngrNotation(sigfigs) + " J/mol \n" +
-			"S = " + S.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"G = " + G.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"A = " + A.Value.ToEngrNotation(sigfigs) + " J/mol/K \n" +
+			"V = " + VMol.ToEngrNotation(sigfigs) + " m³/mol \n" +
+			"U = " + U.ToEngrNotation(sigfigs) + " J/mol \n" +
+			"H = " + H.ToEngrNotation(sigfigs) + " J/mol \n" +
+			"S = " + S.ToEngrNotation(sigfigs) + " J/mol/K \n" +
+			"G = " + G.ToEngrNotation(sigfigs) + " J/mol/K \n" +
+			"A = " + A.ToEngrNotation(sigfigs) + " J/mol/K \n" +
             "f = " + (f * P).ToEngrNotation() + " Pa \n" +
             "φ = " + f.ToEngrNotation();
 

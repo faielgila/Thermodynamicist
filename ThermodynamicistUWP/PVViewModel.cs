@@ -32,16 +32,21 @@
 			// Generate a list of temperatures to plot isotherms for.
 			var temps = new LinearEnumerable(critT-50, critT+10, 10);
 
-			// Add the pressure-volume (true) isotherm for each temperature to the plot. Uses parallelization.
-			Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T)));
-			// Add the pressure-volume s-curve isotherm for each temperature to the plot. Uses parallelization.
-			Parallel.ForEach(temps, T => { if (T < critT) Model.Series.Add(FunctionFactory.FS_PVIsothermSCurve(EoS, T, ShowSCurves)); }) ;
+			// P-V plots do not work well for the MSLV EoS.
+			if (EoS.GetType().Name != "ModSolidLiquidVaporEOS")
+			{
+				// Add the pressure-volume (true) isotherm for each temperature to the plot. Uses parallelization.
+				Parallel.ForEach(temps, T => Model.Series.Add(FunctionFactory.FS_PVIsotherm(EoS, T)));
+
+				// Add the pressure-volume s-curve isotherm for each temperature to the plot. Uses parallelization.
+				Parallel.ForEach(temps, T => { if (T < critT) Model.Series.Add(FunctionFactory.FS_PVIsothermSCurve(EoS, T, ShowSCurves)); });
+
+				// Add the vapor-liquid equilibrium region to the plot.
+				Model.Series.Add(FunctionFactory.LS_PVVaporLiquidEqRegion(EoS));
+			}
 
 			// Define a maximum molar volume to stop plotting at.
 			Volume maxVMol = 0.001;
-
-			// Add the vapor-liquid equilibrium region to the plot.
-			Model.Series.Add(FunctionFactory.LS_PVVaporLiquidEqRegion(EoS));
 
 			Model.Axes.Add(new LinearAxis {
 				Position = AxisPosition.Bottom, Minimum = 3e-5, Maximum = maxVMol, Title = "Molar Volume [m³/mol]"

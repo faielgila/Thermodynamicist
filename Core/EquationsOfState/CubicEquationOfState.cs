@@ -190,4 +190,21 @@ public abstract class CubicEquationOfState : EquationOfState
 
 		return new Pressure(P, ThermoVarRelations.VaporPressure);
 	}
+
+	public Temperature? BoilingTemperature(Pressure P)
+	{
+		// Check if the boiling temperature exists at the given pressure.
+		if (P >= speciesData.critP) { return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature); }
+
+		/* Use gradient descent starting at the critical point down the liquid-vapor coexistence (vaporization) line
+		 * until the given pressure is reached.
+		 */
+		var guessT = speciesData.critT;
+		var guessP = speciesData.critP;
+		while (Math.Abs(P - guessP) >= 10)
+		{
+			var guessVMol = PhaseFinder(guessT, guessP)["liquid"];
+			guessP = Pressure(guessT, guessVMol);
+		}
+	}
 }

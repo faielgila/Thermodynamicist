@@ -1,6 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Core",
+    "\\Core\\EquationsOfState"
   ],
+  "SelectedNode": "\\.gitignore",
   "PreviewInSolutionExplorer": false
 }
