@@ -205,38 +205,55 @@ namespace ThermodynamicistUWP.Plotting
 
 		#region Gibbs free energy-Temperature (GT) plotting
 
-		public static List<(double G, double T)> GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
+		/// <summary>
+		/// Generates a list of (temperature, Gibbs energy) points for a given phase.
+		/// </summary>
+		/// <param name="EoS">Equation of State, stores species and reference state</param>
+		/// <param name="P">pressure, in [Pa]</param>
+		/// <param name="phaseKey">phase, in string form</param>
+		/// <returns>list of tuples, (temperature in [K], reference molar Gibbs free energy in [J/mol])</returns>
+		public static List<(double T, double G)> GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
 		{
 			// Initialize output list.
-			var points = new List<(double T, double G)>();
+			var points = new ConcurrentBag<(double T, double G)>();
 
 			var critT = EoS.speciesData.critT;
-			var minTemp = critT - 200;
-			var maxTemp = critT - 100;
+			var minTemp = critT / 100;
+			var maxTemp = critT - 10;
 			var temps = new LinearEnumerable(minTemp, maxTemp, 0.1);
 
-			foreach(var T in temps)
+			Parallel.ForEach(temps, T =>
 			{
+				// Get all phases present at the current temperature and pressure.
 				var phases = EoS.PhaseFinder(T, P, ignoreEquilibrium: true);
-				if (!phases.ContainsKey(phaseKey)) continue;
+				// If the current phase is not present, there are no points to plot.
+				if (!phases.ContainsKey(phaseKey)) return;
+				// Extract molar volume for the current phase.
 				var VMol = phases[phaseKey];
+				// Calculate molar Gibbs energy for the state and add the point to the list.
 				var G = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
 				points.Add((T, G));
-			}
+			});
 
-			//points.Sort();
-
-			return points;
+			return points.OrderBy(x => x.T).ToList();
 		}
 
-		public static LineSeries LS_GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
+        /// <summary>
+        /// Generates a LineSeries which represents a constant-pressure "slice" of the Gibbs free energy surface
+        /// in pressure-temperature space.
+        /// </summary>
+        /// <param name="EoS">Equation of State, stores species and reference state</param>
+        /// <param name="P">pressure, in [Pa]</param>
+        /// <param name="phaseKey">phase, in string form</param>
+        public static LineSeries LS_GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
 		{
 			var line = new LineSeries
 			{
 				LineStyle = LineStyle.Solid,
-				Color = OxyColors.Black,
+				//Color = OxyColors.Black,
 				StrokeThickness = 4,
 				LineJoin = LineJoin.Round,
+				Title = phaseKey
 			};
 
 			var points = GTCurve(EoS, P, phaseKey);
