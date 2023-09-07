@@ -154,6 +154,14 @@ public abstract class EquationOfState
 		return new Pressure(P, ThermoVarRelations.VaporPressure);
 	}
 
+	/// <summary>
+	/// Calculates the saturation temperature for liquid-vapor equilibrium, i.e. the boiling temperature.
+	/// If the pressure is above the critical pressure, the boiling temperature will be returned as NaN.
+	/// </summary>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <returns>If it exists, boiling temperature, in [K]; If is does not exist, NaN</returns>
+	public abstract Temperature? BoilingTemperature(Pressure P);
+
 	#region State Variables - Enthalpy
 
 	/// <summary>

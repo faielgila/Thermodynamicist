@@ -19,7 +19,12 @@
 			else return 0;
 		}
 
-		public string ToEngrNotation() { return Value.ToEngrNotation(); }
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
+
+        public string ToEngrNotation() { return Value.ToEngrNotation(); }
 		public string ToEngrNotation(int sigfigs) { return Value.ToEngrNotation(sigfigs); }
 	}
 }

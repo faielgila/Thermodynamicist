@@ -5,7 +5,9 @@ using OxyPlot;
 using OxyPlot.Annotations;
 using OxyPlot.Series;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ThermodynamicistUWP.Plotting
@@ -99,7 +101,7 @@ namespace ThermodynamicistUWP.Plotting
 		public static List<(double VMol, double P)> PVVaporLiquidEqRegion(EquationOfState EoS)
 		{
 			// Initialize the output list.
-			var points = new List<(double VMol, double P)>();
+			var points = new ConcurrentBag<(double VMol, double P)>();
 
 			var critT = EoS.speciesData.critT;
 			var temps = new LinearEnumerable(critT - 50, critT, 0.5);
@@ -117,9 +119,7 @@ namespace ThermodynamicistUWP.Plotting
 			points.Add((EoS.CriticalMolarVolume(), EoS.speciesData.critP));
 
 			// The curve will consist of randomly-ordered points, so for proper plotting sort by increasing VMol.
-			points.Sort();
-
-			return points;
+			return points.OrderBy(x => x.VMol).ToList();
 		}
 
 		/// <summary>

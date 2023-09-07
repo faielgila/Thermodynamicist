@@ -146,7 +146,7 @@ public abstract class CubicEquationOfState : EquationOfState
 		return list;
 	}
 
-	public override Pressure? VaporPressure(Temperature T)
+	public override Pressure VaporPressure(Temperature T)
 	{
 		// Check if a vapor pressure exists at the temperature.
 		if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
@@ -191,20 +191,32 @@ public abstract class CubicEquationOfState : EquationOfState
 		return new Pressure(P, ThermoVarRelations.VaporPressure);
 	}
 
-	public Temperature? BoilingTemperature(Pressure P)
+	public override Temperature BoilingTemperature(Pressure P)
 	{
-		// Check if the boiling temperature exists at the given pressure.
-		if (P >= speciesData.critP) { return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature); }
-
-		/* Use gradient descent starting at the critical point down the liquid-vapor coexistence (vaporization) line
-		 * until the given pressure is reached.
+		/* Use a variant of Newton's method of rootfinding starting near the critical point and travelling down the curve
+		 * until the specified pressure is reached.
+		 * Convergence of this algorithm is almost certain because these curves are continuous and
+		 * monotonic in their domain.
 		 */
-		var guessT = speciesData.critT;
-		var guessP = speciesData.critP;
-		while (Math.Abs(P - guessP) >= 10)
+		var guessT = speciesData.critT - 0.5;
+		var guessPvap = VaporPressure(guessT);
+
+		// Check if the boiling temperature exists at the given pressure.
+		if (double.IsNaN(guessPvap)) { return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature); }
+
+		while (Math.Abs(P - guessPvap) >= 10)
 		{
-			var guessVMol = PhaseFinder(guessT, guessP)["liquid"];
-			guessP = Pressure(guessT, guessVMol);
+			// Approximate local derivative with backward difference.
+			var dT = -0.5;
+			var Pvap1 = VaporPressure(guessT);
+			var Pvap2 = VaporPressure(guessT + dT);
+			var dPdT = (Pvap2 - Pvap1) / dT;
+			// Use local derivative to come up with a new guess for the boiling temperature.
+			guessT -= (guessPvap - P) / dPdT;
+			// Calculate vapor pressure at this new guess. Loop ends if this guessPvap is close to P.
+			guessPvap = VaporPressure(guessT);
 		}
+
+		return guessT;
 	}
 }

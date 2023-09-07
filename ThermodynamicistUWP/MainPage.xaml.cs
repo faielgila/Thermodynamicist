@@ -52,6 +52,7 @@ namespace ThermodynamicistUWP
 			if (!double.IsNaN(Pvap.Value))
 			{
 				PvapString = "\nVapor pressure: " + Pvap.ToEngrNotation(5) + " Pa";
+				PvapString += "\nBoiling temperature: " + EoS.BoilingTemperature(P) + " K";
 			} else PvapString = "";
 			
 			// Display reference state used for calculations
