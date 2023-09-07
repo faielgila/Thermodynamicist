@@ -3,11 +3,9 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-/.vs
-/.vs/Thermodynamicist/v17/.suo
+/.vs/**
 /document.aux
 /document.log
 /document.pdf
 /document.synctex.gz
 /document.tex
-/.vs/Thermodynamicist/DesignTimeBuild/.dtbcache.v2
