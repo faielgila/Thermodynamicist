@@ -20,12 +20,14 @@ public abstract class EquationOfState
 	/// <summary>
 	/// The reference state to which all real and ideal gas properties are measured.
 	/// </summary>
-	public readonly (Temperature refT, Pressure refP) ReferenceState;
+	public readonly (Temperature refT, Pressure refP) ReferenceState = (298.15, 100e3);
 
 	public readonly Chemical Species;
 	public (double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT) speciesData;
 	public (double[] vals, double[] lims) speciesCpData;
 	public (double[] vals, double[] lims) speciesHighTempCpData;
+
+	public List<string> ModeledPhases;
 
 	protected EquationOfState(Chemical species, (Temperature T, Pressure P) referenceState)
 	{
@@ -39,13 +41,12 @@ public abstract class EquationOfState
 
 	protected EquationOfState(Chemical species)
 	{
-		ReferenceState = (298.15, 100e3);
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
 		speciesCpData = Constants.IdealGasCpConstants[species];
-		//TODO: when high-temp calculations are fleshed out, reactivate this line.
-		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
-	}
+        //TODO: when high-temp calculations are fleshed out, reactivate this line.
+        //speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+    }
 
 	/// <summary>
 	/// Returns the pressure of the system in the given state, defined by temperature and molar volume.
@@ -109,7 +110,7 @@ public abstract class EquationOfState
 	/// </summary>
 	/// <param name="T">temperature, in [K]</param>
 	/// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
-	public virtual Pressure? VaporPressure(Temperature T)
+	public virtual Pressure VaporPressure(Temperature T)
 	{
 		// Check if a vapor pressure exists at the temperature.
 		if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
@@ -160,7 +161,7 @@ public abstract class EquationOfState
 	/// </summary>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <returns>If it exists, boiling temperature, in [K]; If is does not exist, NaN</returns>
-	public abstract Temperature? BoilingTemperature(Pressure P);
+	public abstract Temperature BoilingTemperature(Pressure P);
 
 	#region State Variables - Enthalpy
 
@@ -360,6 +361,8 @@ public abstract class EquationOfState
 
 	#endregion
 
+	#region Phase equilibrium
+
 	/// <summary>
 	/// Uses the equation of state to find the phases present in a system given a temperature and pressure.
 	/// Checks for valid equilibrium using the fugacity coefficient.
@@ -383,9 +386,9 @@ public abstract class EquationOfState
 
 		// First, calculate the fugacity coefficient for all phases.
 		var fugacityCoeffs = new Dictionary<string, double>();
-        foreach (var phaseKey in phases.Keys)
-        {
-            fugacityCoeffs.Add(phaseKey, FugacityCoeff(T, P, phases[phaseKey]));
+		foreach (var phaseKey in phases.Keys)
+		{
+			fugacityCoeffs.Add(phaseKey, FugacityCoeff(T, P, phases[phaseKey]));
 		}
 
 		var minFugacityCoeff = fugacityCoeffs.Values.Min();
@@ -406,14 +409,68 @@ public abstract class EquationOfState
 	}
 
 	/// <summary>
-	/// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.
+	/// Creates a list of all phases present at a constant temperature but varying pressure.
+	/// Does not return molar volumes, since those would be dependent on pressure.
 	/// </summary>
 	/// <param name="T">temperature, in [K]</param>
-	/// <param name="P">pressure, in [Pa]</param>
-	/// <param name="VMol">molar volume of phase, in [m³/mol]</param>
-	/// <returns>List of variables: compressibility factor, molar internal energy,
-	/// molar enthalpy, molar entropy, molar Gibbs energy, molar Helmholtz energy, and fugacity coefficient.</returns>
-	public (double Z, InternalEnergy U, Enthalpy H, Entropy S, GibbsEnergy G, HelmholtzEnergy A, double f)
+	/// <param name="dP">step size for pressure, in [Pa]</param>
+	/// <returns>List: phase name stored as a string</returns>
+	// TODO : Implement a smarter algorithm for searching that doesn't require fixed step sizes
+	// that may accidentally skip small phase regions. Maybe search the Gibbs free energy curve
+	// directly, monitoring the derivatives of each phase to decide how large the step size should be?
+	public List<string> EquilibriumPhases(Temperature T, double dP = 10)
+	{
+		var critP = speciesData.critP;
+		var pressures = new LinearEnumerable(critP * 1e-4, critP - 10, dP);
+
+		var phases = new List<string>();
+		foreach(Pressure P in pressures)
+		{
+			var phaseKeys = EquilibriumPhases(T, P).Keys;
+			phaseKeys.ToList();
+			phases.AddRange(phaseKeys);
+		}
+
+		return phases;
+	}
+
+    /// <summary>
+    /// Creates a list of all phases present at a constant temperature but varying pressure.
+    /// Does not return molar volumes, since those would be dependent on pressure.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="dP">step size for pressure, in [Pa]</param>
+    /// <returns>List: phase name stored as a string</returns>
+    // TODO : Implement a smarter algorithm for searching that doesn't require fixed step sizes
+    // that may accidentally skip small phase regions. Maybe search the Gibbs free energy curve
+    // directly, monitoring the derivatives of each phase to decide how large the step size should be?
+    public List<string> EquilibriumPhases(Pressure P, double dT = 0.5)
+    {
+        var critT = speciesData.critT;
+        var temps = new LinearEnumerable(critT / 100, critT - 10, dT);
+
+        var phases = new List<string>();
+        foreach (Temperature T in temps)
+        {
+            var phaseKeys = EquilibriumPhases(T, P).Keys;
+            phaseKeys.ToList();
+            phases.AddRange(phaseKeys);
+        }
+
+        return phases;
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <param name="VMol">molar volume of phase, in [m³/mol]</param>
+    /// <returns>List of variables: compressibility factor, molar internal energy,
+    /// molar enthalpy, molar entropy, molar Gibbs energy, molar Helmholtz energy, and fugacity coefficient.</returns>
+    public (double Z, InternalEnergy U, Enthalpy H, Entropy S, GibbsEnergy G, HelmholtzEnergy A, double f)
 		GetAllStateVariables(Temperature T, Pressure P, Volume VMol)
 	{
 		var Z = CompressibilityFactor(T, P, VMol);

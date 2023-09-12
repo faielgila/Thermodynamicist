@@ -7,8 +7,9 @@
 	using ThermodynamicistUWP.Plotting;
 	using Core;
 	using System.Threading.Tasks;
+    using System.Threading;
 
-	public class GTViewModel
+    public class GTViewModel
 	{
 		public PlotModel Model { get; private set; }
 
@@ -25,8 +26,11 @@
 			Model = new PlotModel { Title = Constants.ChemicalNames[EoS.Species] + " molar Gibbs energy-temperature plot" };
 
 			// Add curves for each phase to the plot.
-			Model.Series.Add(FunctionFactory.LS_GTCurve(EoS, 101325, "liquid"));
-			Model.Series.Add(FunctionFactory.LS_GTCurve(EoS, 101325, "vapor"));
+			var modeledPhases = EoS.ModeledPhases;
+			foreach (string phase in modeledPhases)
+			{
+				Model.Series.Add(FunctionFactory.LS_GTCurve(EoS, 101325, phase));
+			}
 
 			Model.Axes.Add(new LinearAxis {
 				Position = AxisPosition.Bottom, Minimum = 250, Maximum = EoS.speciesData.critT+50, Title = "Temperature [K]"

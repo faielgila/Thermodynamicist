@@ -9,7 +9,10 @@ namespace Core.EquationsOfState;
 /// </summary>
 public abstract class CubicEquationOfState : EquationOfState
 {
-	protected CubicEquationOfState(Chemical species) : base(species) { }
+	protected CubicEquationOfState(Chemical species) : base(species)
+	{
+		ModeledPhases = new List<string> { "liquid", "vapor" };
+	}
 
 	public override Volume CriticalMolarVolume()
 	{
@@ -202,7 +205,12 @@ public abstract class CubicEquationOfState : EquationOfState
 		var guessPvap = VaporPressure(guessT);
 
 		// Check if the boiling temperature exists at the given pressure.
-		if (double.IsNaN(guessPvap)) { return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature); }
+		var phasesKeys = EquilibriumPhases(P);
+		var findPhases = new List<string> { "liquid", "vapor" };
+		if (double.IsNaN(guessPvap) || findPhases.All(phasesKeys.Contains))
+		{
+			return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature);
+		}
 
 		while (Math.Abs(P - guessPvap) >= 10)
 		{
@@ -217,6 +225,6 @@ public abstract class CubicEquationOfState : EquationOfState
 			guessPvap = VaporPressure(guessT);
 		}
 
-		return guessT;
+		return new Temperature(guessT, ThermoVarRelations.SaturationTemperature);
 	}
 }

@@ -127,7 +127,6 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plotting\FunctionFactory.cs" />
-    <Compile Include="Plotting\LinearEnumerable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
