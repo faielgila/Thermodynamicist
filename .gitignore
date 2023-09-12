@@ -3,9 +3,5 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-/.vs/**
-/document.aux
-/document.log
-/document.pdf
-/document.synctex.gz
-/document.tex
+.vs/*
+document.*
