@@ -56,7 +56,7 @@ public class Constants
 	/// the <see cref="HighTempIdealGasCpConstants"/> dictionary.
 	/// </summary>
 	// Most from Sandler, appendix A.II
-	// {Pentane, Toluene} from Yaw's Handbook - Heat Capacities of Gases, Organic Compounds
+	// {R12, R134a, Pentane, Toluene} from Yaw's Handbook - Heat Capacities of Gases, Organic Compounds
 	public static readonly Dictionary<Chemical, (double[] vals, double[] lims)> IdealGasCpConstants = new()
 	{
 		[Chemical.Ammonia]          = (new [] {27.551, 2.563e-2, 0.990e-5, -6.687e-9}, new double[] {273, 1500}),
@@ -76,8 +76,8 @@ public class Constants
 		[Chemical.NPentane]         = (new [] {6.770, 45.398e-2, -22.448e-5, 42.459e-9}, new double[] {273, 1500}),
 		[Chemical.Isopentane]       = (new [] {68.343, -0.1485, 1.879e-3, -3.500e-6, 3.1436e-9, -1.41672e-12, 2.55785e-16}, new double[] {150, 1500}),
 		[Chemical.Propane]          = (new [] {-4.042, 30.456e-2, -15.711e-5, 31.716e-9}, new double[] {273, 1500}),
-	  //[Chemical.R12]              = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
-	  //[Chemical.R134a]            = (new double[] {0, 0, 0, 0}, new double[] {0, 0}),
+		[Chemical.R12]				= (new [] {10.279, 0.3298, -5.34244e-4, 4.92869e-7, -2.64231e-10, 7.69436e-14, -9.4595e-18}, new double[] {150, 1500}),
+		[Chemical.R134a]			= (new [] {28.367, 0.1471, 4.4138e-4, -1.28589e-6, 1.3589e-6, -6.63533e-13, 1.24581e-16}, new double[] {150, 1500}),
 		[Chemical.SulfurDioxide]    = (new [] {25.762, 5.791e-2, -3.809e-5, 8.607e-9}, new double[] {273, 1800}),
 		[Chemical.Toluene]          = (new [] {47.375, -0.2201, 2.482e-3, -4.9176e-6, 4.60396e-9, -2.11999e-12, 3.85054e-16}, new double[] {150, 1500}),
 		[Chemical.Water]            = (new [] {25.460, 1.519e-2, -0.715e-5, 1.311e-9}, new double[] {273, 1800})

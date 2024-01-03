@@ -10,10 +10,8 @@ namespace Core.EquationsOfState;
 /// </summary>
 public class ModSolidLiquidVaporEOS : EquationOfState
 {
-	public ModSolidLiquidVaporEOS(Chemical species) : base(species)
+	public ModSolidLiquidVaporEOS(Chemical species) : base(species, new List<string> { "solid", "liquid", "vapor" })
 	{
-		ModeledPhases = new List<string> { "solid", "liquid", "vapor" };
-
 		if (!ReducedCriticalEoSFittingParameters.ContainsKey(species)) throw new KeyNotFoundException("The provided species is not supported by this EoS.");
 
 		// Define the EoS fitting parameters from their critical reduced counterparts.
@@ -213,50 +211,6 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return midVMol;
 	}
 
-	#endregion
-
-	public override Dictionary<string, Volume> PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
-	{
-		/* Because this MSLV is based on the Peng-Robinson equation of state (which is a cubic equation),
-		 * a similar bisection-based algorithm should work.
-		 * In order to come up with the ranges for the bisection algorithm, the isotherm needs to be split into 4 regions:
-		 * one containing the solid regime, one containing the liquid regime, one containing the s-curve, and one containing
-		 * the vapor regime. Luckily, because of how the fitting parameters of this equation are defined, the new solid regime
-		 * is easily defined directly by the fitting parameters.
-		 */
-
-		/* The solid root, if it exists (and I'm fairly certain it always will because of the asymptote), will be within
-		 * z=B and z=D (or VMol=b and VMol=d)
-		 */
-		var VMol_S = ZRootFinder(T, P, b, d);
-
-		/* The fluid roots are a little more complex than that, but because this EoS is still a polynomial in terms of z,
-		 * derivatives w/rt z are easy to calculate and Rolle's theorem can easily be used to find regions of the function
-		 * with only one root. However, this is a degree 4 polynomial, so the third derivative is linear and not the second.
-		 * The root between turningPoint1 and turningPoint2 is the s-curve root and is non-physical, so is not calculated.
-		 * The root below turningPoint0 is the solid root and was already calculated.
-		 */
-		Volume joltPoint = ZJoltPoint(T, P);
-		Volume inflectionPoint0 = ZInflectionFinder(T, P, b, joltPoint);
-		Volume inflectionPoint1 = ZInflectionFinder(T, P, joltPoint, 1);
-		Volume turningPoint0 = ZTurnFinder(T, P, b, inflectionPoint0);
-		Volume turningPoint1 = ZTurnFinder(T, P, inflectionPoint0, inflectionPoint1);
-		Volume turningPoint2 = ZTurnFinder(T, P, inflectionPoint1, 1);
-		Volume VMol_L = ZRootFinder(T, P, turningPoint0, turningPoint1);
-		Volume VMol_V = ZRootFinder(T, P, turningPoint2, 1);
-
-		// Initialize an empty dictionary.
-		var list = new Dictionary<string, Volume>();
-
-		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
-		if (ignoreEquilibrium) { list.Add("solid", VMol_S); list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
-
-		/* Now that the predicted phases have been found, estimate the fugacities (or more accurately, the fugacity coefficients)
-		 * to determine whether that phase corresponds to a real state in the equilibrium. 
-		 */
-		return EquilibriumPhases(T, P);
-	}
-
 	public Volume ZRootFinder(Temperature T, Pressure P, Volume minVMol, Volume maxVMol)
 	{
 		double midVMol = (maxVMol + minVMol) / 2;
@@ -273,49 +227,7 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return midVMol;
 	}
 
-	public override Pressure VaporPressure(Temperature T)
-	{
-		return double.NaN;
-	}
-	
-	public Pressure SublimationPressure(Temperature T)
-	{
-		return double.NaN;
-	}
-
-	public override Temperature BoilingTemperature(Pressure P)
-	{
-		/* Use a variant of Newton's method of rootfinding starting near the critical point and travelling down the curve
-		 * until the specified pressure is reached.
-		 * Convergence of this algorithm is almost certain because these curves are continuous and
-		 * monotonic in their domain.
-		 */
-		var guessT = speciesData.critT - 0.5;
-		var guessPvap = VaporPressure(guessT);
-
-		// Check if the boiling temperature exists at the given pressure.
-		var phasesKeys = EquilibriumPhases(P);
-		var findPhases = new List<string> { "liquid", "vapor" };
-		if (double.IsNaN(guessPvap) || findPhases.All(phasesKeys.Contains))
-		{
-			return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature);
-		}
-
-		while (Math.Abs(P - guessPvap) >= 10)
-		{
-			// Approximate local derivative with backward difference.
-			var dT = -0.5;
-			var Pvap1 = VaporPressure(guessT);
-			var Pvap2 = VaporPressure(guessT + dT);
-			var dPdT = (Pvap2 - Pvap1) / dT;
-			// Use local derivative to come up with a new guess for the boiling temperature.
-			guessT -= (guessPvap - P) / dPdT;
-			// Calculate vapor pressure at this new guess. Loop ends if this guessPvap is close to P.
-			guessPvap = VaporPressure(guessT);
-		}
-
-        return new Temperature(guessT, ThermoVarRelations.SaturationTemperature);
-    }
+	#endregion
 
 	#region Departure functions
 
@@ -377,5 +289,100 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return val * R;
 	}
 
+	#endregion
+
+	#region Phase equilibrum
+	public override Dictionary<string, Volume> PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
+	{
+        // Initialize the empty list.
+        var list = new Dictionary<string, Volume>();
+
+        /* Because this MSLV is based on the Peng-Robinson equation of state (which is a cubic equation),
+		 * a similar bisection-based algorithm should work.
+		 * In order to come up with the ranges for the bisection algorithm, the isotherm needs to be split into 4 regions:
+		 * one containing the solid regime, one containing the liquid regime, one containing the s-curve, and one containing
+		 * the vapor regime. Luckily, because of how the fitting parameters of this equation are defined, the new solid regime
+		 * is easily defined directly by the fitting parameters.
+		 */
+
+        /* The solid root, if it exists (and I'm fairly certain it always will because of the asymptote), will be within
+		 * z=B and z=D (or VMol=b and VMol=d)
+		 */
+        var VMol_S = ZRootFinder(T, P, b, d);
+
+		/* The fluid roots are a little more complex than that, but because this EoS is still a polynomial in terms of z,
+		 * derivatives w/rt z are easy to calculate and Rolle's theorem can easily be used to find regions of the function
+		 * with only one root. However, this is a degree 4 polynomial, so the third derivative is linear and not the second.
+		 * The root between turningPoint1 and turningPoint2 is the s-curve root and is non-physical, so is not calculated.
+		 * The root below turningPoint0 is the solid root and was already calculated.
+		 */
+		Volume joltPoint = ZJoltPoint(T, P);
+		Volume inflectionPoint0 = ZInflectionFinder(T, P, b, joltPoint);
+		Volume inflectionPoint1 = ZInflectionFinder(T, P, joltPoint, 1);
+		Volume turningPoint0 = ZTurnFinder(T, P, b, inflectionPoint0);
+		Volume turningPoint1 = ZTurnFinder(T, P, inflectionPoint0, inflectionPoint1);
+		Volume turningPoint2 = ZTurnFinder(T, P, inflectionPoint1, 1);
+
+		/* If the Z at turningPoint1 is positive, then there will be no real roots corresponding to the liquid phase.
+		 * If the Z at turningPoint2 is negative, then there will be no real roots corresponding to the vapor phase.
+		 */
+		bool flagRealRoot_L = ZEquation(T, P, turningPoint1) <= 0;
+		bool flagRealRoot_V = ZEquation(T, P, turningPoint2) >= 0;
+
+		Volume VMol_L = flagRealRoot_L ? ZRootFinder(T, P, turningPoint0, turningPoint1) : double.NaN;
+		Volume VMol_V = flagRealRoot_V ? ZRootFinder(T, P, turningPoint2, 1) : double.NaN;
+
+        // If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
+        if (ignoreEquilibrium) { list.Add("solid", VMol_S); list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
+
+		/* Now that the predicted phases have been found, estimate the fugacities (or more precisely, the fugacity coefficients)
+		 * to determine whether that phase corresponds to a real state in the equilibrium. 
+		 */
+		return EquilibriumPhases(T, P);
+	}
+
+	public override Pressure VaporPressure(Temperature T)
+	{
+		return double.NaN;
+	}
+
+	public Pressure SublimationPressure(Temperature T)
+	{
+		return double.NaN;
+	}
+
+	public override Temperature BoilingTemperature(Pressure P)
+	{
+		/* Use a variant of Newton's method of rootfinding starting near the critical point and travelling down the curve
+		 * until the specified pressure is reached.
+		 * Convergence of this algorithm is almost certain because these curves are continuous and
+		 * monotonic in their domain.
+		 */
+		var guessT = speciesData.critT - 0.5;
+		var guessPvap = VaporPressure(guessT);
+
+		// Check if the boiling temperature exists at the given pressure.
+		var phasesKeys = EquilibriumPhases(P);
+		var findPhases = new List<string> { "liquid", "vapor" };
+		if (double.IsNaN(guessPvap) || findPhases.All(phasesKeys.Contains))
+		{
+			return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature);
+		}
+
+		while (Math.Abs(P - guessPvap) >= 10)
+		{
+			// Approximate local derivative with backward difference.
+			var dT = -0.5;
+			var Pvap1 = VaporPressure(guessT);
+			var Pvap2 = VaporPressure(guessT + dT);
+			var dPdT = (Pvap2 - Pvap1) / dT;
+			// Use local derivative to come up with a new guess for the boiling temperature.
+			guessT -= (guessPvap - P) / dPdT;
+			// Calculate vapor pressure at this new guess. Loop ends if this guessPvap is close to P.
+			guessPvap = VaporPressure(guessT);
+		}
+
+		return new Temperature(guessT, ThermoVarRelations.SaturationTemperature);
+	}
 	#endregion
 }

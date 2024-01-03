@@ -29,21 +29,23 @@ public abstract class EquationOfState
 
 	public List<string> ModeledPhases;
 
-	protected EquationOfState(Chemical species, (Temperature T, Pressure P) referenceState)
+	protected EquationOfState(Chemical species, (Temperature T, Pressure P) referenceState, List<string> modeledPhases)
 	{
 		ReferenceState = referenceState;
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
 		speciesCpData = Constants.IdealGasCpConstants[species];
+		ModeledPhases = modeledPhases;
 		//TODO: when high-temp calculations are fleshed out, reactivate this line.
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
 	}
 
-	protected EquationOfState(Chemical species)
+	protected EquationOfState(Chemical species, List<string> modeledPhases)
 	{
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
 		speciesCpData = Constants.IdealGasCpConstants[species];
+        ModeledPhases = modeledPhases;
         //TODO: when high-temp calculations are fleshed out, reactivate this line.
         //speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
     }
@@ -103,65 +105,6 @@ public abstract class EquationOfState
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
 	/// <returns>fugacity, unitless. f = φP</returns>
 	public double Fugacity(Temperature T, Pressure P, Volume VMol) { return FugacityCoeff(T, P, VMol) * P; }
-
-	/// <summary>
-	/// Calculates the saturation pressure for liquid-vapor equilibrium, i.e. the vapor pressure.
-	/// If the temperature is above the critical temperature, the vapor pressure will be returned as NaN.
-	/// </summary>
-	/// <param name="T">temperature, in [K]</param>
-	/// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
-	public virtual Pressure VaporPressure(Temperature T)
-	{
-		// Check if a vapor pressure exists at the temperature.
-		if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
-
-		/* Initial guess must be within the S-curve region of the isotherm or this method will not converge.
-		 * Because the critical point is the state for which the liquid and vapor phases will diverge from
-		 * (as the temperature and/or pressure drops below the critical point), the critical volume must
-		 * be in-between the volumes of the liquid and vapor phases; that is, the critical volume always
-		 * lies inside the s-curve region. That means that the critical volume provides a perfect starting point.
-		 * This fulfills the first of two requirements for a good initial guess for the Sandler algorithm employed below.
-		 */
-		var VMol = CriticalMolarVolume();
-
-		/* Because the critical molar volume is guaranteed to be inside the s-curve region, simple
-		 * gradient ascent can be applied until the pressure is positive. If the pressure is already positive,
-		 * then the ascent loop is skipped.
-		 * This fulfills the second requirement for a good initial guess.
-		 */
-		// The learning rate has to adapt to the exaggerated shape of isotherms far below the critical temperature.
-		var h = Math.Pow(10, -16.5 + 2 / speciesData.critT - 2 / T);
-		var P = Pressure(T, VMol);
-		while (P <= 0)
-		{
-			VMol += h * PVPartialDerivative(T, VMol);
-			P = Pressure(T, VMol);
-		}
-
-		var v = PhaseFinder(T, P, true); // get the molar volumes for the two phases
-		var f_L = Fugacity(T, P, v["liquid"]); // fugacity for the liquid phase
-		var f_V = Fugacity(T, P, v["vapor"]); // fugacity for the vapor phase
-
-		// Increment the initial pressure guess until precision is reached.
-		// taken from Sandler, Figure 7.5-1
-		while (Math.Abs(f_L / f_V - 1) > precisionLimit * Math.Pow(10, 5))
-		{
-			P = P * f_L / f_V;
-			v = PhaseFinder(T, P, true);
-			f_L = Fugacity(T, P, v["liquid"]);
-			f_V = Fugacity(T, P, v["vapor"]);
-		}
-
-		return new Pressure(P, ThermoVarRelations.VaporPressure);
-	}
-
-	/// <summary>
-	/// Calculates the saturation temperature for liquid-vapor equilibrium, i.e. the boiling temperature.
-	/// If the pressure is above the critical pressure, the boiling temperature will be returned as NaN.
-	/// </summary>
-	/// <param name="P">pressure, in [Pa]</param>
-	/// <returns>If it exists, boiling temperature, in [K]; If is does not exist, NaN</returns>
-	public abstract Temperature BoilingTemperature(Pressure P);
 
 	#region State Variables - Enthalpy
 
@@ -459,6 +402,65 @@ public abstract class EquationOfState
 
         return phases;
     }
+
+    /// <summary>
+    /// Calculates the saturation pressure for liquid-vapor equilibrium, i.e. the vapor pressure.
+    /// If the temperature is above the critical temperature, the vapor pressure will be returned as NaN.
+    /// </summary>
+    /// <param name="T">temperature, in [K]</param>
+    /// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
+    public virtual Pressure VaporPressure(Temperature T)
+    {
+        // Check if a vapor pressure exists at the temperature.
+        if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
+
+        /* Initial guess must be within the S-curve region of the isotherm or this method will not converge.
+		 * Because the critical point is the state for which the liquid and vapor phases will diverge from
+		 * (as the temperature and/or pressure drops below the critical point), the critical volume must
+		 * be in-between the volumes of the liquid and vapor phases; that is, the critical volume always
+		 * lies inside the s-curve region. That means that the critical volume provides a perfect starting point.
+		 * This fulfills the first of two requirements for a good initial guess for the Sandler algorithm employed below.
+		 */
+        var VMol = CriticalMolarVolume();
+
+        /* Because the critical molar volume is guaranteed to be inside the s-curve region, simple
+		 * gradient ascent can be applied until the pressure is positive. If the pressure is already positive,
+		 * then the ascent loop is skipped.
+		 * This fulfills the second requirement for a good initial guess.
+		 */
+        // The learning rate has to adapt to the exaggerated shape of isotherms far below the critical temperature.
+        var h = Math.Pow(10, -16.5 + 2 / speciesData.critT - 2 / T);
+        var P = Pressure(T, VMol);
+        while (P <= 0)
+        {
+            VMol += h * PVPartialDerivative(T, VMol);
+            P = Pressure(T, VMol);
+        }
+
+        var v = PhaseFinder(T, P, true); // get the molar volumes for the two phases
+        var f_L = Fugacity(T, P, v["liquid"]); // fugacity for the liquid phase
+        var f_V = Fugacity(T, P, v["vapor"]); // fugacity for the vapor phase
+
+        // Increment the initial pressure guess until precision is reached.
+        // taken from Sandler, Figure 7.5-1
+        while (Math.Abs(f_L / f_V - 1) > precisionLimit * Math.Pow(10, 5))
+        {
+            P = P * f_L / f_V;
+            v = PhaseFinder(T, P, true);
+            f_L = Fugacity(T, P, v["liquid"]);
+            f_V = Fugacity(T, P, v["vapor"]);
+        }
+
+        return new Pressure(P, ThermoVarRelations.VaporPressure);
+    }
+
+    /// <summary>
+    /// Calculates the saturation temperature for liquid-vapor equilibrium, i.e. the boiling temperature.
+    /// If the pressure is above the critical pressure, the boiling temperature will be returned as NaN.
+    /// </summary>
+    /// <param name="P">pressure, in [Pa]</param>
+    /// <returns>If it exists, boiling temperature, in [K]; If is does not exist, NaN</returns>
+    public abstract Temperature BoilingTemperature(Pressure P);
 
     #endregion
 

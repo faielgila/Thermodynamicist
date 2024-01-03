@@ -9,10 +9,7 @@ namespace Core.EquationsOfState;
 /// </summary>
 public abstract class CubicEquationOfState : EquationOfState
 {
-	protected CubicEquationOfState(Chemical species) : base(species)
-	{
-		ModeledPhases = new List<string> { "liquid", "vapor" };
-	}
+	protected CubicEquationOfState(Chemical species) : base(species, new List<string> { "liquid", "vapor" }) {}
 
 	public override Volume CriticalMolarVolume()
 	{
@@ -121,32 +118,31 @@ public abstract class CubicEquationOfState : EquationOfState
 		Volume inflectionVMol = ZCubicInflectionPoint(T, P);
 		Volume turningPoint1 = ZCubicTurnFinder(T, P, 0, inflectionVMol);
 		Volume turningPoint2 = ZCubicTurnFinder(T, P, inflectionVMol, 1);
-		Volume VMol_L = ZCubicRootFinder(T, P, 0, turningPoint1);
-		Volume VMol_V = ZCubicRootFinder(T, P, turningPoint2, 1);
-		
-		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
-		if (ignoreEquilibrium) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
-		
-		/* Now that the predicted phases have been found, we can calculate the fugacity of each phase to determine whether
-		 * the predicted phase equilibrium corresponds to a real equilibrium state. If the fugacities are roughly equal,
-		 * then the two phases are likely in equilibrium. If one fugacity is larger than the other, then the system will
-		 * prefer the lower fugacity phase over the higher one, and as such only the phase with the lower fugacity exists
-		 * at that state. This code uses the fugacity coefficient instead of fugacity directly since it requires
-		 * slightly less calculation and doesn't require dividing by a large number (which reduces precision).
-		 */
-		double f_L = FugacityCoeff(T, P, VMol_L);
-		double f_V = FugacityCoeff(T, P, VMol_V);
 
-		/* Note that 0.1 is used here instead of the precision limit because the exponential nature of the fugacity
-		 * coefficient means that a small difference in precision leads to quite a different number. In the reality of
-		 * numerical solutions for these kinds of equations, a difference between fugacities of 0.1 is more than enough
-		 * to conclude that the system in is phase equilibrium.
+		/* If the Z at the first turning point is negative, then there will be no real roots other than the single root
+		 * corresponding to the vapor phase.
+		 * Similarly, if the Z at the second turning point is positive, there will be no real roots other than
+		 * the liquid root.
+		 * Thus, further calculation of those roots would be useless.
 		 */
-		if (Math.Abs(f_L - f_V) < 0.1) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
-		if (f_L > f_V) list.Add("vapor", VMol_V);
-		if (f_L < f_V) list.Add("liquid", VMol_L);
-		
-		return list;
+		bool flagRealRoot_L = ZCubicEqn(T, P, turningPoint1) >= 0;
+        bool flagRealRoot_V = ZCubicEqn(T, P, turningPoint2) <= 0;
+
+		Volume VMol_L = flagRealRoot_L ? ZCubicRootFinder(T, P, 0, turningPoint1) : double.NaN;
+		Volume VMol_V = flagRealRoot_V ? ZCubicRootFinder(T, P, turningPoint2, 1) : double.NaN;
+
+        // If one of the vapor or liquid roots are not real roots, then there is no equilibrium to determine.
+        if (!flagRealRoot_V) { list.Add("liquid", VMol_L); return list; }
+        if (!flagRealRoot_L) { list.Add("vapor", VMol_V); return list; }
+
+        // If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
+		// Note that at this point, the only way to reach this part of the logic is if both the vapor and liquid roots exist.
+        if (ignoreEquilibrium) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
+
+        /* Now that the predicted phases have been found, estimate the fugacities (or more precisely, the fugacity coefficients)
+		 * to determine whether that phase corresponds to a real state in the equilibrium. 
+		 */
+        return EquilibriumPhases(T, P);
 	}
 
 	public override Pressure VaporPressure(Temperature T)
