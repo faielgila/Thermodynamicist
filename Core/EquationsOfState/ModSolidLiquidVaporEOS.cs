@@ -97,7 +97,6 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return PRed * speciesData.critP;
 	}
 
-	#region Pressure partial derivatives
 	public override double PVPartialDerivative(Temperature T, Volume VMol)
 	{
 		var a = this.a(T);
@@ -105,7 +104,6 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		var term2 = -d * R * T * (b + c - 2 * VMol) + R * T * (b * c - VMol * VMol);
 		return term1 + term2 / Math.Pow((b - VMol) * (c - VMol), 2);
 	}
-	#endregion
 
 	public override Volume CriticalMolarVolume()
 	{

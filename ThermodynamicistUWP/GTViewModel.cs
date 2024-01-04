@@ -8,6 +8,7 @@
 	using Core;
 	using System.Threading.Tasks;
     using System.Threading;
+    using Core.VariableTypes;
 
     public class GTViewModel
 	{
@@ -15,9 +16,12 @@
 
 		public EquationOfState EoS { get; set; }
 
-		public GTViewModel(EquationOfState equationOfState)
+		public Pressure P { get; set; }
+
+		public GTViewModel(EquationOfState equationOfState, Pressure p)
 		{
 			EoS = equationOfState;
+			P = p;
 			Update();
 		}
 
@@ -29,7 +33,7 @@
 			var modeledPhases = EoS.ModeledPhases;
 			foreach (string phase in modeledPhases)
 			{
-				Model.Series.Add(FunctionFactory.LS_GTCurve(EoS, 101325, phase));
+				Model.Series.Add(FunctionFactory.LS_GTCurve(EoS, P, phase));
 			}
 
 			Model.Axes.Add(new LinearAxis {

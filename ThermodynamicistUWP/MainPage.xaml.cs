@@ -90,15 +90,15 @@ namespace ThermodynamicistUWP
 
 			// Fills in the plot view with a view model using the new settings
 			PlotViewPV.Model = new PVViewModel(EoS, ToggleSCurve.IsOn).Model;
-			PlotViewPT.Model = new GTViewModel(EoS).Model;
+			PlotViewPT.Model = new GTViewModel(EoS, P).Model;
 		}
 
 		private void RefreshCalculations(object sender, RoutedEventArgs e)
 		{
 			// If any inputs are not set, do not attempt to run calculations!
 			if (
-				double.IsNaN(NumBoxT.Value) ||
-				double.IsNaN(NumBoxP.Value) ||
+				double.IsNaN(NumBoxT.Value) || NumBoxT.Value == 0 ||
+				double.IsNaN(NumBoxP.Value) || NumBoxP.Value == 0 ||
 				DropdownSpecies.SelectedItem == null ||
 				DropdownEoS.SelectedItem == null
 				) return;
