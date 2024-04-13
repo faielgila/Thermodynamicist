@@ -86,13 +86,13 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		var VMolCrit = CriticalMolarVolume();
 		var zCrit = CompressibilityFactor(speciesData.critT, speciesData.critP, VMolCrit);
 		var VMolRed = VMol / VMolCrit;
-		var aRed = a(T) * speciesData.critP / Math.Pow(R * speciesData.critT, 2);
-		var bRed = b / VMolCrit;
+        var aRed = Alpha(T) * ReducedCriticalEoSFittingParameters[Species].a;
+        var bRed = b / VMolCrit;
 		var cRed = c / VMolCrit;
 		var dRed = d / VMolCrit;
 		// Implement EoS.
 		var PRed = TRed / (VMolRed - bRed) / zCrit * (VMolRed - dRed) / (VMolRed - cRed)
-			- aRed * (VMolRed * VMolRed + 2 * bRed * VMolRed - bRed * bRed) / zCrit / zCrit;
+			- aRed / (VMolRed * VMolRed + 2 * bRed * VMolRed - bRed * bRed) / zCrit / zCrit;
 		// Convert reduced pressure to absolute pressure.
 		return PRed * speciesData.critP;
 	}
@@ -252,7 +252,7 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		val += (cRed - dRed) / (VMolRed - cRed) + (bRed - dRed) / (VMolRed - bRed);
 		val += CompressibilityFactor(T, P, VMol) - 1;
 
-		return val * R * T;
+		return val * R * TCrit * TRed;
 	}
 
 	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
@@ -276,11 +276,11 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		term1 -= bRed * Math.Log(Math.Abs(1 - bRed / VMolRed));
 		term1 /= cRed - bRed;
 		var sqrt2 = Math.Sqrt(2);
-		var term2 = Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / VMolRed + bRed * (1 - sqrt2)));
+		var term2 = Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / (VMolRed + bRed * (1 - sqrt2))));
 		term2 *= aRed / TRed / zCrit / bRed / 2 / sqrt2;
 		term2 += (bRed - dRed) / (VMolRed - bRed);
 		term2 += (cRed - dRed) / (VMolRed - cRed);
-		var term3 = Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / VMolRed + bRed * (1 - sqrt2)));
+		var term3 = Math.Log(Math.Abs((VMolRed + bRed * (1 + sqrt2)) / (VMolRed + bRed * (1 - sqrt2))));
 		term3 *= (aRedTDerivative(T) - aRed/TRed) / zCrit / bRed / 2 / sqrt2;
 
 		var val = term1 + term2 + term3 + Math.Log(CompressibilityFactor(T,P,VMol));
@@ -315,20 +315,27 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		 * The root below turningPoint0 is the solid root and was already calculated.
 		 */
 		Volume joltPoint = ZJoltPoint(T, P);
-		Volume inflectionPoint0 = ZInflectionFinder(T, P, b, joltPoint);
-		Volume inflectionPoint1 = ZInflectionFinder(T, P, joltPoint, 1);
-		Volume turningPoint0 = ZTurnFinder(T, P, b, inflectionPoint0);
-		Volume turningPoint1 = ZTurnFinder(T, P, inflectionPoint0, inflectionPoint1);
-		Volume turningPoint2 = ZTurnFinder(T, P, inflectionPoint1, 1);
 
-		/* If the Z at turningPoint1 is positive, then there will be no real roots corresponding to the liquid phase.
-		 * If the Z at turningPoint2 is negative, then there will be no real roots corresponding to the vapor phase.
-		 */
-		bool flagRealRoot_L = ZEquation(T, P, turningPoint1) <= 0;
-		bool flagRealRoot_V = ZEquation(T, P, turningPoint2) >= 0;
+		// Inflection points only exist if the Z'' at the jolt point is positive.
+		bool flagRealInflection = ZSecondDerivative(T, P, joltPoint) > 0;
+        Volume inflectionPoint0 = flagRealInflection ? ZInflectionFinder(T, P, b, joltPoint) : double.NaN;
+		Volume inflectionPoint1 = flagRealInflection ? ZInflectionFinder(T, P, joltPoint, 1) : double.NaN;
 
-		Volume VMol_L = flagRealRoot_L ? ZRootFinder(T, P, turningPoint0, turningPoint1) : double.NaN;
-		Volume VMol_V = flagRealRoot_V ? ZRootFinder(T, P, turningPoint2, 1) : double.NaN;
+		// Turns 0 and 1 only exist if the Z' at inflection 0 is negative.
+		// Turns 1 and 2 only exist if the Z' at inflection 1 is positive.
+		bool flagRealTurnA = ZFirstDerivative(T, P, inflectionPoint0) < 0;
+		bool flagRealTurnB = ZFirstDerivative(T, P, inflectionPoint1) > 0;
+  		Volume turningPoint0 = flagRealTurnA ? ZTurnFinder(T, P, b, inflectionPoint0) : double.NaN;
+		Volume turningPoint1 = (flagRealTurnA && flagRealTurnB) ? ZTurnFinder(T, P, inflectionPoint0, inflectionPoint1) : double.NaN;
+		Volume turningPoint2 = flagRealTurnB ?  ZTurnFinder(T, P, inflectionPoint1, 1) : double.NaN;
+
+		// Liquid & non-physical roots only exist if the Z at turn 1 is negative.
+		// Non-physical & vapor roots only exist if the Z at turn 2 is positive.
+		// Solid root always exists, as stated previously.
+		bool flagRootL = ZEquation(T, P, turningPoint1) < 0;
+		bool flagRootV = ZEquation(T, P, turningPoint2) > 0;
+		Volume VMol_L = flagRootL ? ZRootFinder(T, P, turningPoint0, turningPoint1) : double.NaN;
+		Volume VMol_V = flagRootV ? ZRootFinder(T, P, turningPoint2, 1) : double.NaN;
 
         // If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
         if (ignoreEquilibrium) { list.Add("solid", VMol_S); list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }

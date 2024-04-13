@@ -37,7 +37,7 @@
 			}
 
 			Model.Axes.Add(new LinearAxis {
-				Position = AxisPosition.Bottom, Minimum = 250, Maximum = EoS.speciesData.critT+50, Title = "Temperature [K]"
+				Position = AxisPosition.Bottom, Minimum = 250, Maximum = EoS.speciesData.critT+100, Title = "Temperature [K]"
 			});
 			Model.Axes.Add(new LinearAxis
 			{
