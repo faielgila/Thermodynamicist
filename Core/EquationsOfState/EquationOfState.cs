@@ -34,7 +34,7 @@ public abstract class EquationOfState
 		ReferenceState = referenceState;
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
-		speciesCpData = Constants.IdealGasCpConstants[species];
+		speciesCpData = Data.HeatCapacityParameters.IdealGasCpConstants[species];
 		ModeledPhases = modeledPhases;
 		//TODO: when high-temp calculations are fleshed out, reactivate this line.
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
@@ -44,11 +44,11 @@ public abstract class EquationOfState
 	{
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
-		speciesCpData = Constants.IdealGasCpConstants[species];
-        ModeledPhases = modeledPhases;
-        //TODO: when high-temp calculations are fleshed out, reactivate this line.
-        //speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
-    }
+		speciesCpData = Data.HeatCapacityParameters.IdealGasCpConstants[species];
+		ModeledPhases = modeledPhases;
+		//TODO: when high-temp calculations are fleshed out, reactivate this line.
+		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+	}
 
 	/// <summary>
 	/// Returns the pressure of the system in the given state, defined by temperature and molar volume.
@@ -87,6 +87,10 @@ public abstract class EquationOfState
 		return P * VMol / (R * T);
 	}
 
+	// TODO: Implement generic algorithm for the thermal expansion coefficient (α)
+	// Update enthalpy/entropy changes to include pressure term
+	//public abstract double ThermalExpansionCoeff(Temperature T, Pressure P, Volume VMol);
+
 	/// <summary>
 	/// Returns the fugacity coefficient of the system in the given state,
 	/// defined by temperature, pressure, and molar volume.
@@ -115,7 +119,7 @@ public abstract class EquationOfState
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>Molar Enthalpy, departure</returns>
+	/// <returns>molar enthalpy (type departure), in [J/mol]</returns>
 	/// <remarks>Departure is dependent on the equation of state used, so this must be defined
 	/// for each EoS.</remarks>
 	public abstract Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol);
@@ -159,7 +163,7 @@ public abstract class EquationOfState
 	/// <summary>
 	/// Calculates the enthalpy change between two states using departure functions and convenient paths.
 	/// </summary>
-	/// <returns>Molar Enthalpy, change</returns>
+	/// <returns>molar enthalpy (type change), in [J/mol]</returns>
 	public Enthalpy MolarEnthalpyChange
 		(Temperature T1, Pressure P1, Volume VMol1, Temperature T2, Pressure P2, Volume VMol2)
 	{
@@ -176,7 +180,7 @@ public abstract class EquationOfState
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>Molar Enthalpy, real</returns>
+	/// <returns>molar enthalpy (type real), in [J/mol]</returns>
 	public Enthalpy ReferenceMolarEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
 		var pathA = IdealMolarEnthalpyChange(ReferenceState.refT, T);
@@ -377,102 +381,111 @@ public abstract class EquationOfState
 		return phases;
 	}
 
-    /// <summary>
-    /// Creates a list of all phases present at a constant temperature but varying pressure.
-    /// Does not return molar volumes, since those would be dependent on pressure.
-    /// </summary>
-    /// <param name="T">temperature, in [K]</param>
-    /// <param name="dP">step size for pressure, in [Pa]</param>
-    /// <returns>List: phase name stored as a string</returns>
-    // TODO : Implement a smarter algorithm for searching that doesn't require fixed step sizes
-    // that may accidentally skip small phase regions. Maybe search the Gibbs free energy curve
-    // directly, monitoring the derivatives of each phase to decide how large the step size should be?
-    public List<string> EquilibriumPhases(Pressure P, double dT = 0.5)
-    {
-        var critT = speciesData.critT;
-        var temps = new LinearEnumerable(critT / 100, critT - 10, dT);
+	/// <summary>
+	/// Creates a list of all phases present at a constant temperature but varying temperature.
+	/// Does not return molar volumes, since those would be dependent on temperature.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="dP">step size for pressure, in [Pa]</param>
+	/// <returns>List: phase name stored as a string</returns>
+	// TODO : Implement a smarter algorithm for searching that doesn't require fixed step sizes
+	// that may accidentally skip small phase regions. Maybe search the Gibbs free energy curve
+	// directly, monitoring the derivatives of each phase to decide how large the step size should be?
+	public List<string> EquilibriumPhases(Pressure P, double dT = 0.5)
+	{
+		var critT = speciesData.critT;
+		var temps = new LinearEnumerable(critT / 100, critT - 10, dT);
 
-        var phases = new List<string>();
-        foreach (Temperature T in temps)
-        {
-            var phaseKeys = EquilibriumPhases(T, P).Keys;
-            phaseKeys.ToList();
-            phases.AddRange(phaseKeys);
-        }
+		var phases = new List<string>();
+		foreach (Temperature T in temps)
+		{
+			var phaseKeys = EquilibriumPhases(T, P).Keys;
+			phaseKeys.ToList();
+			phases.AddRange(phaseKeys);
+		}
 
-        return phases;
-    }
+		return phases;
+	}
 
-    /// <summary>
-    /// Calculates the saturation pressure for liquid-vapor equilibrium, i.e. the vapor pressure.
-    /// If the temperature is above the critical temperature, the vapor pressure will be returned as NaN.
-    /// </summary>
-    /// <param name="T">temperature, in [K]</param>
-    /// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
-    public virtual Pressure VaporPressure(Temperature T)
-    {
-        // Check if a vapor pressure exists at the temperature.
-        if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
+	/// <summary>
+	/// Calculates the saturation pressure for liquid-vapor equilibrium, i.e. the vapor pressure.
+	/// If the temperature is above the critical temperature, the vapor pressure will be returned as NaN.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <returns>If it exists, vapor pressure, in [Pa]; If does not exist, NaN</returns>
+	public virtual Pressure VaporPressure(Temperature T)
+	{
+		// Check if a vapor pressure exists at the temperature.
+		if (T >= speciesData.critT) { return new Pressure(double.NaN, ThermoVarRelations.VaporPressure); }
 
-        /* Initial guess must be within the S-curve region of the isotherm or this method will not converge.
+		/* Initial guess must be within the S-curve region of the isotherm or this method will not converge.
 		 * Because the critical point is the state for which the liquid and vapor phases will diverge from
 		 * (as the temperature and/or pressure drops below the critical point), the critical volume must
 		 * be in-between the volumes of the liquid and vapor phases; that is, the critical volume always
 		 * lies inside the s-curve region. That means that the critical volume provides a perfect starting point.
 		 * This fulfills the first of two requirements for a good initial guess for the Sandler algorithm employed below.
 		 */
-        var VMol = CriticalMolarVolume();
+		var VMol = CriticalMolarVolume();
 
-        /* Because the critical molar volume is guaranteed to be inside the s-curve region, simple
+		/* Because the critical molar volume is guaranteed to be inside the s-curve region, simple
 		 * gradient ascent can be applied until the pressure is positive. If the pressure is already positive,
 		 * then the ascent loop is skipped.
 		 * This fulfills the second requirement for a good initial guess.
 		 */
-        // The learning rate has to adapt to the exaggerated shape of isotherms far below the critical temperature.
-        var h = Math.Pow(10, -16.5 + 2 / speciesData.critT - 2 / T);
-        var P = Pressure(T, VMol);
-        while (P <= 0)
-        {
-            VMol += h * PVPartialDerivative(T, VMol);
-            P = Pressure(T, VMol);
-        }
+		// The learning rate has to adapt to the exaggerated shape of isotherms far below the critical temperature.
+		var h = Math.Pow(10, -16.5 + 2 / speciesData.critT - 2 / T);
+		var P = Pressure(T, VMol);
+		while (P <= 0)
+		{
+			VMol += h * PVPartialDerivative(T, VMol);
+			P = Pressure(T, VMol);
+		}
 
-        var v = PhaseFinder(T, P, true); // get the molar volumes for the two phases
-        var f_L = Fugacity(T, P, v["liquid"]); // fugacity for the liquid phase
-        var f_V = Fugacity(T, P, v["vapor"]); // fugacity for the vapor phase
+		var v = PhaseFinder(T, P, true); // get the molar volumes for the two phases
+		var f_L = Fugacity(T, P, v["liquid"]); // fugacity for the liquid phase
+		var f_V = Fugacity(T, P, v["vapor"]); // fugacity for the vapor phase
 
-        // Increment the initial pressure guess until precision is reached.
-        // taken from Sandler, Figure 7.5-1
-        while (Math.Abs(f_L / f_V - 1) > precisionLimit * Math.Pow(10, 5))
-        {
-            P = P * f_L / f_V;
-            v = PhaseFinder(T, P, true);
-            f_L = Fugacity(T, P, v["liquid"]);
-            f_V = Fugacity(T, P, v["vapor"]);
-        }
+		// Increment the initial pressure guess until precision is reached.
+		// taken from Sandler, Figure 7.5-1
+		while (Math.Abs(f_L / f_V - 1) > precisionLimit * Math.Pow(10, 5))
+		{
+			P = P * f_L / f_V;
+			v = PhaseFinder(T, P, true);
+			f_L = Fugacity(T, P, v["liquid"]);
+			f_V = Fugacity(T, P, v["vapor"]);
+		}
 
-        return new Pressure(P, ThermoVarRelations.VaporPressure);
-    }
+		return new Pressure(P, ThermoVarRelations.VaporPressure);
+	}
 
-    /// <summary>
-    /// Calculates the saturation temperature for liquid-vapor equilibrium, i.e. the boiling temperature.
-    /// If the pressure is above the critical pressure, the boiling temperature will be returned as NaN.
-    /// </summary>
-    /// <param name="P">pressure, in [Pa]</param>
-    /// <returns>If it exists, boiling temperature, in [K]; If is does not exist, NaN</returns>
-    public abstract Temperature BoilingTemperature(Pressure P);
+	/// <summary>
+	/// Calculates the saturation temperature for liquid-vapor equilibrium, i.e. the boiling temperature.
+	/// If the pressure is above the critical pressure, the boiling temperature will be returned as NaN.
+	/// </summary>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <returns>If it exists, boiling temperature, in [K]; If is does not exist, NaN</returns>
+	public abstract Temperature BoilingTemperature(Pressure P);
 
-    #endregion
+	/// <summary>
+	/// Calculates the enthalpy change between two phases.
+	/// If either phase is not present, the enthalpy will be returned as NaN.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <returns>If it exists, phase change enthalpy, in [J/mol]; If is does not exist, NaN</returns>
+	public abstract Enthalpy PhaseChangeEnthalpy(Temperature T, Pressure P, string phaseFrom, string phaseTo);
 
-    /// <summary>
-    /// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.
-    /// </summary>
-    /// <param name="T">temperature, in [K]</param>
-    /// <param name="P">pressure, in [Pa]</param>
-    /// <param name="VMol">molar volume of phase, in [m³/mol]</param>
-    /// <returns>List of variables: compressibility factor, molar internal energy,
-    /// molar enthalpy, molar entropy, molar Gibbs energy, molar Helmholtz energy, and fugacity coefficient.</returns>
-    public (double Z, InternalEnergy U, Enthalpy H, Entropy S, GibbsEnergy G, HelmholtzEnergy A, double f)
+	#endregion
+
+	/// <summary>
+	/// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <param name="VMol">molar volume of phase, in [m³/mol]</param>
+	/// <returns>List of variables: compressibility factor, molar internal energy,
+	/// molar enthalpy, molar entropy, molar Gibbs energy, molar Helmholtz energy, and fugacity coefficient.</returns>
+	public (double Z, InternalEnergy U, Enthalpy H, Entropy S, GibbsEnergy G, HelmholtzEnergy A, double f)
 		GetAllStateVariables(Temperature T, Pressure P, Volume VMol)
 	{
 		var Z = CompressibilityFactor(T, P, VMol);

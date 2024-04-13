@@ -126,23 +126,23 @@ public abstract class CubicEquationOfState : EquationOfState
 		 * Thus, further calculation of those roots would be useless.
 		 */
 		bool flagRealRoot_L = ZCubicEqn(T, P, turningPoint1) >= 0;
-        bool flagRealRoot_V = ZCubicEqn(T, P, turningPoint2) <= 0;
+		bool flagRealRoot_V = ZCubicEqn(T, P, turningPoint2) <= 0;
 
 		Volume VMol_L = flagRealRoot_L ? ZCubicRootFinder(T, P, 0, turningPoint1) : double.NaN;
 		Volume VMol_V = flagRealRoot_V ? ZCubicRootFinder(T, P, turningPoint2, 1) : double.NaN;
 
-        // If one of the vapor or liquid roots are not real roots, then there is no equilibrium to determine.
-        if (!flagRealRoot_V) { list.Add("liquid", VMol_L); return list; }
-        if (!flagRealRoot_L) { list.Add("vapor", VMol_V); return list; }
+		// If one of the vapor or liquid roots are not real roots, then there is no equilibrium to determine.
+		if (!flagRealRoot_V) { list.Add("liquid", VMol_L); return list; }
+		if (!flagRealRoot_L) { list.Add("vapor", VMol_V); return list; }
 
-        // If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
+		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
 		// Note that at this point, the only way to reach this part of the logic is if both the vapor and liquid roots exist.
-        if (ignoreEquilibrium) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
+		if (ignoreEquilibrium) { list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
 
-        /* Now that the predicted phases have been found, estimate the fugacities (or more precisely, the fugacity coefficients)
+		/* Now that the predicted phases have been found, estimate the fugacities (or more precisely, the fugacity coefficients)
 		 * to determine whether that phase corresponds to a real state in the equilibrium. 
 		 */
-        return EquilibriumPhases(T, P);
+		return EquilibriumPhases(T, P);
 	}
 
 	public override Pressure VaporPressure(Temperature T)
@@ -222,5 +222,33 @@ public abstract class CubicEquationOfState : EquationOfState
 		}
 
 		return new Temperature(guessT, ThermoVarRelations.SaturationTemperature);
+	}
+
+	/// <summary>
+	/// Calculates the enthalpy change between liquid-vapor equilibrium, i.e. the vaporization enthalpy.
+	/// If either the vapor or liquid phase are not present, the enthalpy will be returned as NaN.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <param name="phaseFrom">initial phase</param>
+	/// <param name="phaseTo">final phase</param>
+	/// <returns>If it exists, vaporization enthalpy, in [J/mol]; If is does not exist, NaN</returns>
+	public override Enthalpy PhaseChangeEnthalpy(Temperature T, Pressure P, string phaseFrom, string phaseTo)
+	{
+		// Check for phase change and direction of change
+		if (string.Equals(phaseFrom, phaseTo)) return new Enthalpy(0, ThermoVarRelations.Change);
+		if (string.Equals(phaseFrom, "liquid") && string.Equals(phaseTo, "vapor" )) return  VaporizationEnthalpy(T, P);
+		if (string.Equals(phaseFrom, "vapor" ) && string.Equals(phaseTo, "liquid")) return -VaporizationEnthalpy(T, P);
+		else return double.NaN;
+
+		//Calculates the vaporization enthalpy at the given temperature and pressure.
+		Enthalpy VaporizationEnthalpy(Temperature T, Pressure P)
+		{
+			var phases = PhaseFinder(T, P, true);
+			if (!phases.ContainsKey("vapor") || !phases.ContainsKey("liquid")) return double.NaN;
+			var H_V = ReferenceMolarEnthalpy(T, P, phases["vapor"].Value);
+			var H_L = ReferenceMolarEnthalpy(T, P, phases["liquid"].Value);
+			return new Enthalpy(H_V - H_L, ThermoVarRelations.OfVaporization);
+		}
 	}
 }

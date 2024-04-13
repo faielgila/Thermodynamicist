@@ -5,6 +5,7 @@ using Windows.UI.Xaml.Controls;
 using Core;
 using Core.EquationsOfState;
 using Core.VariableTypes;
+using System.Collections.Generic;
 
 namespace ThermodynamicistUWP
 {
@@ -13,6 +14,16 @@ namespace ThermodynamicistUWP
 		public MainPage()
 		{
 			InitializeComponent();
+
+			// Reactions testing. TEMPORARY TODO
+			var inSpecies = new Dictionary<Chemical, (int, string)>();
+			var outSpecies = new Dictionary<Chemical, (int, string)>();
+            inSpecies.Add(Chemical.Methane, (1, "vapor"));
+			inSpecies.Add(Chemical.Oxygen, (2, "vapor"));
+			outSpecies.Add(Chemical.CarbonDioxide, (1, "vapor"));
+			outSpecies.Add(Chemical.Water, (2, "liquid"));
+			var reactionA = new Reaction(inSpecies, outSpecies);
+			var dHrxn = reactionA.MolarEnthalpyOfReaction(273.15 + 25, 101325);
 
 			// Initializes chemical list in species dropdown
 			foreach (Chemical chemical in Enum.GetValues(typeof(Chemical)))

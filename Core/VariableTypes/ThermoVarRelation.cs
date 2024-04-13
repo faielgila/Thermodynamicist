@@ -13,6 +13,7 @@ public enum ThermoVarRelations
 	Mixing, Excess,
 	OfVaporization, OfSublimation, OfFusion,
 	OfFormation,
+	OfReaction,
 	
 	Temperature, SaturationTemperature,
 	
