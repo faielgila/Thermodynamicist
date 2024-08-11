@@ -21,86 +21,87 @@ public static class Display
 		return mantissa + "×10" + exponent.IntToSuperscript();
 	}
 
-    /// <summary>
-    /// Generates a text-form of a number rounded to the specified significant figures in engineering notation.
-    /// </summary>
-    public static string ToEngrNotation(this double number, int sigfigs)
-    {
+	/// <summary>
+	/// Generates a text-form of a number rounded to the specified significant figures in engineering notation.
+	/// </summary>
+	public static string ToEngrNotation(this double number, int sigfigs)
+	{
 		return ToEngrNotation(number.RoundToSigfigs(sigfigs));
-    }
-
-    /// <summary>
-    /// Generates a list of the values of every state variable for the system.
-    /// </summary>
-    /// <param name="EoS">Equation of state, contains equations for calculating state variables</param>
-    /// <param name="T">Temperature of the system, in [K]</param>
-    /// <param name="P">Pressure of the system, in [P]</param>
-    /// <param name="VMol">Molar volume of the system, in [m³/mol]</param>
-    public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol)
-	{
-		var (Z, U, H, S, G, A, f) = EoS.GetAllStateVariables(T, P, VMol);
-
-		var formatted =
-			"Z = " + Z.ToEngrNotation() + "\n" +
-			"V = " + VMol.ToEngrNotation() + " m³/mol \n" +
-			"U = " + U.ToEngrNotation() + " J/mol \n" +
-			"H = " + H.ToEngrNotation() + " J/mol \n" +
-			"S = " + S.ToEngrNotation() + " J/mol/K \n" +
-			"G = " + G.ToEngrNotation() + " J/mol/K \n" +
-			"A = " + A.ToEngrNotation() + " J/mol/K \n" +
-			"f = " + (f*P).ToEngrNotation() + " Pa \n" +
-			"φ = " + f.ToEngrNotation();
-
-		return formatted;
 	}
 
-    /// <summary>
-    /// Generates a list of the values of every state variable for the system rounded to the significant figures provided.
-    /// </summary>
-    /// <param name="EoS">Equation of state, contains equations for calculating state variables</param>
-    /// <param name="T">Temperature of the system, in [K]</param>
-    /// <param name="P">Pressure of the system, in [P]</param>
-    /// <param name="VMol">Molar volume of the system, in [m³/mol]</param>
-    public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol, int sigfigs)
-	{
-		var (Z, U, H, S, G, A, f) = EoS.GetAllStateVariables(T, P, VMol);
-
-		var formatted =
-			"Z = " + Z.ToEngrNotation(sigfigs) + "\n" +
-			"V = " + VMol.ToEngrNotation(sigfigs) + " m³/mol \n" +
-			"U = " + U.ToEngrNotation(sigfigs) + " J/mol \n" +
-			"H = " + H.ToEngrNotation(sigfigs) + " J/mol \n" +
-			"S = " + S.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"G = " + G.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-			"A = " + A.ToEngrNotation(sigfigs) + " J/mol/K \n" +
-            "f = " + (f * P).ToEngrNotation() + " Pa \n" +
-            "φ = " + f.ToEngrNotation();
-
-        return formatted;
-	}
-
-	static double RoundToSigfigs(this double d, int digits)
+	/// <summary>
+	/// Rounds a number to a given number of significant figures.
+	/// </summary>
+	public static double RoundToSigfigs(this double d, int sigfigs)
 	{
 		if (d == 0)
 			return 0;
 
 		double scale = Math.Pow(10, Math.Floor(Math.Log10(Math.Abs(d))) + 1);
-		return scale * Math.Round(d / scale, digits);
+		return scale * Math.Round(d / scale, sigfigs);
+	}
+
+	/// <summary>
+	/// Generates a list of the values of every state variable for the system.
+	/// </summary>
+	/// <param name="EoS">Equation of state, contains equations for calculating state variables</param>
+	/// <param name="T">Temperature of the system, in [K]</param>
+	/// <param name="P">Pressure of the system, in [P]</param>
+	/// <param name="VMol">Molar volume of the system, in [m³/mol]</param>
+	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol)
+	{
+		var (Z, U, H, S, G, A, f) = EoS.GetAllStateVariables(T, P, VMol);
+
+		var formatted =
+			"Z = " + Z.ToEngrNotation() + " \n" +
+			"V = " + VMol.ToEngrNotation() + " \n" +
+			"U = " + U.ToEngrNotation() + " \n" +
+			"H = " + H.ToEngrNotation() + " \n" +
+			"S = " + S.ToEngrNotation() + " \n" +
+			"G = " + G.ToEngrNotation() + " \n" +
+			"A = " + A.ToEngrNotation() + " \n" +
+			"φ = " + f.ToEngrNotation();
+
+		return formatted;
+	}
+
+	/// <summary>
+	/// Generates a list of the values of every state variable for the system rounded to the significant figures provided.
+	/// </summary>
+	/// <param name="EoS">Equation of state, contains equations for calculating state variables</param>
+	/// <param name="T">Temperature of the system, in [K]</param>
+	/// <param name="P">Pressure of the system, in [P]</param>
+	/// <param name="VMol">Molar volume of the system, in [m³/mol]</param>
+	public static string GetAllStateVariablesFormatted(EquationOfState EoS, Temperature T, Pressure P, Volume VMol, int sigfigs)
+	{
+		var (Z, U, H, S, G, A, f) = EoS.GetAllStateVariables(T, P, VMol);
+
+		var formatted =
+			"Z = " + Z.ToEngrNotation() + " \n" +
+			"V = " + VMol.ToEngrNotation() + " \n" +
+			"U = " + U.ToEngrNotation() + " \n" +
+			"H = " + H.ToEngrNotation() + " \n" +
+			"S = " + S.ToEngrNotation() + " \n" +
+			"G = " + G.ToEngrNotation() + " \n" +
+			"A = " + A.ToEngrNotation() + " \n" +
+			"φ = " + f.ToEngrNotation();
+
+		return formatted;
 	}
 
 	/// <summary>
 	/// Returns the superscript Unicode character for the integer provided.
 	/// </summary>
-	static string IntToSuperscript(this int exp)
-    {
+	private static string IntToSuperscript(this int exp)
+	{
 		char[] chars = exp.ToString().ToArray();
 		string expString = "";
-        foreach (var item in chars)
-        {
+		foreach (var item in chars)
+		{
 			expString += ExponentDict[item];
-        }
+		}
 		return expString;
-    }
+	}
 
 	private static readonly Dictionary<char, string> ExponentDict = new()
 	{
@@ -128,12 +129,12 @@ public static class Display
 		/// purple if 25 K above critical or more, interpolated colors inbetween.</returns>
 		public static double HueTemperatureMap(Temperature T, Temperature critT)
 		{
-            double t = T - critT;
-            if (t <= -50) return 0.5;
-            if (t >= 25) return 0.75;
-            if (t > -50 && t < 0) return -t / 100;
+			double t = T - critT;
+			if (t <= -50) return 0.5;
+			if (t >= 25) return 0.75;
+			if (t > -50 && t < 0) return -t / 100;
 			if (t > 0 && t < 25) return 1 - t / 100;
 			else return 0;
-        }
+		}
 	}
 }

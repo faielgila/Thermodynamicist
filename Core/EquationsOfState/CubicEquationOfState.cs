@@ -201,12 +201,12 @@ public abstract class CubicEquationOfState : EquationOfState
 		var guessPvap = VaporPressure(guessT);
 
 		// Check if the boiling temperature exists at the given pressure.
-		var phasesKeys = EquilibriumPhases(P);
-		var findPhases = new List<string> { "liquid", "vapor" };
-		if (double.IsNaN(guessPvap) || findPhases.All(phasesKeys.Contains))
-		{
-			return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature);
-		}
+		//var phasesKeys = EquilibriumPhases(P);
+		//var findPhases = new List<string> { "liquid", "vapor" };
+		//if (double.IsNaN(guessPvap) || findPhases.All(phasesKeys.Contains))
+		//{
+		//	return new Temperature(double.NaN, ThermoVarRelations.SaturationTemperature);
+		//}
 
 		while (Math.Abs(P - guessPvap) >= 10)
 		{
@@ -250,5 +250,29 @@ public abstract class CubicEquationOfState : EquationOfState
 			var H_L = ReferenceMolarEnthalpy(T, P, phases["liquid"].Value);
 			return new Enthalpy(H_V - H_L, ThermoVarRelations.OfVaporization);
 		}
+	}
+
+	/// <summary>
+	/// Equivalent to the BoilingTemperature method.
+	/// </summary>
+	/// <returns>boiling temperature [K]</returns>
+	/// <exception cref="KeyNotFoundException">Thrown when phaseFrom or phaseTo is not modeled by the EoS.</exception>
+	public override Temperature PhaseChangeTemperature(Pressure P, string phaseFrom, string phaseTo)
+	{
+		if (!ModeledPhases.Contains(phaseFrom) || !ModeledPhases.Contains(phaseTo))
+			throw new KeyNotFoundException("Cubic EoS only models vapor and liquid. Supplied phase is not supported.");
+		else return BoilingTemperature(P);
+	}
+
+	/// <summary>
+	/// Equivalent to the VaporPressure method.
+	/// </summary>
+	/// <returns>liquid-vapor pressure [Pa]</returns>
+	/// <exception cref="KeyNotFoundException">Thrown when phaseFrom or phaseTo is not modeled by the EoS.</exception>
+	public override Pressure PhaseChangePressure(Temperature T, string phaseFrom, string phaseTo)
+	{
+		if (!ModeledPhases.Contains(phaseFrom) || !ModeledPhases.Contains(phaseTo))
+			throw new KeyNotFoundException("Cubic EoS only models vapor and liquid. Supplied phase is not supported.");
+		else return VaporPressure(T);
 	}
 }

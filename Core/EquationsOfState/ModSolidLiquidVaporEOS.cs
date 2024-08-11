@@ -389,5 +389,21 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 
 		return new Temperature(guessT, ThermoVarRelations.SaturationTemperature);
 	}
+
+	public override Enthalpy PhaseChangeEnthalpy(Temperature T, Pressure P, string phaseFrom, string phaseTo)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override Temperature PhaseChangeTemperature(Pressure P, string phaseFrom, string phaseTo)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override Pressure PhaseChangePressure(Temperature T, string phaseFrom, string phaseTo)
+	{
+		throw new NotImplementedException();
+	}
+
 	#endregion
 }

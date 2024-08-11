@@ -21,7 +21,7 @@ namespace ThermodynamicistUWP
             inSpecies.Add(Chemical.Methane, (1, "vapor"));
 			inSpecies.Add(Chemical.Oxygen, (2, "vapor"));
 			outSpecies.Add(Chemical.CarbonDioxide, (1, "vapor"));
-			outSpecies.Add(Chemical.Water, (2, "liquid"));
+			outSpecies.Add(Chemical.Water, (2, "vapor"));
 			var reactionA = new Reaction(inSpecies, outSpecies);
 			var dHrxn = reactionA.MolarEnthalpyOfReaction(273.15 + 25, 101325);
 
@@ -62,13 +62,13 @@ namespace ThermodynamicistUWP
 			string PvapString;
 			if (!double.IsNaN(Pvap.Value))
 			{
-				PvapString = "\nVapor pressure: " + Pvap.ToEngrNotation(5) + " Pa";
-				PvapString += "\nBoiling temperature: " + EoS.BoilingTemperature(P) + " K";
+				PvapString = "\nVapor pressure: " + Pvap.ToEngrNotation(5);
+				PvapString += "\nBoiling temperature: " + EoS.BoilingTemperature(P).ToEngrNotation(5);
 			} else PvapString = "";
 			
 			// Display reference state used for calculations
 			var stateData =
-				"Reference state: (" + EoS.ReferenceState.refT.ToEngrNotation() + " K, " + EoS.ReferenceState.refP.ToEngrNotation() + " Pa)" +
+				"Reference state: (" + EoS.ReferenceState.refT.ToEngrNotation() + ", " + EoS.ReferenceState.refP.ToEngrNotation() + ")" +
 				phasesString + PvapString;
 
 			// Calculate and display state variables for each phase
@@ -100,8 +100,9 @@ namespace ThermodynamicistUWP
 			}
 
 			// Fills in the plot view with a view model using the new settings
-			PlotViewPV.Model = new PVViewModel(EoS, ToggleSCurve.IsOn).Model;
-			PlotViewPT.Model = new GTViewModel(EoS, P).Model;
+			//PlotViewLeft.Model = new PVViewModel(EoS, ToggleSCurve.IsOn).Model;
+			PlotViewLeft.Model = new GenericViewModel()
+			PlotViewRight.Model = new GTViewModel(EoS, P).Model;
 		}
 
 		private void RefreshCalculations(object sender, RoutedEventArgs e)

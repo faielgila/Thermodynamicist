@@ -3,7 +3,7 @@
 public class Temperature : ThermoVariable
 {
 	public Temperature(double value, ThermoVarRelations relation = ThermoVarRelations.Temperature)
-		: base(value, relation) { }
+		: base(value, relation, "K") { }
 
 	public static implicit operator double(Temperature T) => T.Value;
 	public static implicit operator Temperature(double T) => new(T);

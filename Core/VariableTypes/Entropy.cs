@@ -3,7 +3,7 @@
 public class Entropy : ThermoVariable
 {
     public Entropy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
-        : base(value, relation) { }
+        : base(value, relation, "J/mol/K") { }
 
     public static implicit operator double(Entropy T) => T.Value;
     public static implicit operator Entropy(double T) => new(T);

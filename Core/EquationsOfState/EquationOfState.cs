@@ -1,4 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using Core.Data;
+using Core.VariableTypes;
+using System.Runtime.InteropServices;
 
 namespace Core.EquationsOfState;
 
@@ -11,6 +13,18 @@ public abstract class EquationOfState
 	/// <inheritdoc cref="Constants.R"/>
 	public const double R = Constants.R;
 	public const double precisionLimit = Constants.PrecisionLimit;
+
+	/// <summary>
+	/// Acceptable temperature differnce between standardT and T for no temperature correction to be performed.
+	/// Measured in [K]
+	/// </summary>
+	public Temperature dTPrecision { get; set; }
+
+	/// <summary>
+	/// Acceptable pressure difference between standardP and P for no pressure correction to be performed.
+	/// Measured in [Pa]
+	/// </summary>
+	private Pressure dPPrecision { get; set; }
 
 	/// <summary>
 	/// Toggles check and use of high-temperature data.
@@ -38,6 +52,9 @@ public abstract class EquationOfState
 		ModeledPhases = modeledPhases;
 		//TODO: when high-temp calculations are fleshed out, reactivate this line.
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+
+		dTPrecision = 0.5;
+		dPPrecision = 100;
 	}
 
 	protected EquationOfState(Chemical species, List<string> modeledPhases)
@@ -48,6 +65,9 @@ public abstract class EquationOfState
 		ModeledPhases = modeledPhases;
 		//TODO: when high-temp calculations are fleshed out, reactivate this line.
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+
+		dTPrecision = 0.5;
+		dPPrecision = 100;
 	}
 
 	/// <summary>
@@ -187,6 +207,96 @@ public abstract class EquationOfState
 		var pathB = DepartureEnthalpy(T, P, VMol);
 		var totalPath = pathA + pathB;
 		return new Enthalpy(totalPath, ThermoVarRelations.RealMolar);
+	}
+
+	/// <summary>
+	/// Estimates the molar enthalpy of formation using standard enthalpy at a given temperature and pressure.
+	/// </summary>
+	/// <param name="T">temperature [K]</param>
+	/// <param name="P">pressure [Pa]</param>
+	/// <returns>molar enthalpy of formation [J/mol]</returns>
+	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table.</exception>
+	public Enthalpy FormationEnthalpy(Temperature T, Pressure P, string rxnPhase)
+	{
+		var standardT = Constants.StandardConditions.T;
+		var standardP = Constants.StandardConditions.P;
+
+		// Retrieve standard formation enthalpy and phase for the species.
+		(Enthalpy enthalpy, string phase) FormationThermo;
+		try { FormationThermo = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
+		catch { throw new KeyNotFoundException("Species not found in standard formation enthalpy data list."); }
+		Enthalpy FormationEnthalpy = FormationThermo.enthalpy;
+		string standardPhase = FormationThermo.phase;
+
+		// Compare phases listed in the reaction to the standard form.
+		// Flag will be true if there is a phase change.
+		bool flagPhaseChange = !string.Equals(rxnPhase, standardPhase);
+
+		// Get molar volume of standard phase at standard conditions.
+		var StandardPhaseFinds = PhaseFinder(standardT, standardP, true);
+		Volume StandardVMol;
+		try { StandardVMol = StandardPhaseFinds[standardPhase]; }
+		catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
+
+		// Split logic here: one track is for with phase change, the other without.
+		if (flagPhaseChange)
+		{
+			// Get the temperature at the phase change.
+			var phaseT = PhaseChangeTemperature(P, standardPhase, rxnPhase);
+
+			// Get molar volumes for each point in state space.
+			var TCorrPhaseFinds = PhaseFinder(standardT, P, true);
+			Volume TCorrVMol;
+			try { TCorrVMol = TCorrPhaseFinds[standardPhase]; }
+			catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
+			//
+			var TransitionPhaseFinds = PhaseFinder(phaseT, P, true);
+			Volume TransitionStandardVMol;
+			Volume TransitionRxnVMol;
+			try { TransitionStandardVMol = TransitionPhaseFinds[standardPhase]; }
+			catch { throw new KeyNotFoundException("Desired standard phase for species not found in EoS model."); }
+			try { TransitionRxnVMol = TransitionPhaseFinds[rxnPhase]; }
+			catch { throw new KeyNotFoundException("Desired reaction phase for species not found in EoS model."); }
+			//
+			var FinalPhaseFinds = PhaseFinder(T, P, true);
+			Volume FinalVMol;
+			try { FinalVMol = FinalPhaseFinds[rxnPhase]; }
+			catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
+			
+			// Correct for pressure change.
+			// TODO: Add pressure enthalpy correction.
+			//if (Math.Abs(P - standardP) >= dPPrecision)
+			//	FormationEnthalpy += MolarEnthalpyChange(standardT, standardP, standardVMol, standardT, P, TCorrVMol);
+
+			// Correct for temperature change before phase transition.
+			if (Math.Abs(standardT - phaseT) >= dTPrecision)
+				FormationEnthalpy += MolarEnthalpyChange(standardT, P, TCorrVMol, phaseT, P, TransitionStandardVMol);
+
+			// Correct for phase change at phase transition.
+			FormationEnthalpy += PhaseChangeEnthalpy(phaseT, P, standardPhase, rxnPhase);
+
+			// Correct for temperature change after phase transition.
+			if (Math.Abs(phaseT - T) >= dTPrecision)
+				FormationEnthalpy += MolarEnthalpyChange(phaseT, P, TransitionRxnVMol, T, P, FinalVMol);
+		}
+		else
+		{
+			// Get molar volume of phase at final conditions.
+			var FinalPhaseFinds = PhaseFinder(T, P, true);
+			Volume FinalVMol;
+			try { FinalVMol = FinalPhaseFinds[standardPhase]; }
+			catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
+
+			// Correct for pressure change.
+			// TODO: Add pressure enthalpy correction.
+			//if (Math.Abs(P - standardP) >= dPPrecision)
+			//	FormationEnthalpy += MolarEnthalpyChange(standardT, standardP, standardVMol, standardT, P, TCorrVMol);
+
+			// Correct for temperature change before phase transition.
+			if (Math.Abs(standardT - T) >= dTPrecision)
+				FormationEnthalpy += MolarEnthalpyChange(standardT, P, StandardVMol, T, P, FinalVMol);
+		}
+		return FormationEnthalpy;
 	}
 
 	#endregion
@@ -382,7 +492,7 @@ public abstract class EquationOfState
 	}
 
 	/// <summary>
-	/// Creates a list of all phases present at a constant temperature but varying temperature.
+	/// Creates a list of all phases present at a constant pressure but varying temperature.
 	/// Does not return molar volumes, since those would be dependent on temperature.
 	/// </summary>
 	/// <param name="T">temperature, in [K]</param>
@@ -474,6 +584,20 @@ public abstract class EquationOfState
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <returns>If it exists, phase change enthalpy, in [J/mol]; If is does not exist, NaN</returns>
 	public abstract Enthalpy PhaseChangeEnthalpy(Temperature T, Pressure P, string phaseFrom, string phaseTo);
+
+	/// <summary>
+	/// Calculates the temperature at which a phase change occurs given a specific pressure.
+	/// </summary>
+	/// <param name="P">pressure [Pa]</param>
+	/// <returns>saturation temperature [K]</returns>
+	public abstract Temperature PhaseChangeTemperature(Pressure P, string phaseFrom, string phaseTo);
+
+	/// <summary>
+	/// Calculates the pressure at which a phase change occurs given a specific temperature.
+	/// </summary>
+	/// <param name="T">temperature [K]</param>
+	/// <returns>saturation pressure [Pa]</returns>
+	public abstract Pressure PhaseChangePressure(Temperature T, string phaseFrom, string phaseTo);
 
 	#endregion
 

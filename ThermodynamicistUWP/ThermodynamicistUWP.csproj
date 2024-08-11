@@ -119,6 +119,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GenericViewModel.cs" />
     <Compile Include="Plotting\Common.cs" />
     <Compile Include="GTViewModel.cs" />
     <Compile Include="PVViewModel.cs" />

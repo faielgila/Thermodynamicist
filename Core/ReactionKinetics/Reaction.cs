@@ -14,7 +14,7 @@ public class Reaction
 	/// <summary>
 	/// Stores product chemicals with their stoichiometric coefficient and phase.
 	/// </summary>
-	public Dictionary<Chemical, (int, string)> productList;
+	public Dictionary<Chemical, (int stoich, string phase)> productList;
 
 	/// <summary>
 	/// Stores equation of state to use for each reactant and product species as a pure component.
@@ -24,24 +24,13 @@ public class Reaction
 	private static Temperature standardT = Constants.StandardConditions.T;
 	private static Pressure standardP = Constants.StandardConditions.P;
 
-	/// <summary>
-	/// Acceptable temperature differnce between standardT and T for no temperature correction to be performed.
-	/// Measured in [K]
-	/// </summary>
-	private Temperature dTPrecision = 0.5;
-	/// <summary>
-	/// Acceptable pressure difference between standardP and P for no pressure correction to be performed.
-	/// Measured in [Pa]
-	/// </summary>
-	private Pressure dPPrecision = 100;
-
 	public Reaction(
 		Dictionary<Chemical, (int stoich, string phase)> _reactantList,
 		Dictionary<Chemical, (int stoich, string phase)> _productList)
 	{
 		reactantList = _reactantList;
 		productList = _productList;
-		
+
 		pureSpeciesEoSList = new Dictionary<Chemical, EquationOfState>();
 		AssignPureSpeciesEoS(reactantList);
 		AssignPureSpeciesEoS(productList);
@@ -92,7 +81,7 @@ public class Reaction
 	/// </exception>
 	public Enthalpy MolarEnthalpyOfReaction(Temperature T, Pressure P)
 	{
-		Enthalpy reactantsEnthalpyChange = 0;
+		Enthalpy reactantsEnthalpyChange = new(0, ThermoVarRelations.OfFormation);
 		foreach (var species in reactantList)
 		{
 			// Get equation of state for species, as defined in pureSpeciesEoSList.
@@ -100,35 +89,23 @@ public class Reaction
 			try { speciesEoS = pureSpeciesEoSList[species.Key]; }
 			catch { throw new KeyNotFoundException("Reactant species not found in pure species EoS list."); }
 
-			// Retrieve standard formation enthalpy and phase for the species.
-			(Enthalpy enthalpy, string phase) speciesFormationThermodynamics;
-			try { speciesFormationThermodynamics = FormationThermodynamics.StandardFormationEnthalpy[species.Key]; }
-			catch { throw new KeyNotFoundException("Reactant species not found in standard formation enthalpy data list."); }
-			Enthalpy speciesStandardFormationEnthalpy = speciesFormationThermodynamics.enthalpy;
-			string speciesStandardPhase = speciesFormationThermodynamics.phase;
-
-			// Get phase for species in the reaction, as defined in reactantList.
-			string speciesRxnPhase = species.Value.phase;
-
-			// Correct standard formation enthalpy to given temperature and pressure, accounting for potential phase changes.
-			Enthalpy speciesFormationEnthalpy;
-			speciesFormationEnthalpy = 0;
-			bool flagPhaseChange = !string.Equals(speciesRxnPhase, speciesStandardPhase);
-			var EoSPhases = speciesEoS.PhaseFinder(standardT, standardP, true);
-			Volume standardVMol;
-			Volume VMol;
-			// WORK HERE!
-
-			// Compare reaction phase with standard phase. If equal, no correction is needed.
-			if (Equals(speciesRxnPhase, speciesStandardPhase))
-
-			// Temperature & pressure correction.
-			speciesFormationEnthalpy += speciesEoS.MolarEnthalpyChange(standardT, standardP, standardVMol, T, P, VMol);
+			// Estimate enthalpy change using species formation enthalpy.
+			reactantsEnthalpyChange += speciesEoS.FormationEnthalpy(T, P, species.Value.phase) * species.Value.stoich;
 		}
 
-		
+		Enthalpy productsEnthalpyChange = new(0, ThermoVarRelations.OfFormation);
+		foreach (var species in productList)
+		{
+			// Get equation of state for species, as defined in pureSpeciesEoSList.
+			EquationOfState speciesEoS;
+			try { speciesEoS = pureSpeciesEoSList[species.Key]; }
+			catch { throw new KeyNotFoundException("Product species not found in pure species EoS list."); }
 
-		return new Enthalpy(productsFormationEnthalpy - reactantsFormationEnthalpy, ThermoVarRelations.OfReaction);
+			// Estimate enthalpy change using species formation enthalpy.
+			productsEnthalpyChange += speciesEoS.FormationEnthalpy(T, P, species.Value.phase) * species.Value.stoich;
+		}
+
+		return new Enthalpy(productsEnthalpyChange - reactantsEnthalpyChange, ThermoVarRelations.OfReaction);
 	}
 
 	/// <summary>
