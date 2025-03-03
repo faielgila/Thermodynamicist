@@ -215,88 +215,98 @@ public abstract class EquationOfState
 	/// <param name="T">temperature [K]</param>
 	/// <param name="P">pressure [Pa]</param>
 	/// <returns>molar enthalpy of formation [J/mol]</returns>
-	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table.</exception>
-	public Enthalpy FormationEnthalpy(Temperature T, Pressure P, string rxnPhase)
+	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table or the species phase is not found by the EoS PhaseFinder.</exception>
+	public Enthalpy FormationEnthalpy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
 	{
-		var standardT = Constants.StandardConditions.T;
-		var standardP = Constants.StandardConditions.P;
-
 		// Retrieve standard formation enthalpy and phase for the species.
-		(Enthalpy enthalpy, string phase) FormationThermo;
-		try { FormationThermo = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
-		catch { throw new KeyNotFoundException("Species not found in standard formation enthalpy data list."); }
-		Enthalpy FormationEnthalpy = FormationThermo.enthalpy;
-		string standardPhase = FormationThermo.phase;
+		(Enthalpy enthalpy, string phase) formationThermo;
+		try { formationThermo = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
+		catch { throw new KeyNotFoundException("Reactant species not found in standard formation enthalpy data list."); }
+		Enthalpy H_Θ = formationThermo.enthalpy;
+		string phase_Θ = formationThermo.phase;
 
-		// Compare phases listed in the reaction to the standard form.
-		// Flag will be true if there is a phase change.
-		bool flagPhaseChange = !string.Equals(rxnPhase, standardPhase);
+		// Create easy names for the standard reference state closer to the mathematical notation.
+		var T_Θ = Constants.StandardConditions.T;
+		var P_Θ = Constants.StandardConditions.P;
 
-		// Get molar volume of standard phase at standard conditions.
-		var StandardPhaseFinds = PhaseFinder(standardT, standardP, true);
-		Volume StandardVMol;
-		try { StandardVMol = StandardPhaseFinds[standardPhase]; }
-		catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
+		// Get molar volume of species at standard reference state.
+		var phaseFinder_Θ = PhaseFinder(T_Θ, P_Θ, true);
+		Volume VMol_Θ;
+		try { VMol_Θ = phaseFinder_Θ[phase_rxn]; }
+		catch { throw new KeyNotFoundException("Reactant standard phase not found at given T and P."); }
 
-		// Split logic here: one track is for with phase change, the other without.
-		if (flagPhaseChange)
+		// Get molar volume of species at final reaction state.
+		var phaseFinder_rxn = PhaseFinder(T_rxn, P_rxn, true);
+		Volume VMol_rxn;
+		try { VMol_rxn = phaseFinder_rxn[phase_rxn]; }
+		catch { throw new KeyNotFoundException("Reactant rxn phase not found at given T and P."); }
+
+		// Set phase, temperature, and pressure change flags.
+		bool flagPhaseChange = !string.Equals(phase_rxn, phase_Θ);
+		bool flagTemperatureChange = Math.Abs(T_rxn - T_Θ) > dTPrecision;
+		bool flagPressureChange = Math.Abs(P_rxn - P_Θ) > dPPrecision;
+
+		// Initialize species enthalpy of formation to standard enthalpy of formation.
+		// Enthalpy corrections to be added to this.
+		Enthalpy enthalpyFormation = H_Θ;
+
+		//		PATH I
+		// No adjustment needed (no temperature, pressure, or phase change from standard state).
+		if (!flagTemperatureChange && !flagPressureChange && !flagPhaseChange)
 		{
-			// Get the temperature at the phase change.
-			var phaseT = PhaseChangeTemperature(P, standardPhase, rxnPhase);
-
-			// Get molar volumes for each point in state space.
-			var TCorrPhaseFinds = PhaseFinder(standardT, P, true);
-			Volume TCorrVMol;
-			try { TCorrVMol = TCorrPhaseFinds[standardPhase]; }
-			catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
-			//
-			var TransitionPhaseFinds = PhaseFinder(phaseT, P, true);
-			Volume TransitionStandardVMol;
-			Volume TransitionRxnVMol;
-			try { TransitionStandardVMol = TransitionPhaseFinds[standardPhase]; }
-			catch { throw new KeyNotFoundException("Desired standard phase for species not found in EoS model."); }
-			try { TransitionRxnVMol = TransitionPhaseFinds[rxnPhase]; }
-			catch { throw new KeyNotFoundException("Desired reaction phase for species not found in EoS model."); }
-			//
-			var FinalPhaseFinds = PhaseFinder(T, P, true);
-			Volume FinalVMol;
-			try { FinalVMol = FinalPhaseFinds[rxnPhase]; }
-			catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
-			
-			// Correct for pressure change.
-			// TODO: Add pressure enthalpy correction.
-			//if (Math.Abs(P - standardP) >= dPPrecision)
-			//	FormationEnthalpy += MolarEnthalpyChange(standardT, standardP, standardVMol, standardT, P, TCorrVMol);
-
-			// Correct for temperature change before phase transition.
-			if (Math.Abs(standardT - phaseT) >= dTPrecision)
-				FormationEnthalpy += MolarEnthalpyChange(standardT, P, TCorrVMol, phaseT, P, TransitionStandardVMol);
-
-			// Correct for phase change at phase transition.
-			FormationEnthalpy += PhaseChangeEnthalpy(phaseT, P, standardPhase, rxnPhase);
-
-			// Correct for temperature change after phase transition.
-			if (Math.Abs(phaseT - T) >= dTPrecision)
-				FormationEnthalpy += MolarEnthalpyChange(phaseT, P, TransitionRxnVMol, T, P, FinalVMol);
+			enthalpyFormation += 0;
 		}
-		else
+
+		//		PATH II
+		// Adjusts for temperature or pressure change with no phase change.
+		// Point 0 : (T_Θ, P_Θ) reference state
+		// Point 1 : (T_Θ, P)   pressure change
+		// Point 2 : (T,   P)   temperature change
+		if ((flagTemperatureChange || flagPressureChange) && !flagPhaseChange)
 		{
-			// Get molar volume of phase at final conditions.
-			var FinalPhaseFinds = PhaseFinder(T, P, true);
-			Volume FinalVMol;
-			try { FinalVMol = FinalPhaseFinds[standardPhase]; }
-			catch { throw new KeyNotFoundException("Desired phase for species not found in EoS model."); }
-
-			// Correct for pressure change.
-			// TODO: Add pressure enthalpy correction.
-			//if (Math.Abs(P - standardP) >= dPPrecision)
-			//	FormationEnthalpy += MolarEnthalpyChange(standardT, standardP, standardVMol, standardT, P, TCorrVMol);
-
-			// Correct for temperature change before phase transition.
-			if (Math.Abs(standardT - T) >= dTPrecision)
-				FormationEnthalpy += MolarEnthalpyChange(standardT, P, StandardVMol, T, P, FinalVMol);
+			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
+			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
+			enthalpyFormation += MolarEnthalpyChange(T_Θ, P_Θ, VMol_Θ, T_rxn, P_rxn, VMol_rxn);
 		}
-		return FormationEnthalpy;
+
+		//		PATH III
+		// Adjusts for phase change with no temperature or pressure change.
+		// Only phase change enthalpy is needed.
+		if (!(flagTemperatureChange || flagPressureChange) && flagPhaseChange)
+		{
+			enthalpyFormation += PhaseChangeEnthalpy(T_Θ, P_Θ, phase_Θ, phase_rxn);
+		}
+
+		//		PATH IV
+		// Adjusts for temperature or pressure change with phase change.
+		// Point 0 : (T_Θ, P_Θ) reference state
+		// Point 1 : (T_Θ, P)   pressure change within standard phase
+		// Point 2 : (T_Φ, P)   temperature change to phase equilibrium
+		// Point 3 : (T,   P)   temperature change from phase equilibrium
+		if ((flagTemperatureChange || flagPressureChange) && flagPhaseChange)
+		{
+			// Define saturation pressure P_Φ. Identical to P because enthalpy is a state function!
+			ref var P_Φ = ref P_rxn;
+			// Get saturation temperature T_Φ.
+			var T_Φ = PhaseChangeTemperature(P_rxn, phase_Θ, phase_rxn);
+			// Get molar volume at saturation point.
+			var phaseFinder_Φ =	PhaseFinder(T_Θ, P_Θ, true);
+			Volume VMol_Φ;
+			try { VMol_Φ = phaseFinder_Φ[phase_rxn]; }
+			catch { throw new KeyNotFoundException("Reactant rxn phase not found at given T and P."); }
+
+			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
+			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
+			enthalpyFormation += MolarEnthalpyChange(T_Θ, P_Θ, VMol_Θ, T_Φ, P_rxn, VMol_rxn);
+
+			// Calculate phase change enthalpy @ Point 2.
+			enthalpyFormation += PhaseChangeEnthalpy(T_Φ, P_Φ, phase_Θ, phase_rxn);
+
+			// Use basic molar enthalpy calc to get difference between Point 2 and Point 3.
+			enthalpyFormation += MolarEnthalpyChange(T_Φ, P_Φ, VMol_Φ, T_rxn, P_rxn, VMol_rxn);
+		}
+
+		return enthalpyFormation;
 	}
 
 	#endregion
