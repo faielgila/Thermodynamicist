@@ -4,15 +4,15 @@ using Core.VariableTypes;
 namespace Core.EquationsOfState;
 
 /// <summary>
-/// Represents the van der Waals eqauation of state and related functions.
+/// Represents the van der Waals equation of state and related functions.
 /// Extends <see cref="CubicEquationOfState"/>.
 /// </summary>
 public class VanDerWaalsEOS : CubicEquationOfState
 {
 	private readonly double a;
 	private readonly double b;
-	
-	public VanDerWaalsEOS(Chemical species) : base(species)
+
+    public VanDerWaalsEOS(Chemical species) : base(species)
 	{
 		speciesData = Constants.ChemicalData[Species];
 		a = 27 * Math.Pow(R * speciesData.critT, 2) / (64 * speciesData.critP);

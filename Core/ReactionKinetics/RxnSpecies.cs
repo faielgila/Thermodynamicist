@@ -1,6 +1,7 @@
 ﻿using Core.EquationsOfState;
 using Core;
-public class RxnSpeciesListItem
+
+public class RxnSpecies
 {
 	public Chemical chemical;
 	public EquationOfState EoS;
@@ -8,7 +9,7 @@ public class RxnSpeciesListItem
 	public string phase;
 	public bool IsReactant;
 
-	public RxnSpeciesListItem(Chemical _chemical, EquationOfState _EoS, int _stoich, string _phase, bool _IsReactant)
+	public RxnSpecies(Chemical _chemical, EquationOfState _EoS, int _stoich, string _phase, bool _IsReactant)
 	{
 		chemical = _chemical;
 		EoS = _EoS;
@@ -17,7 +18,7 @@ public class RxnSpeciesListItem
 		IsReactant = _IsReactant;
 	}
 
-	public RxnSpeciesListItem(Chemical _chemical, int _stoich, string _phase, bool _IsReactant)
+	public RxnSpecies(Chemical _chemical, int _stoich, string _phase, bool _IsReactant)
 	{
 		chemical = _chemical;
 		stoich = _stoich;
@@ -33,5 +34,5 @@ public class RxnSpeciesListItem
 		};
 	}
 
-	public RxnSpeciesListItem() { }
+	public RxnSpecies() { }
 }

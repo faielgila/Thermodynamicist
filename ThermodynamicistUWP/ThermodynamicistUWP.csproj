@@ -122,6 +122,7 @@
     <Compile Include="ControlRxnSpecies.xaml.cs">
       <DependentUpon>ControlRxnSpecies.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\ChemicalNamePairConverter.cs" />
     <Compile Include="GenericViewModel.cs" />
     <Compile Include="PagePCSF.xaml.cs">
       <DependentUpon>PagePCSF.xaml</DependentUpon>
@@ -244,11 +245,16 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Core.ViewModels\Core.ViewModels.csproj">
+      <Project>{d3942ab5-5f30-470a-99fa-3a7bacc0348f}</Project>
+      <Name>Core.ViewModels</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{6a6b19d0-bcf1-430e-bb6a-c8f294cec2b4}</Project>
       <Name>Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

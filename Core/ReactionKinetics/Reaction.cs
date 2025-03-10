@@ -9,18 +9,18 @@ public class Reaction
 	/// <summary>
 	/// Stores all reaction chemicals with their EoS, stoichiometric coefficient, and phase.
 	/// </summary>
-	public List<RxnSpeciesListItem> speciesList;
+	public List<RxnSpecies> speciesList;
 
-	public Reaction(List<RxnSpeciesListItem> _speciesList)
+	public Reaction(List<RxnSpecies> _speciesList)
 	{
 		speciesList = _speciesList;
 	}
 	public Reaction(List<(Chemical species, int stoich, string phase, bool IsReactant)> _speciesListNoEOS)
 	{
-		var _speciesList = new List<RxnSpeciesListItem>(); 
+		var _speciesList = new List<RxnSpecies>(); 
 		foreach (var (species, stoich, phase, IsReactant) in _speciesListNoEOS)
 		{
-			var item = new RxnSpeciesListItem(species, stoich, phase, IsReactant);
+			var item = new RxnSpecies(species, stoich, phase, IsReactant);
 			_speciesList.Add(item);
 		}
 

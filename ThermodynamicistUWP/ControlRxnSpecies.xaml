@@ -6,9 +6,12 @@
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:core="using:Core"
+	xmlns:eos="using:Core.EquationsOfState"
+	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d">
 
-	<Grid Padding="5" BorderThickness="2" BorderBrush="Azure" Margin="5">
+	<Grid Padding="5" BorderThickness="2" BorderBrush="Azure" d:Background="White" Margin="5">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
@@ -19,20 +22,39 @@
 			<RowDefinition Height="32"/>
 			<RowDefinition Height="37"/>
 		</Grid.RowDefinitions>
-		<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species" SelectionChanged="DropdownEoS_SelectionChanged"
-				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="0" Width="200"/>
-		<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="Stochiometry" ValueChanged="NumBox_ValueChanged" AcceptsExpression="False"
-						Value="{x:Bind rxnSpecies.stoich}"
+
+		<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
+				  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
+				  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
+				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="0" Width="200">
+			<ComboBox.ItemTemplate>
+				<DataTemplate x:DataType="core:ChemicalNamePair">
+					<TextBlock Text="{x:Bind Name}"/>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+		</ComboBox>
+
+		<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="Stochiometry" AcceptsExpression="False"
+						Value="{x:Bind ViewModel.Stoich, Mode=TwoWay}"
 						Margin="0,0,5,0" Grid.Row="0" Grid.Column="1" Width="120"/>
-		<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase" SelectionChanged="RefreshCalculations"
+		<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
+				  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.Phase, Mode=TwoWay}"
 				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="2" Width="100"/>
-		<RadioButton x:Name="RadioReactant" Content="Reactant" Checked="RadioButton_Checked"
+		<RadioButton x:Name="RadioReactant" Content="Reactant" IsChecked="{x:Bind ViewModel.IsReactant, Mode=TwoWay}"
 					 Margin="10, 0, 0, 0" Grid.Row="0" Grid.Column="3"/>
 		<RadioButton x:Name="RadioProduct" Content="Product" Checked="RadioButton_Checked"
 					 Margin="10, 0, 0, 0" Grid.Row="1" Grid.Column="3"/>
-		<Button Content="Remove species" Click="ButtonRemoveSpecies_Click"
+		<Button Content="Remove species"
+				Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
 				Margin="0, 5, 5, 0" Grid.Row="1" Grid.Column="0" Width="135"/>
-		<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectionChanged="DropdownEoS_SelectionChanged"
-				  Margin="205,5,0,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225"/>
+		
+		<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
+				  Margin="205,5,0,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+			<ComboBox.ItemTemplate>
+				<DataTemplate x:DataType="eos:IEquationOfStateFactory">
+					<TextBlock Text="{x:Bind Name}"/>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+		</ComboBox>
 	</Grid>
 </UserControl>

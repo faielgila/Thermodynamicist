@@ -74,4 +74,16 @@ public class Constants
 		[Chemical.Toluene] = "Toluene",
 		[Chemical.Water] = "Water"
 	};
+
+	public static IEnumerable<ChemicalNamePair> GetChemicalNames() => ChemicalNames.Select(kvp => new ChemicalNamePair(kvp.Key, kvp.Value));
+}
+
+public class ChemicalNamePair(Chemical chem, string name)
+{
+	public Chemical Chem => chem;
+	public string Name => name;
+
+	public ChemicalNamePair(Chemical chem) : this(chem, Constants.ChemicalNames[chem])
+	{
+	}
 }

@@ -4,7 +4,7 @@ using System.Linq;
 namespace Core.EquationsOfState;
 
 /// <summary>
-/// Represents the modified solid-liquid-vapor (MSLV) eqauation of state and related functions as published by
+/// Represents the modified solid-liquid-vapor (MSLV) equation of state and related functions as published by
 /// Mo and Zhang et al. (2022). DOI 10.1021/acsomega.1c06142
 /// Extends <see cref="EquationOfState"/>.
 /// </summary>

@@ -1,6 +1,7 @@
 ﻿using Core;
 using Core.EquationsOfState;
 using Core.VariableTypes;
+using Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,26 +23,24 @@ namespace ThermodynamicistUWP
 {
 	public sealed partial class PageRxnKin : Page
 	{
-		public ObservableCollection<RxnSpeciesListItem> RxnSpeciesItems;
+		public ControlRxnViewModel ViewModel { get; } = new ControlRxnViewModel();
 
 		public PageRxnKin()
 		{
 			InitializeComponent();
-
-			if (RxnSpeciesItems == null)
-			{
-				RxnSpeciesItems = new ObservableCollection<RxnSpeciesListItem>();
-			}
 		}
 
 		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
 		{
-			RxnSpeciesItems.Add(new RxnSpeciesListItem());
-		}
-
-		public void RemoveSpecies(RxnSpeciesListItem rxnSpeciesListItem)
-		{
-			RxnSpeciesItems.Remove(rxnSpeciesListItem);
+			ViewModel.Items.Add(new ControlRxnSpeciesViewModel
+			{
+				Chemical = Chemical.NPentane,
+				EoSFactory = new PengRobinsonEOSFactory(),
+				Stoich = 200,
+				Phase = "vapor",
+				IsReactant = false,
+				DeleteCommand = ViewModel.DeleteCommand
+			});
 		}
 
 		/// <summary>
@@ -59,15 +58,15 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 
 			// Get species list from ControlRxnSpecies
-			//var rxn = new Reaction(RxnSpeciesItems.ToList());
+			var rxn = new Reaction(ViewModel.Items.Select(i => i.ToModel()).ToList());
 
 			// Reactions testing. TEMPORARY TODO
-			var rxnSpecies = new List<RxnSpeciesListItem>
+			var rxnSpecies = new List<RxnSpecies>
 			{
-				new RxnSpeciesListItem(Chemical.Methane, 1, "vapor", true),
-				new RxnSpeciesListItem(Chemical.Oxygen, 2, "vapor", true),
-				new RxnSpeciesListItem(Chemical.CarbonDioxide, 1, "vapor", false),
-				new RxnSpeciesListItem(Chemical.Water, 2, "liquid", false)
+				new RxnSpecies(Chemical.Methane, 1, "vapor", true),
+				new RxnSpecies(Chemical.Oxygen, 2, "vapor", true),
+				new RxnSpecies(Chemical.CarbonDioxide, 1, "vapor", false),
+				new RxnSpecies(Chemical.Water, 2, "liquid", false)
 			};
 			var reactionA = new Reaction(rxnSpecies);
 

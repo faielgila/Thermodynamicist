@@ -3,15 +3,15 @@
 namespace Core.EquationsOfState;
 
 /// <summary>
-/// Represents the Peng-Robinson eqauation of state and related functions.
+/// Represents the Peng-Robinson equation of state and related functions.
 /// Extends <see cref="CubicEquationOfState"/>.
 /// </summary>
 public class PengRobinsonEOS : CubicEquationOfState
 {
 	private readonly double b;
 	private readonly double Kappa;
-	
-	public PengRobinsonEOS(Chemical species) : base(species)
+
+    public PengRobinsonEOS(Chemical species) : base(species)
 	{
 		var acentricFactor = speciesData.acentricFactor;
 		Kappa = 0.37464 + (1.54226 - 0.26992 * acentricFactor) * acentricFactor;
