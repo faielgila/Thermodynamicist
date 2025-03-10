@@ -1,6 +1,5 @@
 ﻿using Core.Data;
 using Core.VariableTypes;
-using System.Runtime.InteropServices;
 
 namespace Core.EquationsOfState;
 
@@ -43,15 +42,16 @@ public abstract class EquationOfState
 
 	public List<string> ModeledPhases;
 
-	protected EquationOfState(Chemical species, (Temperature T, Pressure P) referenceState, List<string> modeledPhases)
+	protected EquationOfState(Chemical species, List<string> modeledPhases, (Temperature T, Pressure P) referenceState)
 	{
 		ReferenceState = referenceState;
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
 		speciesCpData = Data.HeatCapacityParameters.IdealGasCpConstants[species];
-		ModeledPhases = modeledPhases;
 		//TODO: when high-temp calculations are fleshed out, reactivate this line.
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+
+		ModeledPhases = modeledPhases;
 
 		dTPrecision = 0.5;
 		dPPrecision = 100;
@@ -62,9 +62,10 @@ public abstract class EquationOfState
 		Species = species;
 		speciesData = Constants.ChemicalData[species];
 		speciesCpData = Data.HeatCapacityParameters.IdealGasCpConstants[species];
-		ModeledPhases = modeledPhases;
 		//TODO: when high-temp calculations are fleshed out, reactivate this line.
 		//speciesHighTempCpData = Constants.HighTempIdealGasCpConstants[species];
+
+		ModeledPhases = modeledPhases;
 
 		dTPrecision = 0.5;
 		dPPrecision = 100;
@@ -382,6 +383,106 @@ public abstract class EquationOfState
 		return new Entropy(totalPath);
 	}
 
+	/// <summary>
+	/// Estimates the molar entropy of formation using standard entropy at a given temperature and pressure.
+	/// </summary>
+	/// <param name="T">temperature [K]</param>
+	/// <param name="P">pressure [Pa]</param>
+	/// <returns>molar entropy of formation [J/K/mol]</returns>
+	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table or the species phase is not found by the EoS PhaseFinder.</exception>
+	public Entropy FormationEntropy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
+	{
+		// Retrieve standard formation entropy and phase for the species.
+		(Entropy entropy, string phase) formationThermo;
+		try { formationThermo = FormationThermodynamics.StandardFormationEntropy[Species]; }
+		catch { throw new KeyNotFoundException("Species not found in standard formation entropy data list."); }
+		Entropy H_Θ = formationThermo.entropy;
+		string phase_Θ = formationThermo.phase;
+
+		// Create easy names for the standard reference state closer to the mathematical notation.
+		var T_Θ = Constants.StandardConditions.T;
+		var P_Θ = Constants.StandardConditions.P;
+
+		// Get molar volume of species at standard reference state.
+		var phaseFinder_Θ = PhaseFinder(T_Θ, P_Θ, true);
+		Volume VMol_Θ;
+		try { VMol_Θ = phaseFinder_Θ[phase_rxn]; }
+		catch { throw new KeyNotFoundException("Standard phase not found at given T and P."); }
+
+		// Get molar volume of species at final reaction state.
+		var phaseFinder_rxn = PhaseFinder(T_rxn, P_rxn, true);
+		Volume VMol_rxn;
+		try { VMol_rxn = phaseFinder_rxn[phase_rxn]; }
+		catch { throw new KeyNotFoundException("Reaction phase not found at given T and P."); }
+
+		// Set phase, temperature, and pressure change flags.
+		bool flagPhaseChange = !string.Equals(phase_rxn, phase_Θ);
+		bool flagTemperatureChange = Math.Abs(T_rxn - T_Θ) > dTPrecision;
+		bool flagPressureChange = Math.Abs(P_rxn - P_Θ) > dPPrecision;
+
+		// Initialize species enthalpy of formation to standard enthalpy of formation.
+		// Entropy corrections to be added to this.
+		Entropy entropyFormation = H_Θ;
+
+		//		PATH I
+		// No adjustment needed (no temperature, pressure, or phase change from standard state).
+		if (!flagTemperatureChange && !flagPressureChange && !flagPhaseChange)
+		{
+			entropyFormation += 0;
+		}
+
+		//		PATH II
+		// Adjusts for temperature or pressure change with no phase change.
+		// Point 0 : (T_Θ, P_Θ) reference state
+		// Point 1 : (T_Θ, P)   pressure change
+		// Point 2 : (T,   P)   temperature change
+		if ((flagTemperatureChange || flagPressureChange) && !flagPhaseChange)
+		{
+			// Use basic molar entropy calc to get difference between Point 0 and Point 2.
+			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
+			entropyFormation += MolarEntropyChange(T_Θ, P_Θ, VMol_Θ, T_rxn, P_rxn, VMol_rxn);
+		}
+
+		//		PATH III
+		// Adjusts for phase change with no temperature or pressure change.
+		// Only phase change entropy is needed.
+		if (!(flagTemperatureChange || flagPressureChange) && flagPhaseChange)
+		{
+			entropyFormation += PhaseChangeEntropy(T_Θ, P_Θ, phase_Θ, phase_rxn);
+		}
+
+		//		PATH IV
+		// Adjusts for temperature or pressure change with phase change.
+		// Point 0 : (T_Θ, P_Θ) reference state
+		// Point 1 : (T_Θ, P)   pressure change within standard phase
+		// Point 2 : (T_Φ, P)   temperature change to phase equilibrium
+		// Point 3 : (T,   P)   temperature change from phase equilibrium
+		if ((flagTemperatureChange || flagPressureChange) && flagPhaseChange)
+		{
+			// Define saturation pressure P_Φ. Identical to P because enthalpy is a state function!
+			ref var P_Φ = ref P_rxn;
+			// Get saturation temperature T_Φ.
+			var T_Φ = PhaseChangeTemperature(P_rxn, phase_Θ, phase_rxn);
+			// Get molar volume at saturation point.
+			var phaseFinder_Φ = PhaseFinder(T_Θ, P_Θ, true);
+			Volume VMol_Φ;
+			try { VMol_Φ = phaseFinder_Φ[phase_rxn]; }
+			catch { throw new KeyNotFoundException("Reactant rxn phase not found at given T and P."); }
+
+			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
+			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
+			entropyFormation += MolarEntropyChange(T_Θ, P_Θ, VMol_Θ, T_Φ, P_rxn, VMol_rxn);
+
+			// Calculate phase change enthalpy @ Point 2.
+			entropyFormation += PhaseChangeEntropy(T_Φ, P_Φ, phase_Θ, phase_rxn);
+
+			// Use basic molar enthalpy calc to get difference between Point 2 and Point 3.
+			entropyFormation += MolarEntropyChange(T_Φ, P_Φ, VMol_Φ, T_rxn, P_rxn, VMol_rxn);
+		}
+
+		return entropyFormation;
+	}
+
 	#endregion
 
 	#region State Variables - other
@@ -594,6 +695,15 @@ public abstract class EquationOfState
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <returns>If it exists, phase change enthalpy, in [J/mol]; If is does not exist, NaN</returns>
 	public abstract Enthalpy PhaseChangeEnthalpy(Temperature T, Pressure P, string phaseFrom, string phaseTo);
+
+	/// <summary>
+	/// Calculates the entropy change between two phases.
+	/// If either phase is not present, the entropy will be returned as NaN.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <returns>If it exists, phase change entropy, in [J/K/mol]; If is does not exist, NaN</returns>
+	public abstract Entropy PhaseChangeEntropy(Temperature T, Pressure P, string phaseFrom, string phaseTo);
 
 	/// <summary>
 	/// Calculates the temperature at which a phase change occurs given a specific pressure.

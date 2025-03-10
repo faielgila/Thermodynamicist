@@ -119,7 +119,16 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ControlRxnSpecies.xaml.cs">
+      <DependentUpon>ControlRxnSpecies.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GenericViewModel.cs" />
+    <Compile Include="PagePCSF.xaml.cs">
+      <DependentUpon>PagePCSF.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PageRxnKin.xaml.cs">
+      <DependentUpon>PageRxnKin.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Plotting\Common.cs" />
     <Compile Include="GTViewModel.cs" />
     <Compile Include="PVViewModel.cs" />
@@ -202,7 +211,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="ControlRxnSpecies.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="PagePCSF.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PageRxnKin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -10,7 +10,7 @@ namespace Core.EquationsOfState;
 /// </summary>
 public class ModSolidLiquidVaporEOS : EquationOfState
 {
-	public ModSolidLiquidVaporEOS(Chemical species) : base(species, new List<string> { "solid", "liquid", "vapor" })
+	public ModSolidLiquidVaporEOS(Chemical species) : base(species, ["solid", "liquid", "vapor"])
 	{
 		if (!ReducedCriticalEoSFittingParameters.ContainsKey(species)) throw new KeyNotFoundException("The provided species is not supported by this EoS.");
 
@@ -86,8 +86,8 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		var VMolCrit = CriticalMolarVolume();
 		var zCrit = CompressibilityFactor(speciesData.critT, speciesData.critP, VMolCrit);
 		var VMolRed = VMol / VMolCrit;
-        var aRed = Alpha(T) * ReducedCriticalEoSFittingParameters[Species].a;
-        var bRed = b / VMolCrit;
+		var aRed = Alpha(T) * ReducedCriticalEoSFittingParameters[Species].a;
+		var bRed = b / VMolCrit;
 		var cRed = c / VMolCrit;
 		var dRed = d / VMolCrit;
 		// Implement EoS.
@@ -292,10 +292,10 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 	#region Phase equilibrum
 	public override Dictionary<string, Volume> PhaseFinder(Temperature T, Pressure P, bool ignoreEquilibrium = false)
 	{
-        // Initialize the empty list.
-        var list = new Dictionary<string, Volume>();
+		// Initialize the empty list.
+		var list = new Dictionary<string, Volume>();
 
-        /* Because this MSLV is based on the Peng-Robinson equation of state (which is a cubic equation),
+		/* Because this MSLV is based on the Peng-Robinson equation of state (which is a cubic equation),
 		 * a similar bisection-based algorithm should work.
 		 * In order to come up with the ranges for the bisection algorithm, the isotherm needs to be split into 4 regions:
 		 * one containing the solid regime, one containing the liquid regime, one containing the s-curve, and one containing
@@ -303,10 +303,10 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		 * is easily defined directly by the fitting parameters.
 		 */
 
-        /* The solid root, if it exists (and I'm fairly certain it always will because of the asymptote), will be within
+		/* The solid root, if it exists (and I'm fairly certain it always will because of the asymptote), will be within
 		 * z=B and z=D (or VMol=b and VMol=d)
 		 */
-        var VMol_S = ZRootFinder(T, P, b, d);
+		var VMol_S = ZRootFinder(T, P, b, d);
 
 		/* The fluid roots are a little more complex than that, but because this EoS is still a polynomial in terms of z,
 		 * derivatives w/rt z are easy to calculate and Rolle's theorem can easily be used to find regions of the function
@@ -318,14 +318,14 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 
 		// Inflection points only exist if the Z'' at the jolt point is positive.
 		bool flagRealInflection = ZSecondDerivative(T, P, joltPoint) > 0;
-        Volume inflectionPoint0 = flagRealInflection ? ZInflectionFinder(T, P, b, joltPoint) : double.NaN;
+		Volume inflectionPoint0 = flagRealInflection ? ZInflectionFinder(T, P, b, joltPoint) : double.NaN;
 		Volume inflectionPoint1 = flagRealInflection ? ZInflectionFinder(T, P, joltPoint, 1) : double.NaN;
 
 		// Turns 0 and 1 only exist if the Z' at inflection 0 is negative.
 		// Turns 1 and 2 only exist if the Z' at inflection 1 is positive.
 		bool flagRealTurnA = ZFirstDerivative(T, P, inflectionPoint0) < 0;
 		bool flagRealTurnB = ZFirstDerivative(T, P, inflectionPoint1) > 0;
-  		Volume turningPoint0 = flagRealTurnA ? ZTurnFinder(T, P, b, inflectionPoint0) : double.NaN;
+		Volume turningPoint0 = flagRealTurnA ? ZTurnFinder(T, P, b, inflectionPoint0) : double.NaN;
 		Volume turningPoint1 = (flagRealTurnA && flagRealTurnB) ? ZTurnFinder(T, P, inflectionPoint0, inflectionPoint1) : double.NaN;
 		Volume turningPoint2 = flagRealTurnB ?  ZTurnFinder(T, P, inflectionPoint1, 1) : double.NaN;
 
@@ -337,8 +337,8 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		Volume VMol_L = flagRootL ? ZRootFinder(T, P, turningPoint0, turningPoint1) : double.NaN;
 		Volume VMol_V = flagRootV ? ZRootFinder(T, P, turningPoint2, 1) : double.NaN;
 
-        // If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
-        if (ignoreEquilibrium) { list.Add("solid", VMol_S); list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
+		// If "ignoreEquilibrium" is set to true, we do not need to copmare fugacities to determine equilibrium phases.
+		if (ignoreEquilibrium) { list.Add("solid", VMol_S); list.Add("liquid", VMol_L); list.Add("vapor", VMol_V); return list; }
 
 		/* Now that the predicted phases have been found, estimate the fugacities (or more precisely, the fugacity coefficients)
 		 * to determine whether that phase corresponds to a real state in the equilibrium. 
@@ -391,6 +391,11 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 	}
 
 	public override Enthalpy PhaseChangeEnthalpy(Temperature T, Pressure P, string phaseFrom, string phaseTo)
+	{
+		throw new NotImplementedException();
+	}
+
+	public override Entropy PhaseChangeEntropy(Temperature T, Pressure P, string phaseFrom, string phaseTo)
 	{
 		throw new NotImplementedException();
 	}

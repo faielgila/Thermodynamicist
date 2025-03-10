@@ -7,10 +7,8 @@ namespace Core.EquationsOfState;
 /// Extends <see cref="EquationOfState"/>.
 /// See also: <seealso cref="PengRobinsonEOS"/>, <seealso cref="VanDerWaalsEOS"/>.
 /// </summary>
-public abstract class CubicEquationOfState : EquationOfState
+public abstract class CubicEquationOfState(Chemical species) : EquationOfState(species, ["liquid", "vapor"])
 {
-	protected CubicEquationOfState(Chemical species) : base(species, new List<string> { "liquid", "vapor" }) {}
-
 	public override Volume CriticalMolarVolume()
 	{
 		return ZCubicInflectionPoint(speciesData.critT, speciesData.critP);
@@ -241,7 +239,7 @@ public abstract class CubicEquationOfState : EquationOfState
 		if (string.Equals(phaseFrom, "vapor" ) && string.Equals(phaseTo, "liquid")) return -VaporizationEnthalpy(T, P);
 		else return double.NaN;
 
-		//Calculates the vaporization enthalpy at the given temperature and pressure.
+		// Calculates the vaporization enthalpy at the given temperature and pressure.
 		Enthalpy VaporizationEnthalpy(Temperature T, Pressure P)
 		{
 			var phases = PhaseFinder(T, P, true);
@@ -249,6 +247,34 @@ public abstract class CubicEquationOfState : EquationOfState
 			var H_V = ReferenceMolarEnthalpy(T, P, phases["vapor"].Value);
 			var H_L = ReferenceMolarEnthalpy(T, P, phases["liquid"].Value);
 			return new Enthalpy(H_V - H_L, ThermoVarRelations.OfVaporization);
+		}
+	}
+
+	/// <summary>
+	/// Calculates the entropy change between liquid-vapor equilibrium, i.e. the vaporization enthalpy.
+	/// If either the vapor or liquid phase are not present, the entropy will be returned as NaN.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <param name="phaseFrom">initial phase</param>
+	/// <param name="phaseTo">final phase</param>
+	/// <returns>If it exists, vaporization entropy, in [J/K/mol]; If is does not exist, NaN</returns>
+	public override Entropy PhaseChangeEntropy(Temperature T, Pressure P, string phaseFrom, string phaseTo)
+	{
+		// Check for phase change and direction of change
+		if (string.Equals(phaseFrom, phaseTo)) return new Entropy(0, ThermoVarRelations.Change);
+		if (string.Equals(phaseFrom, "liquid") && string.Equals(phaseTo, "vapor")) return VaporizationEntropy(T, P);
+		if (string.Equals(phaseFrom, "vapor") && string.Equals(phaseTo, "liquid")) return -VaporizationEntropy(T, P);
+		else return double.NaN;
+
+		// Calculates the vaporization enthalpy at the given temperature and pressure.
+		Entropy VaporizationEntropy(Temperature T, Pressure P)
+		{
+			var phases = PhaseFinder(T, P, true);
+			if (!phases.ContainsKey("vapor") || !phases.ContainsKey("liquid")) return double.NaN;
+			var S_V = ReferenceMolarEntropy(T, P, phases["vapor"].Value);
+			var S_L = ReferenceMolarEntropy(T, P, phases["liquid"].Value);
+			return new Entropy(S_V - S_L, ThermoVarRelations.OfVaporization);
 		}
 	}
 

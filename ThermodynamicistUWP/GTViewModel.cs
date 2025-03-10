@@ -7,10 +7,10 @@
 	using ThermodynamicistUWP.Plotting;
 	using Core;
 	using System.Threading.Tasks;
-    using System.Threading;
-    using Core.VariableTypes;
+	using System.Threading;
+	using Core.VariableTypes;
 
-    public class GTViewModel
+	public class GTViewModel
 	{
 		public PlotModel Model { get; private set; }
 

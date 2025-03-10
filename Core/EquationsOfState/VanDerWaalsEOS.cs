@@ -47,16 +47,16 @@ public class VanDerWaalsEOS : CubicEquationOfState
 	#endregion
 
 	public Volume IncreasingIsothermFinder(Temperature T)
-    {
-        var VMol = b;
+	{
+		var VMol = b;
 		double checkVal(double v) { return 2 * a / R / T * (v - b) * (v - b) / Math.Pow(VMol, 3); }
 		while (checkVal(VMol) <= 1 || Pressure(T, VMol) < 0) { VMol += precisionLimit * Math.Pow(10, 10); }
-        return new Volume(VMol);
-    }
+		return new Volume(VMol);
+	}
 
-    #region Cubic form and derivatives
+	#region Cubic form and derivatives
 
-    public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
+	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -92,8 +92,8 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return new Enthalpy(P * VMol - R * T - a / VMol, ThermoVarRelations.Departure);
 	}
 
-    // from Sandler, eqn 6.4-28 solved using van der Waals EoS
-    public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
+	// from Sandler, eqn 6.4-28 solved using van der Waals EoS
+	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		return new Entropy(R * T * (z - 1) - a / VMol, ThermoVarRelations.Departure);

@@ -238,14 +238,14 @@ namespace ThermodynamicistUWP.Plotting
 			return points.OrderBy(x => x.T).ToList();
 		}
 
-        /// <summary>
-        /// Generates a LineSeries which represents a constant-pressure "slice" of the Gibbs free energy surface
-        /// in pressure-temperature space.
-        /// </summary>
-        /// <param name="EoS">Equation of State, stores species and reference state</param>
-        /// <param name="P">pressure, in [Pa]</param>
-        /// <param name="phaseKey">phase, in string form</param>
-        public static LineSeries LS_GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
+		/// <summary>
+		/// Generates a LineSeries which represents a constant-pressure "slice" of the Gibbs free energy surface
+		/// in pressure-temperature space.
+		/// </summary>
+		/// <param name="EoS">Equation of State, stores species and reference state</param>
+		/// <param name="P">pressure, in [Pa]</param>
+		/// <param name="phaseKey">phase, in string form</param>
+		public static LineSeries LS_GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
 		{
 			var line = new LineSeries
 			{
