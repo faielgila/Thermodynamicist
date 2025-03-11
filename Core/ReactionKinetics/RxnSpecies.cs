@@ -1,6 +1,9 @@
 ﻿using Core.EquationsOfState;
 using Core;
 
+/// <summary>
+/// Stores all data that <see cref="Reaction"/> needs for each species in a reaction.
+/// </summary>
 public class RxnSpecies
 {
 	public Chemical chemical;
@@ -33,6 +36,4 @@ public class RxnSpecies
 			_ => new PengRobinsonEOS(chemical),
 		};
 	}
-
-	public RxnSpecies() { }
 }

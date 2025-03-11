@@ -2,21 +2,9 @@
 using Core.EquationsOfState;
 using Core.VariableTypes;
 using Core.ViewModels;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 
 
 namespace ThermodynamicistUWP
@@ -34,9 +22,9 @@ namespace ThermodynamicistUWP
 		{
 			ViewModel.Items.Add(new ControlRxnSpeciesViewModel
 			{
-				Chemical = Chemical.NPentane,
+				Chemical = Chemical.Methane,
 				EoSFactory = new PengRobinsonEOSFactory(),
-				Stoich = 200,
+				Stoich = 1,
 				Phase = "vapor",
 				IsReactant = false,
 				DeleteCommand = ViewModel.DeleteCommand
@@ -58,7 +46,7 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 
 			// Get species list from ControlRxnSpecies
-			var rxn = new Reaction(ViewModel.Items.Select(i => i.ToModel()).ToList());
+			var rxn = new Reaction(ViewModel.GetRxnSpeciesList());
 
 			// Reactions testing. TEMPORARY TODO
 			var rxnSpecies = new List<RxnSpecies>

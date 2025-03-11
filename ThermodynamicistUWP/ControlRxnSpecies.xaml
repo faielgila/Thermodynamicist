@@ -11,7 +11,8 @@
 	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d">
 
-	<Grid Padding="5" BorderThickness="2" BorderBrush="Azure" d:Background="White" Margin="5">
+	<Grid Padding="5" BorderThickness="2" CornerRadius="{ThemeResource ControlCornerRadius}"
+		  BorderBrush="{ThemeResource AccentFillColorSelectedTextBackgroundBrush}" d:Background="White" Margin="5">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
@@ -23,6 +24,11 @@
 			<RowDefinition Height="37"/>
 		</Grid.RowDefinitions>
 
+		<!--
+		Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
+		Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
+		Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
+		-->
 		<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
 				  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
 				  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
@@ -34,20 +40,47 @@
 			</ComboBox.ItemTemplate>
 		</ComboBox>
 
+		<!--
+		Value : Bound to ViewModel.Stoich.
+		-->
 		<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="Stochiometry" AcceptsExpression="False"
 						Value="{x:Bind ViewModel.Stoich, Mode=TwoWay}"
 						Margin="0,0,5,0" Grid.Row="0" Grid.Column="1" Width="120"/>
+		
+		<!--
+		Initialize : Bound to ViewModel.ModeledPhases. This has to be OneWay (instead of OneTime) because the allowable phases
+		             depends on which equation of state is selected.
+		Selection  : Bound to ViewModel.Phase. Phase is already a string, so this is surprisingly easy.
+		-->
 		<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
 				  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.Phase, Mode=TwoWay}"
 				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="2" Width="100"/>
+		
+		<!--
+		Checked : Bound to ViewModel.IsReactant. IsReactant is already a bool and if RadioReactant isn't selected then RadioProduct is.
+		          This is surprisingly easy.
+		-->
 		<RadioButton x:Name="RadioReactant" Content="Reactant" IsChecked="{x:Bind ViewModel.IsReactant, Mode=TwoWay}"
 					 Margin="10, 0, 0, 0" Grid.Row="0" Grid.Column="3"/>
-		<RadioButton x:Name="RadioProduct" Content="Product" Checked="RadioButton_Checked"
+		<RadioButton x:Name="RadioProduct" Content="Product"
 					 Margin="10, 0, 0, 0" Grid.Row="1" Grid.Column="3"/>
+		
+		<!--
+		Command : Bound to ViewModel.DeleteCommand, which is itself passed down from PageRxnKin to ensure propery deletion from the
+		          master list.
+		CommandParameter : ViewModel.DeleteCommand takes in a parameter to decide which ViewModel to remove from the list in PageRxnKin.
+		                   ViewModel contains this ControlRxnSpecies instance, which removes it from the list.
+		-->
 		<Button Content="Remove species"
 				Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
 				Margin="0, 5, 5, 0" Grid.Row="1" Grid.Column="0" Width="135"/>
 		
+		<!--
+		Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
+		Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
+		TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
+		Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
+		-->
 		<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
 				  Margin="205,5,0,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
 			<ComboBox.ItemTemplate>
@@ -56,5 +89,6 @@
 				</DataTemplate>
 			</ComboBox.ItemTemplate>
 		</ComboBox>
+		
 	</Grid>
 </UserControl>

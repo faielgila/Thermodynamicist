@@ -75,15 +75,22 @@ public class Constants
 		[Chemical.Water] = "Water"
 	};
 
+	/// <summary>
+	/// Generates a list of all <see cref="ChemicalNamePair"/>s.
+	/// </summary>
 	public static IEnumerable<ChemicalNamePair> GetChemicalNames() => ChemicalNames.Select(kvp => new ChemicalNamePair(kvp.Key, kvp.Value));
 }
 
+/// <summary>
+/// Stores a pair of <see cref="Chemical"/> and its human-readable name in <see cref="Name"/>.
+/// </summary>
 public class ChemicalNamePair(Chemical chem, string name)
 {
 	public Chemical Chem => chem;
 	public string Name => name;
 
-	public ChemicalNamePair(Chemical chem) : this(chem, Constants.ChemicalNames[chem])
-	{
-	}
+	/// <summary>
+	/// Generate a <see cref="ChemicalNamePair"/> based on the given <see cref="Chemical"/>.
+	/// </summary>
+	public ChemicalNamePair(Chemical chem) : this(chem, Constants.ChemicalNames[chem]) { }
 }

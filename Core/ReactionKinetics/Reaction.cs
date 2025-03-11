@@ -1,9 +1,9 @@
-﻿using System;
-using Core.EquationsOfState;
-using Core.VariableTypes;
+﻿using Core.VariableTypes;
 using Core;
-using System.Collections.Generic;
 
+/// <summary>
+/// Represents a chemical reaction and its related variables.
+/// </summary>
 public class Reaction
 {
 	/// <summary>
