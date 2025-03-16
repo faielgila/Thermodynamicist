@@ -1,7 +1,7 @@
 ﻿namespace Core.EquationsOfState
 {
 	/// <summary>
-	/// Provides an interface for defining EOSFactories, which removed the need to create
+	/// Provides an interface for defining EoSFactories, which removes the need to create
 	/// a fully-specified EoS instance. To be used whenever the type of an EoS needs to be
 	/// passed around, but does not need to be instatiated yet.
 	/// When the EoS is finally needed, use <see cref="Create(Chemical)"/> to generate an

@@ -119,25 +119,30 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ControlRxnSpecies.xaml.cs">
+    <Compile Include="Dialogs\ErrorDialog.xaml.cs">
+      <DependentUpon>ErrorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ControlRxnSpecies.xaml.cs">
       <DependentUpon>ControlRxnSpecies.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\ChemicalNamePairConverter.cs" />
-    <Compile Include="GenericViewModel.cs" />
-    <Compile Include="PagePCSF.xaml.cs">
+    <Compile Include="Plotting\Factories\GTPlotFunctionFactory.cs" />
+    <Compile Include="Plotting\Factories\PTPlotFunctionFactory.cs" />
+    <Compile Include="Plotting\Factories\PVPlotFunctionFactory.cs" />
+    <Compile Include="Plotting\Models\GenericPlotModel.cs" />
+    <Compile Include="Pages\PagePCSF.xaml.cs">
       <DependentUpon>PagePCSF.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PageRxnKin.xaml.cs">
+    <Compile Include="Pages\PageRxnKin.xaml.cs">
       <DependentUpon>PageRxnKin.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plotting\Common.cs" />
-    <Compile Include="GTViewModel.cs" />
-    <Compile Include="PVViewModel.cs" />
-    <Compile Include="PTViewModel.cs" />
-    <Compile Include="MainPage.xaml.cs">
+    <Compile Include="Plotting\Models\GTPlotModel.cs" />
+    <Compile Include="Plotting\Models\PVPlotModel.cs" />
+    <Compile Include="Plotting\Models\PTPlotModel.cs" />
+    <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plotting\FunctionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -212,19 +217,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="ControlRxnSpecies.xaml">
+    <Page Include="Dialogs\ErrorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="PagePCSF.xaml">
+    <Page Include="Pages\ControlRxnSpecies.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PageRxnKin.xaml">
+    <Page Include="Pages\MainPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PagePCSF.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PageRxnKin.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

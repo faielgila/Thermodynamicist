@@ -94,10 +94,10 @@ namespace ThermodynamicistUWP
 				GroupBoxSolid.Text = "Solid phase data: \n not calculated";
 			}
 
-			// Fills in the plot view with a view model using the new settings
-			PlotViewLeft.Model = new PVViewModel(EoS, ToggleSCurve.IsOn).Model;
+			// Fills in the plot view with a view model using the new settings 
+			PlotViewLeft.Model = new PVPlotModel(EoS, ToggleSCurve.IsOn).Model;
 			//PlotViewLeft.Model = new GenericViewModel().Model;
-			PlotViewRight.Model = new GTViewModel(EoS, P).Model;
+			PlotViewRight.Model = new GTPlotModel(EoS, P).Model;
 		}
 
 		/// <summary>

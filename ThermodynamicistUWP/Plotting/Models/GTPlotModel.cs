@@ -1,16 +1,17 @@
-﻿namespace ThermodynamicistUWP
-{
-	using OxyPlot;
-	using OxyPlot.Axes;
-	using OxyPlot.Series;
-	using Core.EquationsOfState;
-	using ThermodynamicistUWP.Plotting;
-	using Core;
-	using System.Threading.Tasks;
-	using System.Threading;
-	using Core.VariableTypes;
+﻿using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using Core.EquationsOfState;
+using ThermodynamicistUWP.Plotting;
+using Core;
+using System.Threading.Tasks;
+using System.Threading;
+using Core.VariableTypes;
+using ThermodynamicistUWP.Plotting.Factories;
 
-	public class GTViewModel
+namespace ThermodynamicistUWP
+{
+	public class GTPlotModel
 	{
 		public PlotModel Model { get; private set; }
 
@@ -18,7 +19,7 @@
 
 		public Pressure P { get; set; }
 
-		public GTViewModel(EquationOfState equationOfState, Pressure p)
+		public GTPlotModel(EquationOfState equationOfState, Pressure p)
 		{
 			EoS = equationOfState;
 			P = p;
@@ -33,7 +34,7 @@
 			var modeledPhases = EoS.ModeledPhases;
 			foreach (string phase in modeledPhases)
 			{
-				Model.Series.Add(FunctionFactory.LS_GTCurve(EoS, P, phase));
+				Model.Series.Add(GTPlotFunctionFactory.LS_PhaseCurve(EoS, P, phase));
 			}
 
 			Model.Axes.Add(new LinearAxis {

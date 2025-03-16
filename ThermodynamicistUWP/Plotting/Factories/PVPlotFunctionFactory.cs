@@ -2,7 +2,6 @@
 using Core.EquationsOfState;
 using Core.VariableTypes;
 using OxyPlot;
-using OxyPlot.Annotations;
 using OxyPlot.Series;
 using System;
 using System.Collections.Concurrent;
@@ -12,11 +11,8 @@ using System.Threading.Tasks;
 
 namespace ThermodynamicistUWP.Plotting
 {
-
-	public static class FunctionFactory
+	public static class PVPlotFunctionFactory
 	{
-		#region Pressure-Volume (PV) plotting
-
 		/// <summary>
 		/// Creates a double-to-double function which represents an isotherm in pressure-volume space.
 		/// </summary>
@@ -24,7 +20,7 @@ namespace ThermodynamicistUWP.Plotting
 		/// <param name="T">Temperature, in [K]</param>
 		/// <param name="usePvap">Option to ignore vapor pressure in favor of the s-curve in the VLE region.</param>
 		/// <returns>pressure as a function of molar volume</returns>
-		public static Func<double, double> PVIsotherm(EquationOfState EoS, Temperature T, bool usePvap = true)
+		public static Func<double, double> Isotherm(EquationOfState EoS, Temperature T, bool usePvap = true)
 		{
 			// If set to ignore vapor pressure, simply return the uncorrected isotherm.
 			if (!usePvap) return VMol => EoS.Pressure(T, VMol);
@@ -59,9 +55,9 @@ namespace ThermodynamicistUWP.Plotting
 		/// <param name="EoS">Equation of State, stores species and reference state</param>
 		/// <param name="T">Temperature, in [K]</param>
 		/// <param name="usePvap">Option to ignore vapor pressure in favor of the s-curve in the VLE region.</param>
-		public static FunctionSeries FS_PVIsotherm(EquationOfState EoS, Temperature T, bool usePvap = true)
+		public static FunctionSeries FS_Isotherm(EquationOfState EoS, Temperature T, bool usePvap = true)
 		{
-			var FS = new FunctionSeries(PVIsotherm(EoS, T, usePvap), 3e-5, .002, 1000, "T = " + (double)T + "K")
+			var FS = new FunctionSeries(Isotherm(EoS, T, usePvap), 3e-5, .002, 1000, "T = " + (double)T + "K")
 			{
 				Color = OxyColor.FromHsv(new double[] { Display.Colors.HueTemperatureMap(T, EoS.speciesData.critT), 1, 1 })
 			};
@@ -76,7 +72,7 @@ namespace ThermodynamicistUWP.Plotting
 		/// <param name="T">Temperature, in [K]</param>
 		/// <returns>FunctionSeries with pressure as a function of molar volume</returns>
 		/// <exception cref="ArgumentOutOfRangeException">The s-curve region only exists for isotherms below the critical temperature.</exception>
-		public static FunctionSeries FS_PVIsothermSCurve(EquationOfState EoS, Temperature T, bool isVisible)
+		public static FunctionSeries FS_IsothermSCurve(EquationOfState EoS, Temperature T, bool isVisible)
 		{
 			// Vapor pressures (and the VLE) exist only below the critical temperature.
 			if (T >= EoS.speciesData.critT) throw new ArgumentOutOfRangeException("S-curves only exist for temperatures below the critical temperature!");
@@ -84,7 +80,7 @@ namespace ThermodynamicistUWP.Plotting
 			var Pvap = EoS.VaporPressure(T);
 			var EqVMol = EoS.PhaseFinder(T, Pvap);
 
-			var FS = new FunctionSeries(PVIsotherm(EoS, T, false), EqVMol["liquid"], EqVMol["vapor"], 50)
+			var FS = new FunctionSeries(Isotherm(EoS, T, false), EqVMol["liquid"], EqVMol["vapor"], 50)
 			{
 				Color = OxyColor.FromHsv(new double[] { Display.Colors.HueTemperatureMap(T, EoS.speciesData.critT), 1, 1 }),
 				Dashes = new double[] { 1, 2, 3 },
@@ -98,7 +94,7 @@ namespace ThermodynamicistUWP.Plotting
 		/// </summary>
 		/// <param name="EoS">Equation of State, stores species and reference state</param>
 		/// <returns>list of tuples, (molar volume in [m³/mol], pressure in [Pa])</returns>
-		public static List<(double VMol, double P)> PVVaporLiquidEqRegion(EquationOfState EoS)
+		public static List<(double VMol, double P)> VaporLiquidEqRegion(EquationOfState EoS)
 		{
 			// Initialize the output list.
 			var points = new ConcurrentBag<(double VMol, double P)>();
@@ -126,7 +122,7 @@ namespace ThermodynamicistUWP.Plotting
 		/// Generates a LineSeries which represents the vapor-liquid coexistance region in pressure-volume space.
 		/// </summary>
 		/// <param name="EoS">Equation of State, stores species and reference state</param>
-		public static LineSeries LS_PVVaporLiquidEqRegion(EquationOfState EoS)
+		public static LineSeries LS_VaporLiquidEqRegion(EquationOfState EoS)
 		{
 			var line = new LineSeries
 			{
@@ -136,7 +132,7 @@ namespace ThermodynamicistUWP.Plotting
 				LineJoin = LineJoin.Round,
 			};
 
-			var points = PVVaporLiquidEqRegion(EoS);
+			var points = VaporLiquidEqRegion(EoS);
 			foreach (var (VMol, P) in points)
 			{
 				line.Points.Add(new DataPoint(VMol, P));
@@ -145,126 +141,5 @@ namespace ThermodynamicistUWP.Plotting
 			return line;
 		}
 
-		#endregion
-
-		#region Pressure-Temperature (PT) plotting [phase diagram]
-
-		/// <summary>
-		/// Generates a list of (temperature, pressure) points describing the liquid-vapor phase boundary in pressure-temperature space.
-		/// </summary>
-		/// <param name="EoS">Equation of State, stores species and reference state</param>
-		/// <returns>list of tuples, (molar volume in [m³/mol], pressure in [Pa])</returns>
-		public static List<(double T, double P)> PTEvaporationCurve(EquationOfState EoS)
-		{
-			// Initialize the output list.
-			var points = new List<(double T, double P)>();
-
-			var critT = EoS.speciesData.critT;
-			var temps = new LinearEnumerable(273, critT, 0.5);
-			Parallel.ForEach(temps, T => {
-				if (T < critT)
-				{
-					var Pvap = EoS.VaporPressure(T);
-					points.Add((T, Pvap));
-				}
-			});
-
-			// Separately add the critical point to the plot.
-			points.Add((critT, EoS.speciesData.critP));
-
-			// The curve will consist of randomly-ordered points, so for proper plotting sort by increasing VMol.
-			points.Sort();
-
-			return points;
-		}
-
-		/// <summary>
-		/// Generates a LineSeries which represents the liquid-vapor phase boundary in pressure-temperature space.
-		/// </summary>
-		/// <param name="EoS">Equation of State, stores species and reference state</param>
-		public static LineSeries LS_PTEvaporationCurve(EquationOfState EoS)
-		{
-			var line = new LineSeries
-			{
-				LineStyle = LineStyle.Solid,
-				Color = OxyColors.Black,
-				StrokeThickness = 4,
-				LineJoin = LineJoin.Round,
-			};
-
-			var points = PTEvaporationCurve(EoS);
-			foreach (var (T, P) in points)
-			{
-				line.Points.Add(new DataPoint(T, P));
-			}
-
-			return line;
-		}
-
-		#endregion
-
-		#region Gibbs free energy-Temperature (GT) plotting
-
-		/// <summary>
-		/// Generates a list of (temperature, Gibbs energy) points for a given phase.
-		/// </summary>
-		/// <param name="EoS">Equation of State, stores species and reference state</param>
-		/// <param name="P">pressure, in [Pa]</param>
-		/// <param name="phaseKey">phase, in string form</param>
-		/// <returns>list of tuples, (temperature in [K], reference molar Gibbs free energy in [J/mol])</returns>
-		public static List<(double T, double G)> GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
-		{
-			// Initialize output list.
-			var points = new ConcurrentBag<(double T, double G)>();
-
-			var critT = EoS.speciesData.critT;
-			var minTemp = critT / 100;
-			var maxTemp = critT - 10;
-			var temps = new LinearEnumerable(minTemp, maxTemp, 0.1);
-
-			Parallel.ForEach(temps, T =>
-			{
-				// Get all phases present at the current temperature and pressure.
-				var phases = EoS.PhaseFinder(T, P, ignoreEquilibrium: true);
-				// If the current phase is not present, there are no points to plot.
-				if (!phases.ContainsKey(phaseKey)) return;
-				// Extract molar volume for the current phase.
-				var VMol = phases[phaseKey];
-				// Calculate molar Gibbs energy for the state and add the point to the list.
-				var G = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
-				points.Add((T, G));
-			});
-
-			return points.OrderBy(x => x.T).ToList();
-		}
-
-		/// <summary>
-		/// Generates a LineSeries which represents a constant-pressure "slice" of the Gibbs free energy surface
-		/// in pressure-temperature space.
-		/// </summary>
-		/// <param name="EoS">Equation of State, stores species and reference state</param>
-		/// <param name="P">pressure, in [Pa]</param>
-		/// <param name="phaseKey">phase, in string form</param>
-		public static LineSeries LS_GTCurve(EquationOfState EoS, Pressure P, string phaseKey)
-		{
-			var line = new LineSeries
-			{
-				LineStyle = LineStyle.Solid,
-				//Color = OxyColors.Black,
-				StrokeThickness = 4,
-				LineJoin = LineJoin.Round,
-				Title = phaseKey
-			};
-
-			var points = GTCurve(EoS, P, phaseKey);
-			foreach (var (T, G) in points)
-			{
-				line.Points.Add(new DataPoint(T, G));
-			}
-
-			return line;
-		}
-
-		#endregion
 	}
 }

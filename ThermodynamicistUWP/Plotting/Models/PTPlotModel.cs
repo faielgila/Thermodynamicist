@@ -1,20 +1,21 @@
-﻿namespace ThermodynamicistUWP
-{
-	using OxyPlot;
-	using OxyPlot.Axes;
-	using OxyPlot.Series;
-	using Core.EquationsOfState;
-	using ThermodynamicistUWP.Plotting;
-	using Core;
-	using System.Threading.Tasks;
+﻿using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using Core.EquationsOfState;
+using ThermodynamicistUWP.Plotting;
+using Core;
+using System.Threading.Tasks;
+using ThermodynamicistUWP.Plotting.Factories;
 
-	public class PTViewModel
+namespace ThermodynamicistUWP
+{
+	public class PTPlotModel
 	{
 		public PlotModel Model { get; private set; }
 
 		public EquationOfState EoS { get; set; }
 
-		public PTViewModel(EquationOfState equationOfState)
+		public PTPlotModel(EquationOfState equationOfState)
 		{
 			EoS = equationOfState;
 			Update();
@@ -27,7 +28,7 @@
 			if (EoS.GetType().Name != "ModSolidLiquidVaporEOS")
 			{
 				// Add the vapor-liquid transition curve to the plot.
-				Model.Series.Add(FunctionFactory.LS_PTEvaporationCurve(EoS));
+				Model.Series.Add(PTPlotFunctionFactory.LS_EvaporationCurve(EoS));
 			}
 
 			if (EoS.GetType().Name == "ModSolidLiquidVaporEOS")

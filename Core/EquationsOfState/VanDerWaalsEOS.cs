@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Core.VariableTypes;
+﻿using Core.VariableTypes;
 
 namespace Core.EquationsOfState;
 

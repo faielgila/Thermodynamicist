@@ -8,7 +8,7 @@
 	using Core;
 	using Core.VariableTypes;
 
-	public class GenericViewModel
+	public class GenericPlotModel
 	{
 		public PlotModel Model { get; private set; }
 
@@ -20,7 +20,7 @@
 		public double[] XAxisLimits;
 		public double[] YAxisLimits;
 
-		public GenericViewModel(
+		public GenericPlotModel(
 			LineSeries plotData, string plotTitle, string xAxisLabel, string yAxisLabel,
 			double[] xAxisLimits, double[] yAxisLimits)
 		{
