@@ -1,13 +1,16 @@
-﻿using System.Runtime.CompilerServices;
-using Core.VariableTypes;
+﻿using Core.VariableTypes;
 
 namespace Core.EquationsOfState;
 
+/// <summary>
+/// Represents the van der Waals equation of state and related functions.
+/// Extends <see cref="CubicEquationOfState"/>.
+/// </summary>
 public class VanDerWaalsEOS : CubicEquationOfState
 {
-	private double a;
-	private double b;
-	
+	private readonly double a;
+	private readonly double b;
+
 	public VanDerWaalsEOS(Chemical species) : base(species)
 	{
 		speciesData = Constants.ChemicalData[Species];
@@ -15,15 +18,18 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		b = R * speciesData.critT / (8 * speciesData.critP);
 	}
 
+	#region Parameters
 	private double A(Temperature T, Pressure P) { return a * P / R / R / T / T; }
 	private double B(Temperature T, Pressure P) { return b * P / R / T; }
-	public override Pressure Pressure(Temperature T, MolarVolume VMol)
+
+	#endregion
+	public override Pressure Pressure(Temperature T, Volume VMol)
 	{
 		return R * T / (VMol - b) - a / (VMol * VMol);
 	}
 
 	// from Sandler, eqn 7.4-13
-	public override double FugacityCoeff(Temperature T, Pressure P, MolarVolume VMol)
+	public override double FugacityCoeff(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -31,9 +37,25 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return Math.Exp(z - 1 - Math.Log(z - B) - A / z);
 	}
 
-	#region Cubic and related equations
+	#region Partial derivatives
+	public override double PVPartialDerivative(Temperature T, Volume VMol)
+	{
+		return -R * T / Math.Pow(VMol - b, 2) + 2 * a / Math.Pow(VMol, 3);
+	}
 
-	public override double ZCubicEqn(Temperature T, Pressure P, MolarVolume VMol)
+	#endregion
+
+	public Volume IncreasingIsothermFinder(Temperature T)
+	{
+		var VMol = b;
+		double checkVal(double v) { return 2 * a / R / T * (v - b) * (v - b) / Math.Pow(VMol, 3); }
+		while (checkVal(VMol) <= 1 || Pressure(T, VMol) < 0) { VMol += precisionLimit * Math.Pow(10, 10); }
+		return new Volume(VMol);
+	}
+
+	#region Cubic form and derivatives
+
+	public override double ZCubicEqn(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		var A = this.A(T, P);
@@ -45,7 +67,7 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return term0 + term1 + term2 + term3;
 	}
 
-	public override double ZCubicDerivative(Temperature T, Pressure P, MolarVolume VMol)
+	public override double ZCubicDerivative(Temperature T, Pressure P, Volume VMol)
 	{
 		var prt = P / (R * T);
 		var term2 = 3 * Math.Pow(prt * VMol, 2) * prt;
@@ -54,23 +76,26 @@ public class VanDerWaalsEOS : CubicEquationOfState
 		return term2 + term1 + term0;
 	}
 
-	public override double ZCubicInflectionPoint(Temperature T, Pressure P)
+	public override Volume ZCubicInflectionPoint(Temperature T, Pressure P)
 	{
-		return R * T / (3 * P) + b / 3;
+		return new Volume(R * T / (3 * P) + b / 3);
 	}
 	
 	#endregion
 
 	#region Depature functions
 
-	public override MolarEnthalpy DepartureEnthalpy(Temperature T, Pressure P, MolarVolume VMol)
+	// from Sandler, eqn 6.4-27 solved using van der Waals EoS
+	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
-		throw new NotImplementedException();
+		return new Enthalpy(P * VMol - R * T - a / VMol, ThermoVarRelations.Departure);
 	}
 
-	public override MolarEntropy DepartureEntropy(Temperature T, Pressure P, MolarVolume VMol)
+	// from Sandler, eqn 6.4-28 solved using van der Waals EoS
+	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
 	{
-		throw new NotImplementedException();
+		var z = CompressibilityFactor(T, P, VMol);
+		return new Entropy(R * T * (z - 1) - a / VMol, ThermoVarRelations.Departure);
 	}
 
 	#endregion

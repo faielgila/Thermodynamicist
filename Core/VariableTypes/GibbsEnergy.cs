@@ -1,18 +1,10 @@
 ﻿namespace Core.VariableTypes;
 
-public struct MolarGibbsEnergy
+public class GibbsEnergy : ThermoVariable
 {
-	private readonly double _value;
-	private readonly ThermoVarRelations _relation;
-	
-	public double Value => _value;
+    public GibbsEnergy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
+        : base(value, relation, "J/mol") { }
 
-	public static implicit operator double(MolarGibbsEnergy G) => G._value;
-	public static implicit operator MolarGibbsEnergy(double G) => new (G);
-
-	public MolarGibbsEnergy(double value, ThermoVarRelations relation = ThermoVarRelations.RealMolar)
-	{
-		_value = value;
-		_relation = relation;
-	}
+    public static implicit operator double(GibbsEnergy T) => T.Value;
+    public static implicit operator GibbsEnergy(double T) => new(T);
 }
