@@ -1,17 +1,10 @@
 ﻿namespace Core.VariableTypes
 {
-	public abstract class ThermoVariable : IComparable<ThermoVariable>
+	public abstract class ThermoVariable(double value, ThermoVarRelations relation, string units) : IComparable<ThermoVariable>
 	{
-		public double Value { get; set; }
-		public ThermoVarRelations Relation { get; set; }
-		public string Units { get; set; }
-
-		public ThermoVariable(double value, ThermoVarRelations relation, string units)
-		{
-			Value = value;
-			Relation = relation;
-			Units = units;
-		}
+		public double Value { get; set; } = value;
+		public ThermoVarRelations Relation { get; set; } = relation;
+		public string Units { get; set; } = units;
 
 		public int CompareTo(ThermoVariable other)
 		{
@@ -25,6 +18,8 @@
 		{
 			return Value.ToString();
 		}
+
+		public static implicit operator double(ThermoVariable T) => T.Value;
 
 		public string ToEngrNotation() { return Value.ToEngrNotation() + " " + Units; }
 		public string ToEngrNotation(int sigfigs) { return Value.ToEngrNotation(sigfigs) + " " + Units; }

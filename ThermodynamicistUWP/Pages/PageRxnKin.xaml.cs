@@ -32,7 +32,7 @@ namespace ThermodynamicistUWP
 		}
 
 		/// <summary>
-		/// Checks inputs and packages into core objects.
+		/// Checks inputs and packages into Core objects.
 		/// </summary>
 		private void RunCalc(object sender, RoutedEventArgs e)
 		{

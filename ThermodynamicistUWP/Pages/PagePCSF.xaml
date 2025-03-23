@@ -5,8 +5,12 @@
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
 	xmlns:oxy="using:OxyPlot.Windows"
+	
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:core="using:Core"
+	xmlns:eos="using:Core.EquationsOfState"
+	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -22,21 +26,55 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 		<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-			<TextBlock Text="State: (" VerticalAlignment="Center" Margin="0, 0, 0, 0"/>
-			<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="Temperature" ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-			<TextBlock Text="K," VerticalAlignment="Center" Margin="5, 0, 5, 0"/>
-			<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="Pressure" ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-			<TextBlock Text="Pa)" VerticalAlignment="Center" Margin="5, 0, 0, 0"/>
-			<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species" SelectionChanged="RefreshCalculations" Margin="20, 0, 0, 0"/>
-			<ComboBox x:Name="DropdownEoS" PlaceholderText="Pick an EoS" SelectionChanged="RefreshCalculations" Margin="20, 0, 0, 0"/>
-			<ToggleSwitch x:Name="ToggleSCurve" OffContent="Hide s-curves" OnContent="Show s-curves" Toggled="RefreshCalculations" Margin="20, 0, 0, 0" MaxHeight="30"/>
+
+			<muxc:NumberBox x:Name="NumBoxT" Header="Temperature:" PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
+							Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True"/>
+			<muxc:NumberBox x:Name="NumBoxP" Header="Pressure:" PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
+							Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True"/>
+
+			<!--
+			Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
+			Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
+			Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
+			-->
+			<ComboBox x:Name="DropdownSpecies" Header="Chemical:" PlaceholderText="Pick a species"
+				  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
+				  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
+				  Margin="5" Grid.Row="0" Grid.Column="0" Width="200">
+				<ComboBox.ItemTemplate>
+					<DataTemplate x:DataType="core:ChemicalNamePair">
+						<TextBlock Text="{x:Bind Name}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<!--
+			Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
+			Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
+			TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
+			Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
+			-->
+			<ComboBox x:Name="DropdownEoS" Header="Equation of State:" PlaceholderText="Pick an EoS" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
+				  Margin="5" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+				<ComboBox.ItemTemplate>
+					<DataTemplate x:DataType="eos:IEquationOfStateFactory">
+						<TextBlock Text="{x:Bind Name}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<ToggleSwitch x:Name="ToggleSCurve" Header="Show s-curves?" Toggled="ToggleSCurve_Toggled" Margin="5"/>
+
+			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
 		</StackPanel>
+		
 		<TextBlock x:Name="DataLabel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"/>
 		<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
 			<TextBlock x:Name="GroupBoxVapor" Margin="0, 0, 20, 0"/>
 			<TextBlock x:Name="GroupBoxLiquid" Margin="0, 0, 20, 0"/>
 			<TextBlock x:Name="GroupBoxSolid" Margin="0, 0, 20, 0"/>
 		</StackPanel>
+		
 		<oxy:PlotView x:Name="PlotViewLeft" Grid.Row="3" Grid.Column="0"/>
 		<oxy:PlotView x:Name="PlotViewRight" Grid.Row="3" Grid.Column="1"/>
 	</Grid>

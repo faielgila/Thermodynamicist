@@ -15,7 +15,7 @@ public class PengRobinsonEOS : CubicEquationOfState
 	{
 		var acentricFactor = speciesData.acentricFactor;
 		Kappa = 0.37464 + (1.54226 - 0.26992 * acentricFactor) * acentricFactor;
-		b = 0.07780 * R * speciesData.critT / speciesData.critP; 
+		b = 0.07780 * R * speciesData.critT / speciesData.critP;
 	}
 
 	#region Parameters
@@ -51,7 +51,13 @@ public class PengRobinsonEOS : CubicEquationOfState
 
 	public override Pressure Pressure(Temperature T, Volume VMol)
 	{
-		return R * T / (VMol - b) - a(T) / (VMol * VMol + 2 * b * VMol - b * b);
+		var cached = calcCache.GetCached("Pressure", [T, VMol]);
+		if (cached is not null) return new Pressure((double)cached);
+
+		Pressure P = R * T / (VMol - b) - a(T) / (VMol * VMol + 2 * b * VMol - b * b);
+
+		calcCache.CacheValue("Pressure", [T, VMol], P);
+		return P;
 	}
 
 	// from Sandler, eqn 7.4-14
@@ -107,6 +113,9 @@ public class PengRobinsonEOS : CubicEquationOfState
 	// from Sandler, eqn 6.4-29
 	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
+		var cached = calcCache.GetCached("DepartureEnthalpy", [T, P, VMol]);
+		if (cached is not null) return new Enthalpy((double)cached, ThermoVarRelations.Departure);
+
 		var sqrt2 = Math.Sqrt(2);
 		var da = this.Da(T);
 		var a = this.a(T);
@@ -114,6 +123,8 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var B = this.B(T, P);
 		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
 		var value = R * T * (z - 1) + (T * da - a) / (2 * sqrt2 * b) * Math.Log(logPiece);
+
+		calcCache.CacheValue("DepartureEnthalpy", [T, P, VMol], value);
 		return new Enthalpy(value, ThermoVarRelations.Departure);
 	}
 
