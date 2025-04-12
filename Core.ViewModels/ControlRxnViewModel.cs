@@ -31,6 +31,14 @@ public partial class ControlRxnViewModel : ObservableObject
 		DeleteCommand = new RelayCommand<ControlRxnSpeciesViewModel>(DeleteItem);
 	}
 
+	public void AddItem(ControlRxnSpeciesViewModel? rxnSpeciesViewModel)
+	{
+		if (rxnSpeciesViewModel is null)
+			return;
+
+		Items.Add(rxnSpeciesViewModel);
+	}
+
 	/// <summary>
 	/// Removes the specified <see cref="ControlRxnSpeciesViewModel"/> from the ObservableCollection <see cref="Items"/>.
 	/// </summary>

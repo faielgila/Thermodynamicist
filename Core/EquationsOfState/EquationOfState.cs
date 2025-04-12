@@ -231,7 +231,7 @@ public abstract class EquationOfState
 		// Retrieve standard formation enthalpy and phase for the species.
 		(Enthalpy enthalpy, string phase) formationThermo;
 		try { formationThermo = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
-		catch { throw new KeyNotFoundException("Reactant species not found in standard formation enthalpy data list."); }
+		catch { throw new KeyNotFoundException("Species not found in standard formation enthalpy data list."); }
 		Enthalpy H_Θ = formationThermo.enthalpy;
 		string phase_Θ = formationThermo.phase;
 
@@ -243,13 +243,13 @@ public abstract class EquationOfState
 		var phaseFinder_Θ = PhaseFinder(T_Θ, P_Θ, true);
 		Volume VMol_Θ;
 		try { VMol_Θ = phaseFinder_Θ[phase_rxn]; }
-		catch { throw new KeyNotFoundException("Reactant standard phase not found at given T and P."); }
+		catch { throw new KeyNotFoundException("Species standard phase not found at given T and P."); }
 
 		// Get molar volume of species at final reaction state.
 		var phaseFinder_rxn = PhaseFinder(T_rxn, P_rxn, true);
 		Volume VMol_rxn;
 		try { VMol_rxn = phaseFinder_rxn[phase_rxn]; }
-		catch { throw new KeyNotFoundException("Reactant rxn phase not found at given T and P."); }
+		catch { throw new KeyNotFoundException("Species reaction phase not found at given T and P."); }
 
 		// Set phase, temperature, and pressure change flags.
 		bool flagPhaseChange = !string.Equals(phase_rxn, phase_Θ);
@@ -303,7 +303,7 @@ public abstract class EquationOfState
 			var phaseFinder_Φ =	PhaseFinder(T_Θ, P_Θ, true);
 			Volume VMol_Φ;
 			try { VMol_Φ = phaseFinder_Φ[phase_rxn]; }
-			catch { throw new KeyNotFoundException("Reactant rxn phase not found at given T and P."); }
+			catch { throw new KeyNotFoundException("Species reaction phase not found at given T and P."); }
 
 			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
 			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
@@ -476,7 +476,7 @@ public abstract class EquationOfState
 			var phaseFinder_Φ = PhaseFinder(T_Θ, P_Θ, true);
 			Volume VMol_Φ;
 			try { VMol_Φ = phaseFinder_Φ[phase_rxn]; }
-			catch { throw new KeyNotFoundException("Reactant rxn phase not found at given T and P."); }
+			catch { throw new KeyNotFoundException("Species reaction phase not found at given T and P."); }
 
 			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
 			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).

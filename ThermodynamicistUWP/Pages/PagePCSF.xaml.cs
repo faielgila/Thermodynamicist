@@ -8,6 +8,7 @@ using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Core.ViewModels;
+using ThermodynamicistUWP.Dialogs;
 
 namespace ThermodynamicistUWP
 {
@@ -44,57 +45,65 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void UpdateData(EquationOfState EoS, Temperature T, Pressure P)
 		{
-			// Get molar volumes of each phase, then determine equilibrium states
-			var phases = EoS.PhaseFinder(T, P, true);
+			try
+			{
+				// Get molar volumes of each phase, then determine equilibrium states
+				var phases = EoS.PhaseFinder(T, P, true);
 
-			string phasesString = "\nPhases at equilibrium: ";
-			foreach (string phase in EoS.EquilibriumPhases(T, P).Keys) { phasesString += phase + ", "; }
-			phasesString = phasesString.Remove(phasesString.Length - 2);
+				string phasesString = "\nPhases at equilibrium: ";
+				foreach (string phase in EoS.EquilibriumPhases(T, P).Keys) { phasesString += phase + ", "; }
+				phasesString = phasesString.Remove(phasesString.Length - 2);
 
-			// Calculate and display vapor pressure, if applicable
-			var Pvap = EoS.VaporPressure(T);
-			string PvapString;
-			if (!double.IsNaN(Pvap.Value))
-			{
-				PvapString = "\nVapor pressure: " + Pvap.ToEngrNotation(5);
-				PvapString += "\nBoiling temperature: " + EoS.BoilingTemperature(P).ToEngrNotation(5);
-			}
-			else PvapString = "";
+				// Calculate and display vapor pressure, if applicable
+				var Pvap = EoS.VaporPressure(T);
+				string PvapString;
+				if (!double.IsNaN(Pvap.Value))
+				{
+					PvapString = "\nVapor pressure: " + Pvap.ToEngrNotation(5);
+					PvapString += "\nBoiling temperature: " + EoS.BoilingTemperature(P).ToEngrNotation(5);
+				}
+				else PvapString = "";
 
-			// Display reference state used for calculations
-			var stateData =
-				"Reference state: (" + EoS.ReferenceState.refT.ToEngrNotation() + ", " + EoS.ReferenceState.refP.ToEngrNotation() + ")" +
-				phasesString + PvapString;
+				// Display reference state used for calculations
+				var stateData =
+					"Reference state: (" + EoS.ReferenceState.refT.ToEngrNotation() + ", " + EoS.ReferenceState.refP.ToEngrNotation() + ")" +
+					phasesString + PvapString;
 
-			// Calculate and display state variables for each phase
-			DataLabel.Text = stateData;
-			if (phases.ContainsKey("vapor"))
-			{
-				GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["vapor"], 5);
-			}
-			else
-			{
-				GroupBoxVapor.Text = "Vapor phase data: \n indeterminate";
-			}
-			if (phases.ContainsKey("liquid"))
-			{
-				GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["liquid"], 5);
-			}
-			else
-			{
-				GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
-			}
+				// Calculate and display state variables for each phase
+				DataLabel.Text = stateData;
+				if (phases.ContainsKey("vapor"))
+				{
+					GroupBoxVapor.Text = "Vapor phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["vapor"], 5);
+				}
+				else
+				{
+					GroupBoxVapor.Text = "Vapor phase data: \n indeterminate";
+				}
+				if (phases.ContainsKey("liquid"))
+				{
+					GroupBoxLiquid.Text = "Liquid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["liquid"], 5);
+				}
+				else
+				{
+					GroupBoxLiquid.Text = "Liquid phase data: \n indeterminate";
+				}
 
-			if (phases.ContainsKey("solid"))
-			{
-				GroupBoxSolid.Text = "Solid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["solid"], 5);
-			}
-			else
-			{
-				GroupBoxSolid.Text = "Solid phase data: \n not calculated";
-			}
+				if (phases.ContainsKey("solid"))
+				{
+					GroupBoxSolid.Text = "Solid phase data: \n" + Display.GetAllStateVariablesFormatted(EoS, T, P, phases["solid"], 5);
+				}
+				else
+				{
+					GroupBoxSolid.Text = "Solid phase data: \n not calculated";
+				}
 
-			UpdatePlots();
+				UpdatePlots();
+			}
+			catch (Exception e)
+			{
+				ErrorDialog.ShowErrorDialog(e.Message);
+				return;
+			}
 		}
 
 		/// <summary>
@@ -108,18 +117,37 @@ namespace ThermodynamicistUWP
 				double.IsNaN(NumBoxP.Value) || NumBoxP.Value == 0 ||
 				DropdownSpecies.SelectedItem == null ||
 				DropdownEoS.SelectedItem == null
-				) return;
+				)
+			{
+				ErrorDialog.ShowErrorDialog("Not all required inputs are set.");
+				return;
+			}
 
-			UpdateData(ViewModel.ToModel(), ViewModel.T, ViewModel.P);
+			try
+			{
+				UpdateData(ViewModel.ToModel(), ViewModel.T, ViewModel.P);
+			}
+			catch (Exception exception)
+			{
+				ErrorDialog.ShowErrorDialog(exception.Message);
+			}
 		}
 
 		private void UpdatePlots()
 		{
-			var EoS = ViewModel.ToModel();
-			// Fills in the plot view with a view model using the new settings 
-			PlotViewLeft.Model = new PVPlotModel(EoS, ToggleSCurve.IsOn).Model;
-			//PlotViewLeft.Model = new GenericViewModel().Model;
-			PlotViewRight.Model = new GTPlotModel(EoS, ViewModel.P).Model;
+			try
+			{
+				var EoS = ViewModel.ToModel();
+				// Fills in the plot view with a view model using the new settings 
+				PlotViewLeft.Model = new PVPlotModel(EoS, ToggleSCurve.IsOn).Model;
+				//PlotViewLeft.Model = new GenericViewModel().Model;
+				PlotViewRight.Model = new GTPlotModel(EoS, ViewModel.P).Model;
+			}
+			catch (Exception exception)
+			{
+				ErrorDialog.ShowErrorDialog(exception.Message);
+				return;
+			}
 		}
 
 		private void ToggleSCurve_Toggled(object sender, RoutedEventArgs e)
