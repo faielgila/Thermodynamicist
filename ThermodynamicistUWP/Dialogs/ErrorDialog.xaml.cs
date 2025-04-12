@@ -23,6 +23,19 @@ namespace ThermodynamicistUWP.Dialogs
 		public ErrorDialog()
 		{
 			this.InitializeComponent();
+			Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+		}
+
+		/// <summary>
+		/// Pops up the "cancel calculation" error dialog with the specified text.
+		/// </summary>
+		public static async void ShowErrorDialog(string text)
+		{
+			var errorPopup = new ErrorDialog
+			{
+				ErrorText = text
+			};
+			await errorPopup.ShowAsync();
 		}
 	}
 }

@@ -6,8 +6,8 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
-	Title="Error"
-	CloseButtonText="Continue without calculation">
+	Title="Calculation Error"
+	CloseButtonText="Cancel calculation">
 
 	<Grid>
 		<TextBlock Text="{x:Bind ErrorText}"/>
