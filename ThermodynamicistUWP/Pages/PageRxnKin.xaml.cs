@@ -2,7 +2,9 @@
 using Core.EquationsOfState;
 using Core.VariableTypes;
 using Core.ViewModels;
+using System;
 using System.Collections.Generic;
+using ThermodynamicistUWP.Dialogs;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -20,7 +22,7 @@ namespace ThermodynamicistUWP
 
 		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
 		{
-			ViewModel.Items.Add(new ControlRxnSpeciesViewModel
+			ViewModel.AddItem( new ControlRxnSpeciesViewModel
 			{
 				Chemical = Chemical.Methane,
 				EoSFactory = new PengRobinsonEOSFactory(),
@@ -40,7 +42,11 @@ namespace ThermodynamicistUWP
 			if (
 				double.IsNaN(NumBoxT.Value) || NumBoxT.Value == 0 ||
 				double.IsNaN(NumBoxP.Value) || NumBoxP.Value == 0
-				) return;
+				)
+			{
+				ErrorDialog.ShowErrorDialog("Not all required inputs are set.");
+				return;
+			}
 
 			var T = new Temperature(NumBoxT.Value);
 			var P = new Pressure(NumBoxP.Value);
@@ -66,9 +72,15 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void UpdateData(Reaction rxn, Temperature T, Pressure P)
 		{
-			var dHrxn = rxn.MolarEnthalpyOfReaction(T, P);
+			try
+			{
+				var dHrxn = rxn.MolarEnthalpyOfReaction(T, P);
 
-			DataLabel.Text = "Molar enthalpy of reaction: " + dHrxn.ToEngrNotation(5);
+				DataLabel.Text = "Molar enthalpy of reaction: " + dHrxn.ToEngrNotation(5);
+			} catch (Exception e)
+			{
+				ErrorDialog.ShowErrorDialog(e.Message);
+			}
 		}
 
 		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
