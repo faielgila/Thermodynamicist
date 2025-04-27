@@ -14,6 +14,11 @@ public abstract class EquationOfState
 	public const double precisionLimit = Constants.PrecisionLimit;
 
 	/// <summary>
+	/// Spin up a <see cref="CalculationCache"/> to store calculated values and avoid repeat math.
+	/// </summary>
+	public readonly CalculationCache calcCache;
+
+	/// <summary>
 	/// Acceptable temperature differnce between standardT and T for no temperature correction to be performed.
 	/// Measured in [K]
 	/// </summary>
@@ -23,7 +28,7 @@ public abstract class EquationOfState
 	/// Acceptable pressure difference between standardP and P for no pressure correction to be performed.
 	/// Measured in [Pa]
 	/// </summary>
-	private Pressure dPPrecision { get; set; }
+	public Pressure dPPrecision { get; set; }
 
 	/// <summary>
 	/// Toggles check and use of high-temperature data.
@@ -55,6 +60,8 @@ public abstract class EquationOfState
 
 		dTPrecision = 0.5;
 		dPPrecision = 100;
+
+		calcCache = new CalculationCache();
 	}
 
 	protected EquationOfState(Chemical species, List<string> modeledPhases)
@@ -69,6 +76,8 @@ public abstract class EquationOfState
 
 		dTPrecision = 0.5;
 		dPPrecision = 100;
+
+		calcCache = new CalculationCache();
 	}
 
 	/// <summary>
