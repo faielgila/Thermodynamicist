@@ -20,6 +20,12 @@ namespace ThermodynamicistUWP
 		{
 			InitializeComponent();
 
+			// Set "show plots" to false as default behavior.
+			TogglePlots.IsOn = false;
+			ToggleSCurve.IsEnabled = false;
+			PlotViewLeft.Visibility = Visibility.Collapsed;
+			PlotViewRight.Visibility = Visibility.Collapsed;
+
 			// Initialize DropdownSpecies to a value (arbitrarily chosen to be 0).
 			// Not including this init will cause null reference exceptions since Chemical must
 			// be defined in order to instantiate any EoS class.
@@ -35,9 +41,9 @@ namespace ThermodynamicistUWP
 			// Sets input values to defaults
 			ViewModel.T = 273;
 			ViewModel.P = 101325;
-			ViewModel.Chemical = Chemical.CarbonDioxide;
-			ViewModel.EoSFactory = new PengRobinsonEOSFactory();
-			ToggleSCurve.IsOn = false;
+			//ViewModel.Chemical = Chemical.CarbonDioxide;
+			//ViewModel.EoSFactory = new PengRobinsonEOSFactory();
+			//ToggleSCurve.IsOn = false;
 		}
 
 		/// <summary>
@@ -97,7 +103,7 @@ namespace ThermodynamicistUWP
 					GroupBoxSolid.Text = "Solid phase data: \n not calculated";
 				}
 
-				UpdatePlots();
+				if (TogglePlots.IsOn) UpdatePlots();
 			}
 			catch (Exception e)
 			{
@@ -152,7 +158,22 @@ namespace ThermodynamicistUWP
 
 		private void ToggleSCurve_Toggled(object sender, RoutedEventArgs e)
 		{
-			UpdatePlots();
+			//
+		}
+
+		private void TogglePlots_Toggled(object sender, RoutedEventArgs e)
+		{
+			if (TogglePlots.IsOn)
+			{
+				ToggleSCurve.IsEnabled = true;
+				PlotViewLeft.Visibility = Visibility.Visible;
+				PlotViewRight.Visibility = Visibility.Visible;
+			} else
+			{
+				ToggleSCurve.IsEnabled = false;
+				PlotViewLeft.Visibility = Visibility.Collapsed;
+				PlotViewRight.Visibility = Visibility.Collapsed;
+			}
 		}
 	}
 }
