@@ -63,6 +63,7 @@
 				</ComboBox.ItemTemplate>
 			</ComboBox>
 
+			<ToggleSwitch x:Name="TogglePlots" Header="Show plots?" Toggled="TogglePlots_Toggled"  Margin="5"/>
 			<ToggleSwitch x:Name="ToggleSCurve" Header="Show s-curves?" Toggled="ToggleSCurve_Toggled" Margin="5"/>
 
 			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
