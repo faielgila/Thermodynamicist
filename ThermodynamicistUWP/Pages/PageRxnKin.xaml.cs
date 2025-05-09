@@ -57,10 +57,10 @@ namespace ThermodynamicistUWP
 			// Reactions testing. TEMPORARY TODO
 			var rxnSpecies = new List<RxnSpecies>
 			{
-				new RxnSpecies(Chemical.Methane, 1, "vapor", true),
-				new RxnSpecies(Chemical.Oxygen, 2, "vapor", true),
-				new RxnSpecies(Chemical.CarbonDioxide, 1, "vapor", false),
-				new RxnSpecies(Chemical.Water, 2, "liquid", false)
+				new RxnSpecies(Chemical.Benzene, 1, "vapor", true),
+				new RxnSpecies(Chemical.Chlorine, 1, "vapor", true),
+				new RxnSpecies(Chemical.Chlorobenzene, 1, "liquid", false),
+				new RxnSpecies(Chemical.HydrogenChloride, 1, "vapor", false)
 			};
 			var reactionA = new Reaction(rxnSpecies);
 
@@ -85,7 +85,7 @@ namespace ThermodynamicistUWP
 
 		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
 		{
-			RunCalc(sender, null);
+			//RunCalc(sender, null);
 		}
 	}
 }

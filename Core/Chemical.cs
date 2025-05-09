@@ -7,6 +7,8 @@ public enum Chemical
 	NButane, Isobutane,
 	CarbonDioxide,
 	CarbonMonoxide,
+	Chlorine,
+	Chlorobenzene,
 	Ethane,
 	Hydrogen,
 	HydrogenFluoride,

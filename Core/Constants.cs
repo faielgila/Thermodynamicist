@@ -14,13 +14,14 @@ public class Constants
 	/// </summary>
 	public const double PrecisionLimit = 1e-15;
 
-	public static readonly (Temperature T, Pressure P) StandardConditions = (298.15, 101325);
+	public static readonly (Temperature T, Pressure P) StandardConditions = (273.15+25, 100e3);
 
 	/// <summary>
 	/// Stores basic chemical data such as molar mass, critical point, acentric factor, and boiling point as a Tuple.
 	/// </summary>
 	// from Sandler, table 6.6-1
 	// HCl from Perry's Handbook, table 2-106 (p. 2-186 or 221)
+	// Chlorobenzene from Reid's "Properties of Gases and Liquids" (4th ed)
 	public static readonly Dictionary<Chemical,
 		(double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT)
 	> ChemicalData = new()
@@ -31,6 +32,8 @@ public class Constants
 		[Chemical.Isobutane]        = (58.124, 408.1, 3.648e6, 0.176, 261.3),
 		[Chemical.CarbonDioxide]    = (44.010, 304.2, 7.376e6, 0.225, 194.7),
 		[Chemical.CarbonMonoxide]   = (28.010, 132.9, 3.496e6, 0.049, 81.7),
+		[Chemical.Chlorine]			= (70.906, 416.9, 7.991e6, 0.090, 239.11),
+		[Chemical.Chlorobenzene]	= (112.56, 633.4, 44.52e6, 0.204, 404.85),
 		[Chemical.Ethane]           = (30.070, 305.4, 4.884e6, 0.098, 184.5),
 		[Chemical.Hydrogen]         = (2.016, 33.2, 1.297e6, -0.22, 20.4),
 		[Chemical.HydrogenFluoride] = (20.006, 461.0, 6.488e6, 0.372, 292.7),
@@ -57,6 +60,8 @@ public class Constants
 		[Chemical.Isobutane] = "Isobutane",
 		[Chemical.CarbonDioxide] = "Carbon dioxide",
 		[Chemical.CarbonMonoxide] = "Carbon monoxide",
+		[Chemical.Chlorine] = "Chlorine",
+		[Chemical.Chlorobenzene] = "Chlorobenzene",
 		[Chemical.Ethane] = "Ethane",
 		[Chemical.Hydrogen] = "Hydrogen",
 		[Chemical.HydrogenFluoride] = "Hydrogen fluoride",
@@ -68,11 +73,39 @@ public class Constants
 		[Chemical.NPentane] = "n-Pentane",
 		[Chemical.Isopentane] = "Isopentane",
 		[Chemical.Propane] = "Propane",
-		[Chemical.R12] = "R12",
-		[Chemical.R134a] = "R134a",
+		[Chemical.R12] = "Dichclorodifluoromethane (R12)",
+		[Chemical.R134a] = "1,1,1,2-Tetrafluoroethane (R134a)",
 		[Chemical.SulfurDioxide] = "Sulfur dioxide",
 		[Chemical.Toluene] = "Toluene",
 		[Chemical.Water] = "Water"
+	};
+
+	public static readonly Dictionary<Chemical, string> ChemicalCASRegistryNumber = new()
+	{
+		[Chemical.Ammonia] = "7664-41-7",
+		[Chemical.Benzene] = "71-43-2",
+		[Chemical.NButane] = "106-97-8",
+		[Chemical.Isobutane] = "75-28-5",
+		[Chemical.CarbonDioxide] = "124-38-9",
+		[Chemical.CarbonMonoxide] = "630-08-0",
+		[Chemical.Chlorine] = "7782-50-5",
+		[Chemical.Chlorobenzene] = "108-90-7",
+		[Chemical.Ethane] = "74-84-0",
+		[Chemical.Hydrogen] = "1333-74-0",
+		[Chemical.HydrogenFluoride] = "7664-39-3",
+		[Chemical.HydrogenChloride] = "7647-01-0",
+		[Chemical.HydrogenSulfide] = "7783-06-4",
+		[Chemical.Methane] = "74-82-8",
+		[Chemical.Nitrogen] = "7727-37-9",
+		[Chemical.Oxygen] = "7782-44-7",
+		[Chemical.NPentane] = "109-66-0",
+		[Chemical.Isopentane] = "78-78-4",
+		[Chemical.Propane] = "74-98-6",
+		[Chemical.R12] = "75-71-8",
+		[Chemical.R134a] = "811-97-2",
+		[Chemical.SulfurDioxide] = "7446-09-5",
+		[Chemical.Toluene] = "108-88-3",
+		[Chemical.Water] = "7732-18-5"
 	};
 
 	/// <summary>
