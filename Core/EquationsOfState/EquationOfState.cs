@@ -229,11 +229,12 @@ public abstract class EquationOfState
 	public Enthalpy FormationEnthalpy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
 	{
 		// Retrieve standard formation enthalpy and phase for the species.
-		(Enthalpy enthalpy, string phase) formationThermo;
-		try { formationThermo = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
+		Enthalpy H_Θ;
+		try { H_Θ = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
 		catch { throw new KeyNotFoundException("Species not found in standard formation enthalpy data list."); }
-		Enthalpy H_Θ = formationThermo.enthalpy;
-		string phase_Θ = formationThermo.phase;
+		string phase_Θ;
+		try { phase_Θ = FormationThermodynamics.StandardFormationPhase[Species]; }
+		catch { throw new KeyNotFoundException("Species not found in standard formation phase data list."); }
 
 		// Create easy names for the standard reference state closer to the mathematical notation.
 		var T_Θ = Constants.StandardConditions.T;
@@ -402,11 +403,13 @@ public abstract class EquationOfState
 	public Entropy FormationEntropy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
 	{
 		// Retrieve standard formation entropy and phase for the species.
-		(Entropy entropy, string phase) formationThermo;
-		try { formationThermo = FormationThermodynamics.StandardFormationEntropy[Species]; }
+		// Retrieve standard formation enthalpy and phase for the species.
+		Entropy S_Θ;
+		try { S_Θ = FormationThermodynamics.StandardFormationEntropy(Species); }
 		catch { throw new KeyNotFoundException("Species not found in standard formation entropy data list."); }
-		Entropy H_Θ = formationThermo.entropy;
-		string phase_Θ = formationThermo.phase;
+		string phase_Θ;
+		try { phase_Θ = FormationThermodynamics.StandardFormationPhase[Species]; }
+		catch { throw new KeyNotFoundException("Species not found in standard formation phase data list."); }
 
 		// Create easy names for the standard reference state closer to the mathematical notation.
 		var T_Θ = Constants.StandardConditions.T;
@@ -431,7 +434,7 @@ public abstract class EquationOfState
 
 		// Initialize species enthalpy of formation to standard enthalpy of formation.
 		// Entropy corrections to be added to this.
-		Entropy entropyFormation = H_Θ;
+		Entropy entropyFormation = S_Θ;
 
 		//		PATH I
 		// No adjustment needed (no temperature, pressure, or phase change from standard state).

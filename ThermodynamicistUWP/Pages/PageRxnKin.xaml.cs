@@ -57,10 +57,10 @@ namespace ThermodynamicistUWP
 			// Reactions testing. TEMPORARY TODO
 			var rxnSpecies = new List<RxnSpecies>
 			{
-				new RxnSpecies(Chemical.Methane, 1, "vapor", true),
-				new RxnSpecies(Chemical.Oxygen, 2, "vapor", true),
-				new RxnSpecies(Chemical.CarbonDioxide, 1, "vapor", false),
-				new RxnSpecies(Chemical.Water, 2, "liquid", false)
+				new RxnSpecies(Chemical.Benzene, 1, "vapor", true),
+				new RxnSpecies(Chemical.Chlorine, 1, "vapor", true),
+				new RxnSpecies(Chemical.Chlorobenzene, 1, "liquid", false),
+				new RxnSpecies(Chemical.HydrogenChloride, 1, "liquid", false)
 			};
 			var reactionA = new Reaction(rxnSpecies);
 

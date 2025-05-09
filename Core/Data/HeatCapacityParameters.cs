@@ -11,6 +11,8 @@
 		/// </summary>
 		// Most from Sandler, appendix A.II
 		// {R12, R134a, Pentane, Toluene} from Yaw's Handbook - Heat Capacities of Gases, Organic Compounds
+		// Chlorbenzene from Knovel Critical Tables (2nd Ed, 2008)
+		// Chlorine from NIST Chemistry Webbook (with regression fitting from Shomate Eqn)
 		public static readonly Dictionary<Chemical, (double[] vals, double[] lims)> IdealGasCpConstants = new()
 		{
 			[Chemical.Ammonia]			= (new[] {  27.551,  2.563e-2,   0.990e-5,   -6.687e-9 }, new double[] { 273, 1500 }),
@@ -19,6 +21,8 @@
 			[Chemical.Isobutane]		= (new[] {  -7.908, 41.573e-2, -22.992e-5,   49.875e-9 }, new double[] { 273, 1500 }),
 			[Chemical.CarbonDioxide]	= (new[] {  22.243,  5.977e-2,  -3.499e-5,    7.464e-9 }, new double[] { 273, 1800 }),
 			[Chemical.CarbonMonoxide]	= (new[] {  28.142,  0.167e-2,   0.537e-5,   -2.221e-9 }, new double[] { 273, 1800 }),
+			[Chemical.Chlorine]			= (new[] {  31.023,  1.555e-2,  -1.382e-5,   4.6817e-9 }, new double[] { 298, 1000 }),
+			[Chemical.Chlorobenzene]	= (new[] {  4.9586,      0.16,  1.1484e-5 },			  new double[] { 298, 1000 }),
 			[Chemical.Ethane]			= (new[] {   6.895, 17.255e-2,  -6.402e-5,    7.280e-9 }, new double[] { 273, 1500 }),
 			[Chemical.Hydrogen]			= (new[] {  29.088, -0.192e-2,   0.400e-5,   -0.870e-9 }, new double[] { 273, 1800 }),
 			[Chemical.HydrogenFluoride]	= (new[] {  30.130, -0.493e-2,   0.659e-5,   -1.573e-9 }, new double[] { 273, 2000 }),
