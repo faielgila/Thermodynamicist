@@ -107,7 +107,7 @@ namespace ThermodynamicistUWP
 			}
 			catch (Exception e)
 			{
-				ErrorDialog.ShowErrorDialog(e.Message);
+				ErrorDialog.ShowErrorDialog(e);
 				return;
 			}
 		}
@@ -135,7 +135,7 @@ namespace ThermodynamicistUWP
 			}
 			catch (Exception exception)
 			{
-				ErrorDialog.ShowErrorDialog(exception.Message);
+				ErrorDialog.ShowErrorDialog(exception);
 			}
 		}
 
@@ -151,7 +151,7 @@ namespace ThermodynamicistUWP
 			}
 			catch (Exception exception)
 			{
-				ErrorDialog.ShowErrorDialog(exception.Message);
+				ErrorDialog.ShowErrorDialog(exception);
 				return;
 			}
 		}

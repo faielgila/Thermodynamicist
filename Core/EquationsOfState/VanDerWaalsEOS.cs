@@ -86,13 +86,13 @@ public class VanDerWaalsEOS : CubicEquationOfState
 	#region Depature functions
 
 	// from Sandler, eqn 6.4-27 solved using van der Waals EoS
-	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
+	public override Enthalpy DepartureMolarEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
 		return new Enthalpy(P * VMol - R * T - a / VMol, ThermoVarRelations.Departure);
 	}
 
 	// from Sandler, eqn 6.4-28 solved using van der Waals EoS
-	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
+	public override Entropy DepartureMolarEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		var z = CompressibilityFactor(T, P, VMol);
 		return new Entropy(R * T * (z - 1) - a / VMol, ThermoVarRelations.Departure);

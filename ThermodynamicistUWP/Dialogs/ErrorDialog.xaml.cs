@@ -37,5 +37,17 @@ namespace ThermodynamicistUWP.Dialogs
 			};
 			await errorPopup.ShowAsync();
 		}
+
+		/// <summary>
+		/// Pops up the "cancel calculation" error dialog with exception information.
+		/// </summary>
+		public static async void ShowErrorDialog(Exception e)
+		{
+			var errorPopup = new ErrorDialog
+			{
+				ErrorText = e.Message + "\n\nStack trace:\n" + e.StackTrace
+			};
+			await errorPopup.ShowAsync();
+		}
 	}
 }

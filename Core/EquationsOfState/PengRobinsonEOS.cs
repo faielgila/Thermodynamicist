@@ -111,9 +111,9 @@ public class PengRobinsonEOS : CubicEquationOfState
 	#region Departure functions
 
 	// from Sandler, eqn 6.4-29
-	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
+	public override Enthalpy DepartureMolarEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
-		var cached = calcCache.GetCached("DepartureEnthalpy", [T, P, VMol]);
+		var cached = calcCache.GetCached("DepartureMolarEnthalpy", [T, P, VMol]);
 		if (cached is not null) return new Enthalpy((double)cached, ThermoVarRelations.Departure);
 
 		var sqrt2 = Math.Sqrt(2);
@@ -124,12 +124,12 @@ public class PengRobinsonEOS : CubicEquationOfState
 		var logPiece = (z + B + sqrt2 * B) / (z + B - sqrt2 * B);
 		var value = R * T * (z - 1) + (T * da - a) / (2 * sqrt2 * b) * Math.Log(logPiece);
 
-		calcCache.CacheValue("DepartureEnthalpy", [T, P, VMol], value);
+		calcCache.CacheValue("DepartureMolarEnthalpy", [T, P, VMol], value);
 		return new Enthalpy(value, ThermoVarRelations.Departure);
 	}
 
 	// from Sandler, eqn 6.4-30
-	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
+	public override Entropy DepartureMolarEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		var sqrt2 = Math.Sqrt(2);
 		var da = this.Da(T);

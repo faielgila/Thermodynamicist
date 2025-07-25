@@ -79,7 +79,7 @@ namespace ThermodynamicistUWP
 				DataLabel.Text = "Molar enthalpy of reaction: " + dHrxn.ToEngrNotation(5);
 			} catch (Exception e)
 			{
-				ErrorDialog.ShowErrorDialog(e.Message);
+				ErrorDialog.ShowErrorDialog(e);
 			}
 		}
 

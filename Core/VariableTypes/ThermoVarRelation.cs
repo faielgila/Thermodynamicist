@@ -9,8 +9,8 @@ public enum ThermoVarRelations
 	
 	RealMolar, IGMolar,
 	PartialMolar,
-	Departure, Change,
-	Mixing, Excess,
+	Departure, Change, Excess,
+	Mixing, Dissolution,
 	OfVaporization, OfSublimation, OfFusion,
 	OfFormation,
 	OfReaction,

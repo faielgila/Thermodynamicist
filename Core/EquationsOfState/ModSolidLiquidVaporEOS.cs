@@ -229,7 +229,7 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 
 	#region Departure functions
 
-	public override Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol)
+	public override Enthalpy DepartureMolarEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
 		var PCrit = speciesData.critP;
 		var TCrit = speciesData.critT;
@@ -255,7 +255,7 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 		return val * R * TCrit * TRed;
 	}
 
-	public override Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol)
+	public override Entropy DepartureMolarEntropy(Temperature T, Pressure P, Volume VMol)
 	{
 		var PCrit = speciesData.critP;
 		var TCrit = speciesData.critT;

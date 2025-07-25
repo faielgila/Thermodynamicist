@@ -28,12 +28,7 @@ public class RxnSpecies
 		phase = _phase;
 		IsReactant = _IsReactant;
 
-		// Since no EoS are given, assign default values based on phase.
-		EoS = _phase switch
-		{
-			"vapor" or "liquid" => new PengRobinsonEOS(chemical),
-			"solid" => new ModSolidLiquidVaporEOS(chemical),
-			_ => new PengRobinsonEOS(chemical),
-		};
+		// Since no EoS is given, assign default values based on phase.
+		EoS = EquationOfState.GetDefaultEoSFromPhase(_phase).Create(_chemical);
 	}
 }

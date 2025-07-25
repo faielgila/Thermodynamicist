@@ -140,6 +140,21 @@ public abstract class EquationOfState
 	/// <returns>fugacity, unitless. f = φP</returns>
 	public double Fugacity(Temperature T, Pressure P, Volume VMol) { return FugacityCoeff(T, P, VMol) * P; }
 
+	/// <summary>
+	/// Estimates the molar heat capacity of the system in the given state.
+	/// See Sandler, eqn 6.2-2
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <param name="VMol">molar volume, in [m³/mol]</param>
+	/// <returns>molar heat capacity, in [J/K/mol]</returns>
+	public double MolarHeatCapacity(Temperature T, Pressure P, Volume VMol)
+	{
+		var H1 = ReferenceMolarEnthalpy(T,P,VMol);
+		var H2 = ReferenceMolarEntropy(T+dTPrecision,P,VMol);
+		return (H2-H1)/dTPrecision;
+	}
+
 	#region State Variables - Enthalpy
 
 	/// <summary>
@@ -152,7 +167,7 @@ public abstract class EquationOfState
 	/// <returns>molar enthalpy (type departure), in [J/mol]</returns>
 	/// <remarks>Departure is dependent on the equation of state used, so this must be defined
 	/// for each EoS.</remarks>
-	public abstract Enthalpy DepartureEnthalpy(Temperature T, Pressure P, Volume VMol);
+	public abstract Enthalpy DepartureMolarEnthalpy(Temperature T, Pressure P, Volume VMol);
 
 	/// <summary>
 	/// Calculates the enthalpy change between two states assuming ideal gas behavior.
@@ -197,9 +212,9 @@ public abstract class EquationOfState
 	public Enthalpy MolarEnthalpyChange
 		(Temperature T1, Pressure P1, Volume VMol1, Temperature T2, Pressure P2, Volume VMol2)
 	{
-		var pathA = DepartureEnthalpy(T1, P1, VMol1);
+		var pathA = DepartureMolarEnthalpy(T1, P1, VMol1);
 		var pathB = IdealMolarEnthalpyChange(T1, T2);
-		var pathC = DepartureEnthalpy(T2, P2, VMol2);
+		var pathC = DepartureMolarEnthalpy(T2, P2, VMol2);
 		var totalPath = -pathA + pathB + pathC;
 		return new Enthalpy(totalPath, ThermoVarRelations.Change);
 	}
@@ -214,7 +229,7 @@ public abstract class EquationOfState
 	public Enthalpy ReferenceMolarEnthalpy(Temperature T, Pressure P, Volume VMol)
 	{
 		var pathA = IdealMolarEnthalpyChange(ReferenceState.refT, T);
-		var pathB = DepartureEnthalpy(T, P, VMol);
+		var pathB = DepartureMolarEnthalpy(T, P, VMol);
 		var totalPath = pathA + pathB;
 		return new Enthalpy(totalPath, ThermoVarRelations.RealMolar);
 	}
@@ -225,8 +240,8 @@ public abstract class EquationOfState
 	/// <param name="T">temperature [K]</param>
 	/// <param name="P">pressure [Pa]</param>
 	/// <returns>molar enthalpy of formation [J/mol]</returns>
-	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table or the species phase is not found by the EoS PhaseFinder.</exception>
-	public Enthalpy FormationEnthalpy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
+	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table or the species modeledPhase is not found by the EoS PhaseFinder.</exception>
+	public Enthalpy FormationMolarEnthalpy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
 	{
 		// Retrieve standard formation enthalpy and phase for the species.
 		Enthalpy H_Θ;
@@ -331,8 +346,8 @@ public abstract class EquationOfState
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>Molar Entropy, departure</returns>
-	public abstract Entropy DepartureEntropy(Temperature T, Pressure P, Volume VMol);
+	/// <returns>Molar Entropy, departure, in [J/K/mol]</returns>
+	public abstract Entropy DepartureMolarEntropy(Temperature T, Pressure P, Volume VMol);
 
 	/// <summary>
 	/// Calculates the entropy change between two states assuming ideal gas behavior.
@@ -342,7 +357,7 @@ public abstract class EquationOfState
 	/// <param name="T2">Final temperature</param>
 	/// <returns>Molar entropy, change</returns>
 	/// <exception cref="NotImplementedException"> Use of high-temperature Cp data is not currently supported.</exception>
-	public Entropy IdealMolarEntropyChange(Temperature T1, Pressure P1, Temperature T2, Pressure P2)
+	public Entropy IdealMolarEntropyChange(Temperature T1, Temperature T2)
 	{
 		double[] c;
 		if (!UseHighTempData)
@@ -376,9 +391,9 @@ public abstract class EquationOfState
 	public Entropy MolarEntropyChange
 		(Temperature T1, Pressure P1, Volume VMol1, Temperature T2, Pressure P2, Volume VMol2)
 	{
-		var pathA = DepartureEntropy(T1, P1, VMol1);
-		var pathB = IdealMolarEntropyChange(T1, P1, T2, P2);
-		var pathC = DepartureEntropy(T2, P2, VMol2);
+		var pathA = DepartureMolarEntropy(T1, P1, VMol1);
+		var pathB = IdealMolarEntropyChange(T1, T2);
+		var pathC = DepartureMolarEntropy(T2, P2, VMol2);
 		var totalPath = -pathA + pathB + pathC;
 		return new Entropy(totalPath, ThermoVarRelations.Change);
 	}
@@ -392,8 +407,8 @@ public abstract class EquationOfState
 	/// <returns>Molar entropy, real</returns>
 	public Entropy ReferenceMolarEntropy(Temperature T, Pressure P, Volume VMol)
 	{
-		var pathB = IdealMolarEntropyChange(273.15+25, 100e3, T, P);
-		var pathC = DepartureEntropy(T, P, VMol);
+		var pathB = IdealMolarEntropyChange(273.15+25, T);
+		var pathC = DepartureMolarEntropy(T, P, VMol);
 		var totalPath = pathB + pathC;
 		return new Entropy(totalPath);
 	}
@@ -404,8 +419,8 @@ public abstract class EquationOfState
 	/// <param name="T">temperature [K]</param>
 	/// <param name="P">pressure [Pa]</param>
 	/// <returns>molar entropy of formation [J/K/mol]</returns>
-	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table or the species phase is not found by the EoS PhaseFinder.</exception>
-	public Entropy FormationEntropy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
+	/// <exception cref="KeyNotFoundException">Thrown when a species is not found in the standard formation thermodynamics table or the species modeledPhase is not found by the EoS PhaseFinder.</exception>
+	public Entropy FormationMolarEntropy(Temperature T_rxn, Pressure P_rxn, string phase_rxn)
 	{
 		// Retrieve standard formation entropy and phase for the species.
 		// Retrieve standard formation enthalpy and phase for the species.
@@ -502,18 +517,28 @@ public abstract class EquationOfState
 
 	#endregion
 
-	#region State Variables - other
+	#region State Variables - Gibbs energy
 
 	/// <summary>
-	/// Calculates the internal energy at a given state with respect to the reference state.
+	/// Calculates the enthalpy change between two states assuming ideal gas behavior.
+	/// Ideal enthalpy change is a pure function of temperature.
 	/// </summary>
-	/// <param name="T">temperature, in [K]</param>
-	/// <param name="P">pressure, in [Pa]</param>
-	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>Molar Internal Energy, real. U = H-PV</returns>
-	public InternalEnergy ReferenceMolarInternalEnergy(Temperature T, Pressure P, Volume VMol)
+	/// <remarks>
+	/// Unclear whether the temperature in G=H-TS is the final or initial temperature, 
+	/// or if the distinction matters at all. As long as the choice is consistent across
+	/// all calculations, the resulting function remains a state function.
+	/// This may still affect other calculations that use the change in Gibbs energy directly
+	/// (similar to the reaction rate constants) though at this time I can't think of
+	/// any cases where it would come up. The decision to use the final temperature T2, is
+	/// based on the convention for reference Gibbs energy, wher the reference temperature Tref
+	/// is <em>not</em> used, and only the temperature of interest seems to be present,
+	/// </remarks>
+	/// <param name="T1">Initial temperature</param>
+	/// <param name="T2">Final temperature</param>
+	/// <returns>Molar Enthalpy, change</returns>
+	public GibbsEnergy IdealMolarGibbsEnergyChange(Temperature T1, Temperature T2)
 	{
-		return new InternalEnergy(ReferenceMolarEnthalpy(T, P, VMol) - P * VMol);
+		return new GibbsEnergy(IdealMolarEnthalpyChange(T1, T2) - T2 * IdealMolarEntropyChange(T1, T2), ThermoVarRelations.Change);
 	}
 
 	/// <summary>
@@ -528,6 +553,33 @@ public abstract class EquationOfState
 		var H = ReferenceMolarEnthalpy(T, P, VMol);
 		var S = ReferenceMolarEntropy(T, P, VMol);
 		return new GibbsEnergy(H - T * S);
+	}
+
+	/// <summary>
+	/// Estimates the molar Gibbs energy of formation using standard Gibbs energy at a given temperature and pressure.
+	/// </summary>
+	/// <param name="T">temperature [K]</param>
+	/// <param name="P">pressure [Pa]</param>
+	/// <returns>molar Gibbs energy of formation [J/mol]</returns>
+	public GibbsEnergy FormationMolarGibbsEnergy(Temperature T, Pressure P, string phase)
+	{
+		return new GibbsEnergy(FormationMolarEnthalpy(T, P, phase) - T * FormationMolarEntropy(T, P, phase), ThermoVarRelations.OfFormation);
+	}
+
+	#endregion
+
+	#region State Variables - other
+
+	/// <summary>
+	/// Calculates the internal energy at a given state with respect to the reference state.
+	/// </summary>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
+	/// <param name="VMol">molar volume, in [m³/mol]</param>
+	/// <returns>Molar Internal Energy, real. U = H-PV</returns>
+	public InternalEnergy ReferenceMolarInternalEnergy(Temperature T, Pressure P, Volume VMol)
+	{
+		return new InternalEnergy(ReferenceMolarEnthalpy(T, P, VMol) - P * VMol);
 	}
 
 	/// <summary>
@@ -758,5 +810,19 @@ public abstract class EquationOfState
 		var f = FugacityCoeff(T, P, VMol);
 
 		return (Z, U, H, S, G, A, f);
+	}
+
+	/// <summary>
+	/// Returns an <see cref="IEquationOfStateFactory"/> for the recommended equation of state given
+	/// the desired modeled phase.
+	/// </summary>
+	public static IEquationOfStateFactory GetDefaultEoSFromPhase(string phase)
+	{
+		return phase switch
+		{
+			"vapor" or "liquid" => new PengRobinsonEOSFactory(),
+			"solid" => new ModSolidLiquidVaporEOSFactory(),
+			_ => new PengRobinsonEOSFactory(),
+		};
 	}
 }

@@ -33,7 +33,6 @@ public class Reaction
 	/// <param name="T_rxn">temperature, in [K]</param>
 	/// <param name="P_rxn">pressure, in [Pa]</param>
 	/// <returns>molar enthalpy, in [J/mol]</returns>
-	/// </exception>
 	public Enthalpy MolarEnthalpyOfReaction(Temperature T_rxn, Pressure P_rxn)
 	{
 		// Init empty list of enthalpy changes for each species.
@@ -44,7 +43,7 @@ public class Reaction
 		{
 			
 			// Calculate formation enthalpy for species.
-			var speciesEnthalpy = speciesItem.EoS.FormationEnthalpy(T_rxn, P_rxn, speciesItem.phase);
+			var speciesEnthalpy = speciesItem.EoS.FormationMolarEnthalpy(T_rxn, P_rxn, speciesItem.phase);
 
 			// Add formation enthalpy to list, multiplied by stoichiometric coefficient.
 			// Formation enthalpy is considered negative for reactants, and positive for products.
@@ -68,7 +67,6 @@ public class Reaction
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <returns>molar entropy, in [J/K/mol]</returns>
-	/// </exception>
 	public Entropy MolarEntropyOfReaction(Temperature T_rxn, Pressure P_rxn)
 	{
 		// Init empty list of entropy changes for each species.
@@ -79,7 +77,7 @@ public class Reaction
 		{
 
 			// Calculate formation enthalpy for species.
-			var speciesEntropy = speciesItem.EoS.FormationEntropy(T_rxn, P_rxn, speciesItem.phase);
+			var speciesEntropy = speciesItem.EoS.FormationMolarEntropy(T_rxn, P_rxn, speciesItem.phase);
 
 			// Add formation enthalpy to list, multiplied by stoichiometric coefficient.
 			// Formation enthalpy is considered negative for reactants, and positive for products.
