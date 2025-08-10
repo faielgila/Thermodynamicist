@@ -75,6 +75,7 @@ namespace ThermodynamicistUWP
 		{
 			try
 			{
+				DataLabel.Text = "";
 				foreach (var ms in mixture.speciesList)
 				{
 					var name = Constants.ChemicalNames[ms.chemical];

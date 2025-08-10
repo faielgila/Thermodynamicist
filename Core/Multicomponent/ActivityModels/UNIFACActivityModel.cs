@@ -5,13 +5,11 @@ namespace Core.Multicomponent.ActivityModels;
 
 public class UNIFACActivityModel : ActivityModel
 {
-	private Dictionary<FunctionalSubgroup, double> SubgroupMoleFractions;
-	private Dictionary<FunctionalSubgroup, double> SubgroupThetas;
-
 	public UNIFACActivityModel(List<MixtureSpecies> _speciesList) : base(_speciesList)
 	{
-		SubgroupMoleFractions = CalculateSubgroupMoleFractions();
-		SubgroupThetas = CalculateSubgroupThetas();
+		CalculateSubgroupMoleFractions();
+		CalculateSubgroupThetas();
+		CalculateSpeciesDerivedParameters();
 	}
 
 	#region Parameters
@@ -1121,9 +1119,23 @@ public class UNIFACActivityModel : ActivityModel
 		return a;
 	}
 
+	/// <summary>
+	/// Coordination parameter for activity calculations.
+	/// Generally set to 10 since this is the coordination of a sphere in hexagonal close packing structure.
+	/// </summary>
+	private int z = 10;
+
 	#endregion
 
 	#region Precalculations
+
+	private Dictionary<FunctionalSubgroup, double> SubgroupMoleFractions = [];
+	private Dictionary<FunctionalSubgroup, double> SubgroupThetas = [];
+	private Dictionary<Chemical, double> SpeciesQs = [];
+	private Dictionary<Chemical, double> SpeciesRs = [];
+	private Dictionary<Chemical, double> SpeciesThetas = [];
+	private Dictionary<Chemical, double> SpeciesPhis = [];
+	private Dictionary<Chemical, double> SpeciesLs = [];
 
 	/// <summary>
 	/// Lists out all functional subgroups in the mixture.
@@ -1170,10 +1182,10 @@ public class UNIFACActivityModel : ActivityModel
 	}
 
 	/// <summary>
-	/// Mole fraction of a subgroup in mixture, X_m.
+	/// Precalculates the mole fraction of all subgroups in mixture, X_m.
 	/// Essentially breaks down all species in mixture into subgroups and considers only subgroups.
 	/// </summary>
-	Dictionary<FunctionalSubgroup, double> CalculateSubgroupMoleFractions()
+	private void CalculateSubgroupMoleFractions()
 	{
 		double totalSubgroupMoles = 0;
 		foreach (var item in speciesList)
@@ -1203,14 +1215,14 @@ public class UNIFACActivityModel : ActivityModel
 				}
 			}
 		}
-		return subgroupMoleFractions;
+		SubgroupMoleFractions = subgroupMoleFractions;
 	}
 
 	/// <summary>
-	/// Q-fraction of a subgroup in mixture, Θ_m
+	/// Precalculates the Q-fraction (theta) of all subgroup in mixture, Θ_m.
 	/// Essentially breaks down all species in mixture into subgroups and considers only subgroups.
 	/// </summary>
-	Dictionary<FunctionalSubgroup, double> CalculateSubgroupThetas()
+	private void CalculateSubgroupThetas()
 	{
 		double totalSubgroupQ = 0;
 		foreach (var item in SubgroupMoleFractions)
@@ -1227,32 +1239,75 @@ public class UNIFACActivityModel : ActivityModel
 			var Q_i = SubgroupRQParameters[item.Key].Q;
 			subgroupThetas[item.Key] = X_i * Q_i / totalSubgroupQ;
 		}
-		return subgroupThetas;
+		SubgroupThetas = subgroupThetas;
+	}
+
+	/// <summary>
+	/// Precalculates all derived parameters (q, r, θ, φ, l) for all species in mixture.
+	/// </summary>
+	private void CalculateSpeciesDerivedParameters()
+	{
+		// Calculate r and q parameters.
+		// Total r and q parameters for use in θ and φ calculations later.
+		double qSum = 0;
+		double rSum = 0;
+		foreach (var item in speciesList)
+		{
+			var listSG = ChemicalSubgroupMap[item.chemical];
+			double r = 0;
+			double q = 0;
+			foreach (var (subgroup, nu) in listSG)
+			{
+				r += nu * SubgroupRQParameters[subgroup].R;
+				q += nu * SubgroupRQParameters[subgroup].Q;
+			}
+			SpeciesRs.Add(item.chemical, r);
+			SpeciesQs.Add(item.chemical, q);
+			rSum += item.speciesMoleFraction * r;
+			qSum += item.speciesMoleFraction * q;
+		}
+
+		// Calculate θ and φ parameters.
+		foreach (var item in speciesList)
+		{
+			var x = item.speciesMoleFraction;
+			var r = SpeciesRs[item.chemical];
+			var q = SpeciesQs[item.chemical];
+			SpeciesPhis.Add(item.chemical, x * r / rSum);
+			SpeciesThetas.Add(item.chemical, x * q / qSum);
+		}
+
+		// Calculate l parameters.
+		foreach (var item in speciesList)
+		{
+			var r = SpeciesRs[item.chemical];
+			var q = SpeciesQs[item.chemical];
+			SpeciesLs.Add(item.chemical, z / 2 * (r - q) - (r - 1));
+		}
 	}
 
 	#endregion
 
 	public override double SpeciesActivityCoefficient(Chemical species, Temperature T)
 	{
-		//var taskGammaC = Task.Run(() => LogSpeciesActivityCoefficientCombinatorial(species));
-		//var taskGammaR = Task.Run(() => LogSpeciesActivityCoefficientResidual(species, T));
-		//Task.WaitAll(taskGammaC, taskGammaR);
+		var taskGammaC = Task.Run(() => LogSpeciesActivityCoefficientCombinatorial(species));
+		var taskGammaR = Task.Run(() => LogSpeciesActivityCoefficientResidual(species, T));
+		Task.WaitAll(taskGammaC, taskGammaR);
 
-		//return Math.Exp(taskGammaC.Result + taskGammaR.Result);
+		return Math.Exp(taskGammaC.Result + taskGammaR.Result);
 
-		var gammaC = LogSpeciesActivityCoefficientCombinatorial(species);
-		var gammaR = LogSpeciesActivityCoefficientResidual(species, T);
-		return Math.Exp(gammaC + gammaR);
+		//var gammaC = LogSpeciesActivityCoefficientCombinatorial(species);
+		//var gammaR = LogSpeciesActivityCoefficientResidual(species, T);
+		//return Math.Exp(gammaC + gammaR);
 	}
 
 	private double LogSpeciesActivityCoefficientCombinatorial(Chemical species)
 	{
-		var z = 10;
 		var x = speciesList[GetMixtureSpeciesIdx(species)].speciesMoleFraction;
-		var q = SpeciesQParameter(species);
-		var theta = SpeciesQFraction(species);
-		var phi = SpeciesRFraction(species);
-		var L = SpeciesLParameter(species);
+		var q = SpeciesQs[species];
+		var theta = SpeciesThetas[species];
+		var phi = SpeciesPhis[species];
+		var L = SpeciesLs[species];
 
 		var termSpecies = Math.Log(phi / x) + z * q / 2 * Math.Log(theta / phi) + L;
 
@@ -1260,7 +1315,7 @@ public class UNIFACActivityModel : ActivityModel
 		foreach (var item in speciesList)
 		{
 			var xj = item.speciesMoleFraction;
-			var Lj = SpeciesLParameter(item.chemical);
+			var Lj = SpeciesLs[item.chemical];
 			termSum += xj * Lj;
 		}
 
@@ -1272,10 +1327,14 @@ public class UNIFACActivityModel : ActivityModel
 		double sum = 0;
 		foreach (var (subgroup_k, nu_ki) in ChemicalSubgroupMap[species])
 		{
-			var logGamma_k = LogGammaK(subgroup_k);
-			var logGamma_ki = LogGammaKI(subgroup_k);
-			var add = nu_ki * (logGamma_k - logGamma_ki);
-			sum += add;
+			var taskGamma_k = Task.Run(() => LogGammaK(subgroup_k));
+			var taskGamma_ki = Task.Run(() => LogGammaKI(subgroup_k));
+			Task.WaitAll(taskGamma_k, taskGamma_ki);
+			sum += nu_ki * (taskGamma_k.Result - taskGamma_ki.Result);
+
+			//var logGamma_k = LogGammaK(subgroup_k);
+			//var logGamma_ki = LogGammaKI(subgroup_k);
+			//sum += nu_ki * (logGamma_k - logGamma_ki);
 		}
 		return sum;
 
@@ -1391,86 +1450,6 @@ public class UNIFACActivityModel : ActivityModel
 				return subgroupMoleFractions;
 			}
 		}
-	}
-
-	/// <summary>
-	/// Calculates the fractional Q-parameter for a species relative to the mixture.
-	/// </summary>
-	private double SpeciesQFraction(Chemical species)
-	{
-		var i = GetMixtureSpeciesIdx(species);
-		var xi = speciesList[i].speciesMoleFraction;
-		var qi = SpeciesQParameter(species);
-
-		double totalSA = 0;
-		foreach (var item in speciesList)
-		{
-			var xj = item.speciesMoleFraction;
-			var qj = SpeciesQParameter(item.chemical);
-			totalSA += xj * qj;
-		}
-
-		return (xi * qi) / totalSA;
-	}
-
-	/// <summary>
-	/// Estimates the q (surface area) parameter for a species using UNIFAC functional groups.
-	/// </summary>
-	private double SpeciesQParameter(Chemical species)
-	{
-		var subgroups = ChemicalSubgroupMap[species];
-		double q = 0;
-		foreach (var (subgroup, nu) in subgroups)
-		{
-			q += nu * SubgroupRQParameters[subgroup].Q;
-		}
-		return q;
-	}
-
-	/// <summary>
-	/// Calculates the fractional R-parameter for a species relative to the mixture.
-	/// </summary>
-	private double SpeciesRFraction(Chemical species)
-	{
-		var i = GetMixtureSpeciesIdx(species);
-		var xi = speciesList[i].speciesMoleFraction;
-		var ri = SpeciesRParameter(species);
-
-		double totalV = 0;
-		foreach (var item in speciesList)
-		{
-			var xj = item.speciesMoleFraction;
-			var rj = SpeciesRParameter(item.chemical);
-			totalV += xj * rj;
-		}
-
-		return (xi * ri) / totalV;
-	}
-
-	/// <summary>
-	/// Estimates the r (volume) parameter for a species using UNIFAC functional groups.
-	/// </summary>
-	private double SpeciesRParameter(Chemical species)
-	{
-		var subgroups = ChemicalSubgroupMap[species];
-		double r = 0;
-		foreach (var (subgroup, nu) in subgroups)
-		{
-			r += nu * SubgroupRQParameters[subgroup].R;
-		}
-		return r;
-	}
-
-	/// <summary>
-	/// Estimates the L (compound) parameter for a species using UNIFAC functional groups.
-	/// Assumes coordination number z=10.
-	/// </summary>
-	private double SpeciesLParameter(Chemical species)
-	{
-		var z = 10;
-		var r = SpeciesRParameter(species);
-		var q = SpeciesQParameter(species);
-		return z / 2 * (r - q) - (r - 1);
 	}
 
 	/// <summary>
