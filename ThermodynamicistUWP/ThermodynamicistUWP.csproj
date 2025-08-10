@@ -122,10 +122,16 @@
     <Compile Include="Dialogs\ErrorDialog.xaml.cs">
       <DependentUpon>ErrorDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\ControlMixtureSpecies.xaml.cs">
+      <DependentUpon>ControlMixtureSpecies.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\ControlRxnSpecies.xaml.cs">
       <DependentUpon>ControlRxnSpecies.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\ChemicalNamePairConverter.cs" />
+    <Compile Include="Pages\PageHomoMix.xaml.cs">
+      <DependentUpon>PageHomoMix.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Plotting\Factories\GTPlotFunctionFactory.cs" />
     <Compile Include="Plotting\Factories\PTPlotFunctionFactory.cs" />
     <Compile Include="Plotting\Factories\PVPlotFunctionFactory.cs" />
@@ -221,6 +227,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\ControlMixtureSpecies.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\ControlRxnSpecies.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -228,6 +238,10 @@
     <Page Include="Pages\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageHomoMix.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\PagePCSF.xaml">
       <SubType>Designer</SubType>

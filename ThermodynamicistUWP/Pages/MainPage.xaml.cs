@@ -10,7 +10,7 @@ namespace ThermodynamicistUWP
 		{
 			InitializeComponent();
 
-			contentFrame.Navigate(typeof(PageRxnKin));
+			contentFrame.Navigate(typeof(PageHomoMix));
 		}
 
 		private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

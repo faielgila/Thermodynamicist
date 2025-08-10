@@ -10,11 +10,12 @@
 		/// the <see cref="HighTempIdealGasCpConstants"/> dictionary.
 		/// </summary>
 		// Most from Sandler, appendix A.II
-		// {R12, R134a, Pentane, Toluene} from Yaw's Handbook - Heat Capacities of Gases, Organic Compounds
+		// {Acetone, R12, R134a, Pentane, Toluene} from Yaw's Handbook - Heat Capacities of Gases, Organic Compounds
 		// Chlorbenzene from Knovel Critical Tables (2nd Ed, 2008)
 		// Chlorine from NIST Chemistry Webbook (with regression fitting from Shomate Eqn)
 		public static readonly Dictionary<Chemical, (double[] vals, double[] lims)> IdealGasCpConstants = new()
 		{
+			[Chemical.Acetone]			= (new[] {   3.592, 9.3896e-2,   1.873e-4,   -2.164e-7, 6.3174e-11 }, new double[] { 100, 1500 }),
 			[Chemical.Ammonia]			= (new[] {  27.551,  2.563e-2,   0.990e-5,   -6.687e-9 }, new double[] { 273, 1500 }),
 			[Chemical.Benzene]			= (new[] { -36.193, 48.444e-2, -31.548e-5,   77.573e-9 }, new double[] { 273, 1500 }),
 			[Chemical.NButane]			= (new[] {   3.954, 37.126e-2, -18.326e-5,   34.979e-9 }, new double[] { 273, 1500 }),
@@ -34,6 +35,7 @@
 			[Chemical.NPentane]			= (new[] {   6.770, 45.398e-2, -22.448e-5,   42.459e-9 }, new double[] { 273, 1500 }),
 			[Chemical.Isopentane]		= (new[] {  68.343, -0.1485,     1.879e-3,   -3.500e-6, 3.1436e-9, -1.41672e-12, 2.55785e-16 }, new double[] { 150, 1500 }),
 			[Chemical.Propane]			= (new[] {  -4.042, 30.456e-2, -15.711e-5,   31.716e-9 }, new double[] { 273, 1500 }),
+			[Chemical.NPropanol]		= (new[] {  3.1507, 2.3082e-1, -7.8983e-5,    6.370e-9, 8.6908e-13 }, new double[] { 100, 2980 }),
 			[Chemical.R12]				= (new[] {  10.279,  0.3298,    -5.34244e-4,  4.92869e-7, -2.64231e-10, 7.69436e-14, -9.4595e-18 }, new double[] { 150, 1500 }),
 			[Chemical.R134a]			= (new[] {  28.367,  0.1471,     4.4138e-4,  -1.28589e-6, 1.3589e-6, -6.63533e-13, 1.24581e-16 }, new double[] { 150, 1500 }),
 			[Chemical.SulfurDioxide]	= (new[] {  25.762,  5.791e-2,  -3.809e-5,    8.607e-9 }, new double[] { 273, 1800 }),

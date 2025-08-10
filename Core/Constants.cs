@@ -26,6 +26,7 @@ public class Constants
 		(double molarMass, Temperature critT, Pressure critP, double acentricFactor, Temperature boilT)
 	> ChemicalData = new()
 	{
+		[Chemical.Acetone]			= (58.07914, 508.1, 4692.42e3, 0.304, 329.225),
 		[Chemical.Ammonia]          = (17.031, 405.6, 11.28e6, 0.250, 239.7),
 		[Chemical.Benzene]          = (78.114, 562.1, 4.894e6, 0.212, 353.3),
 		[Chemical.NButane]          = (58.124, 425.2, 3.800e6, 0.193, 272.7),
@@ -45,6 +46,7 @@ public class Constants
 		[Chemical.NPentane]         = (72.151, 469.6, 3.374e6, 0.251, 309.2),
 		[Chemical.Isopentane]       = (72.151, 460.4, 3.384e6, 0.227, 301.1),
 		[Chemical.Propane]          = (44.097, 369.8, 4.246e6, 0.152, 231.1),
+		[Chemical.NPropanol]		= (60.09502, 536.765, 5131.91e3, 0.623, 370.187),
 		[Chemical.R12]              = (120.914, 385.0, 4.124e6, 0.176, 243.4),
 		[Chemical.R134a]            = (102.03, 374.23, 4.060e6, 0.332, 247.1),
 		[Chemical.SulfurDioxide]    = (64.063, 430.8, 7.883e6, 0.251, 263),
@@ -54,6 +56,7 @@ public class Constants
 
 	public static readonly Dictionary<Chemical, string> ChemicalNames = new()
 	{
+		[Chemical.Acetone] = "Acetone",
 		[Chemical.Ammonia] = "Ammonia",
 		[Chemical.Benzene] = "Benzene",
 		[Chemical.NButane] = "n-Butane",
@@ -73,6 +76,7 @@ public class Constants
 		[Chemical.NPentane] = "n-Pentane",
 		[Chemical.Isopentane] = "i-Pentane",
 		[Chemical.Propane] = "Propane",
+		[Chemical.NPropanol] = "n-Propanol",
 		[Chemical.R12] = "Dichclorodifluoromethane (R12)",
 		[Chemical.R134a] = "1,1,1,2-Tetrafluoroethane (R134a)",
 		[Chemical.SulfurDioxide] = "Sulfur dioxide",
@@ -82,6 +86,7 @@ public class Constants
 
 	public static readonly Dictionary<Chemical, string> ChemicalCASRegistryNumber = new()
 	{
+		[Chemical.Acetone] = "67-64-1",
 		[Chemical.Ammonia] = "7664-41-7",
 		[Chemical.Benzene] = "71-43-2",
 		[Chemical.NButane] = "106-97-8",
@@ -101,6 +106,7 @@ public class Constants
 		[Chemical.NPentane] = "109-66-0",
 		[Chemical.Isopentane] = "78-78-4",
 		[Chemical.Propane] = "74-98-6",
+		[Chemical.NPropanol] = "71-23-8",
 		[Chemical.R12] = "75-71-8",
 		[Chemical.R134a] = "811-97-2",
 		[Chemical.SulfurDioxide] = "7446-09-5",

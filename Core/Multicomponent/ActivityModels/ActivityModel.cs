@@ -18,6 +18,6 @@ public abstract class ActivityModel
 	/// Estimates the activity coefficient for the given species in the mixture.
 	/// </summary>
 	/// <returns>activity coefficient, dimensionless</returns>
-	public abstract double SpeciesActivityCoefficient(Chemical chemical, Temperature T);
+	public abstract double SpeciesActivityCoefficient(Chemical species, Temperature T);
 }
 

@@ -19,6 +19,7 @@
 		<NavigationView.MenuItems>
 			<NavigationViewItem Icon="Calculator" Content="Pure-component state functions" Tag="ThermodynamicistUWP.PagePCSF" />
 			<NavigationViewItem Icon="Memo" Content="Reaction kinetics" Tag="ThermodynamicistUWP.PageRxnKin" />
+			<NavigationViewItem Icon="Shuffle" Content="Homogeneous mixture" Tag="ThermodynamicistUWP.PageHomoMix" />
 		</NavigationView.MenuItems>
 		
 		<Frame x:Name="contentFrame"/>

@@ -19,7 +19,7 @@ public class MixtureSpecies
 	/// </summary>
 	/// <param name="_phase">modeled phase for the EoS</param>
 	/// <param name="_moleFraction">mole fraction of this species in the mixture relative to the overall mixture</param>
-	public MixtureSpecies(Chemical _chemical, EquationOfState _EoS, string _phase, MoleFraction _moleFraction)
+	public MixtureSpecies(Chemical _chemical, EquationOfState _EoS, MoleFraction _moleFraction, string _phase)
 	{
 		chemical = _chemical;
 		EoS = _EoS;
@@ -34,7 +34,7 @@ public class MixtureSpecies
 	/// </summary>
 	/// <param name="_phase">modeled phase for the EoS</param>
 	/// <param name="_moleFraction">mole fraction of this species in the mixture relative to the overall mixture</param>
-	public MixtureSpecies(Chemical _chemical, string _phase, MoleFraction _moleFraction)
+	public MixtureSpecies(Chemical _chemical, MoleFraction _moleFraction, string _phase)
 	{
 		chemical = _chemical;
 		modeledPhase = _phase;

@@ -8,7 +8,7 @@ namespace Core.Multicomponent;
 /// <summary>
 /// Represents a homogeneous mixture (a multicomponent, single-phase system).
 /// </summary>
-class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, ActivityModel activityModel)
+public class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, ActivityModel activityModel)
 {
 	/// <summary>
 	/// Stores all mixture species with their EoS, molar fraction in the mixture, and modeledPhase.
@@ -53,7 +53,7 @@ class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, Activit
 		// see Phase Diagrams and Thermodynamics of Solutions, eq 4.3
 	}
 
-	public GibbsEnergy GibbsEnergyOfMixing(Temperature T, Pressure P)
+	public GibbsEnergy MolarGibbsEnergyOfMixing(Temperature T, Pressure P)
 	{
 		return 0;
 	}
@@ -149,9 +149,9 @@ class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, Activit
 	}
 
 	/// <summary>
-	/// Calculates the entropy of mixing for an ideal gas mixture.
+	/// Calculates the molar entropy of mixing for an ideal gas mixture.
 	/// </summary>
-	public Entropy IGMEntropyOfMixing()
+	public Entropy IGMMolarEntropyOfMixing()
 	{
 		Entropy S = 0;
 		foreach (var mixSpecies in speciesList)
@@ -165,12 +165,12 @@ class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, Activit
 	}
 
 	/// <summary>
-	/// Calculates the Gibbs energy of mixing for an ideal gas mixture.
+	/// Calculates the molar Gibbs energy of mixing for an ideal gas mixture.
 	/// </summary>
-	public GibbsEnergy IGMGibbsEnergyOfMixing(Temperature T)
+	public GibbsEnergy IGMMolarGibbsEnergyOfMixing(Temperature T)
 	{
 		// See Sandler, eqn 9.1-10
-		return -T * IGMEntropyOfMixing();
+		return -T * IGMMolarEntropyOfMixing();
 	}
 
 	#endregion

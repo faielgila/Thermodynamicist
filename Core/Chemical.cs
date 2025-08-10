@@ -2,6 +2,7 @@
 
 public enum Chemical
 {
+	Acetone,
 	Ammonia,
 	Benzene,
 	NButane, Isobutane,
@@ -19,6 +20,7 @@ public enum Chemical
 	Oxygen,
 	NPentane, Isopentane,
 	Propane,
+	NPropanol,
 	R12, R134a,
 	SulfurDioxide,
 	Toluene,

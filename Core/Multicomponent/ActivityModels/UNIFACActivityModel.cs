@@ -5,12 +5,21 @@ namespace Core.Multicomponent.ActivityModels;
 
 public class UNIFACActivityModel : ActivityModel
 {
-	public UNIFACActivityModel(List<MixtureSpecies> _speciesList) : base(_speciesList) { }
+	private Dictionary<FunctionalSubgroup, double> SubgroupMoleFractions;
+	private Dictionary<FunctionalSubgroup, double> SubgroupThetas;
+
+	public UNIFACActivityModel(List<MixtureSpecies> _speciesList) : base(_speciesList)
+	{
+		SubgroupMoleFractions = CalculateSubgroupMoleFractions();
+		SubgroupThetas = CalculateSubgroupThetas();
+	}
 
 	#region Parameters
 
 	private enum FunctionalSubgroup
 	{
+		CarbonylCO, // TOOD: Temporary testing
+
 		Alkyl_1, // CH3, primary alkyl carbon (methyl group)
 		Alkyl_2, // CH2, secondary alkyl carbon
 		Alkyl_3, // CH, tertiary alkyl carbon
@@ -128,6 +137,8 @@ public class UNIFACActivityModel : ActivityModel
 
 	private enum FunctionalMaingroup
 	{
+		CarbonylCO,
+
 		AlkaneC,
 		AlkeneC,
 		AromaticC,
@@ -187,8 +198,10 @@ public class UNIFACActivityModel : ActivityModel
 	/// <summary>
 	/// Lists all subgroups and their parent maingroup.
 	/// </summary>
-	private readonly Dictionary<FunctionalSubgroup, FunctionalMaingroup> MaingroupSubgroupMap = new()
+	private static readonly Dictionary<FunctionalSubgroup, FunctionalMaingroup> MaingroupSubgroupMap = new()
 	{
+		[FunctionalSubgroup.CarbonylCO] = FunctionalMaingroup.CarbonylCO,
+
 		[FunctionalSubgroup.Alkyl_1] = FunctionalMaingroup.AlkaneC,
 		[FunctionalSubgroup.Alkyl_2] = FunctionalMaingroup.AlkaneC,
 		[FunctionalSubgroup.Alkyl_3] = FunctionalMaingroup.AlkaneC,
@@ -307,27 +320,33 @@ public class UNIFACActivityModel : ActivityModel
 	/// <summary>
 	/// Lists all subgroups and their quantities for all UNIFAC-modeled chemicals.
 	/// </summary>
-	private readonly Dictionary<Chemical, List<(FunctionalSubgroup subgroup, int nu)>> ChemicalSubgroupMap = new()
+	private static readonly Dictionary<Chemical, List<(FunctionalSubgroup subgroup, int nu)>> ChemicalSubgroupMap = new()
 	{
-		[Chemical.Benzene] = { (FunctionalSubgroup.UnsubAromaticC, 6) },
-		[Chemical.NButane] = { (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 2) },
-		[Chemical.Isobutane] = { (FunctionalSubgroup.Alkyl_1, 3), (FunctionalSubgroup.Alkyl_3, 1) },
-		[Chemical.Chlorobenzene] = { (FunctionalSubgroup.ArylChloride, 1), (FunctionalSubgroup.UnsubAromaticC, 5) },
-		[Chemical.Ethane] = { (FunctionalSubgroup.Alkyl_1, 2) },
-		//[Chemical.Methane] = { (FuncSubgroup.Methane, 1)},
-		[Chemical.NPentane] = { (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 3) },
-		[Chemical.Isopentane] = { (FunctionalSubgroup.Alkyl_1, 3), (FunctionalSubgroup.Alkyl_2, 1), (FunctionalSubgroup.Alkyl_3, 1) },
-		[Chemical.Propane] = { (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 1) },
-		[Chemical.R12] = { (FunctionalSubgroup.Dichlorodifluoromethane, 1) },
-		[Chemical.Toluene] = { (FunctionalSubgroup.ArylMethane, 1), (FunctionalSubgroup.UnsubAromaticC, 5) },
-		[Chemical.Water] = { (FunctionalSubgroup.Water, 1) }
+		//[Chemical.Acetone] = [ (FunctionalSubgroup.MethylKetone, 1), (FunctionalSubgroup.Alkyl_1, 1) ],
+		[Chemical.Acetone] = [ (FunctionalSubgroup.CarbonylCO, 1), (FunctionalSubgroup.Alkyl_1, 2) ],
+
+		[Chemical.Benzene] = [ (FunctionalSubgroup.UnsubAromaticC, 6) ],
+		[Chemical.NButane] = [ (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 2) ],
+		[Chemical.Isobutane] = [ (FunctionalSubgroup.Alkyl_1, 3), (FunctionalSubgroup.Alkyl_3, 1) ],
+		[Chemical.Chlorobenzene] = [ (FunctionalSubgroup.ArylChloride, 1), (FunctionalSubgroup.UnsubAromaticC, 5) ],
+		[Chemical.Ethane] = [ (FunctionalSubgroup.Alkyl_1, 2) ],
+		//[Chemical.Methane] = [ (FuncSubgroup.Methane, 1) ],
+		[Chemical.NPentane] = [ (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 3) ],
+		[Chemical.Isopentane] = [ (FunctionalSubgroup.Alkyl_1, 3), (FunctionalSubgroup.Alkyl_2, 1), (FunctionalSubgroup.Alkyl_3, 1) ],
+		[Chemical.Propane] = [ (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 1) ],
+		[Chemical.NPropanol] = [ (FunctionalSubgroup.Alcohol, 1), (FunctionalSubgroup.Alkyl_1, 1), (FunctionalSubgroup.Alkyl_2, 2) ],
+		[Chemical.R12] = [ (FunctionalSubgroup.Dichlorodifluoromethane, 1) ],
+		[Chemical.Toluene] = [ (FunctionalSubgroup.ArylMethane, 1), (FunctionalSubgroup.UnsubAromaticC, 5) ],
+		[Chemical.Water] = [ (FunctionalSubgroup.Water, 1) ]
 	};
 
 	/// <summary>
 	/// Stores R (volume) and Q (surface area) parameters for UNIFAC functional groups.
 	/// </summary>
-	private readonly Dictionary<FunctionalSubgroup, (double R, double Q)> SubgroupRQParameters = new()
+	private static readonly Dictionary<FunctionalSubgroup, (double R, double Q)> SubgroupRQParameters = new()
 	{
+		[FunctionalSubgroup.CarbonylCO] = (0.7713, 0.640),
+
 		[FunctionalSubgroup.Alkyl_1] = (0.9011, 0.8480),
 		[FunctionalSubgroup.Alkyl_2] = (0.6744, 0.5400),
 		[FunctionalSubgroup.Alkyl_3] = (0.4469, 0.2280),
@@ -446,8 +465,10 @@ public class UNIFACActivityModel : ActivityModel
 	/// <summary>
 	/// Stores interaction parameters for UNIFAC maingroups.
 	/// </summary>
-	private readonly Dictionary<(FunctionalMaingroup i, FunctionalMaingroup j), (double aij, double aji)> MaingroupInteractionParameters = new()
+	private static readonly Dictionary<(FunctionalMaingroup i, FunctionalMaingroup j), (double aij, double aji)> MaingroupInteractionParameters = new()
 	{
+		[(FunctionalMaingroup.CarbonylCO, FunctionalMaingroup.AlkaneC)] = (3000, 1565),
+
 		[(FunctionalMaingroup.AlkaneC, FunctionalMaingroup.AlkeneC)] = (86.0200, -35.3600),
 		[(FunctionalMaingroup.AlkaneC, FunctionalMaingroup.AromaticC)] = (61.1300, -11.1200),
 		[(FunctionalMaingroup.AlkaneC, FunctionalMaingroup.ArylAlkane)] = (76.5000, -69.7000),
@@ -1087,35 +1108,150 @@ public class UNIFACActivityModel : ActivityModel
 
 	private double GetFGInteractionParameter(FunctionalMaingroup FG1, FunctionalMaingroup FG2)
 	{
-		double aij;
+		if (FG1 == FG2) return 0;
+		double a;
 		try
 		{
-			aij = MaingroupInteractionParameters[(FG1, FG2)].aij;
-		} finally
+			a = MaingroupInteractionParameters[(FG1, FG2)].aij;
+		} catch
 		{
-			aij = MaingroupInteractionParameters[(FG2, FG1)].aji;
+			a = MaingroupInteractionParameters[(FG2, FG1)].aji;
 		}
 
-		return aij;
+		return a;
+	}
+
+	#endregion
+
+	#region Precalculations
+
+	/// <summary>
+	/// Lists out all functional subgroups in the mixture.
+	/// </summary>
+	private List<FunctionalSubgroup> GetAllFunctionalSubgroupsInMixture()
+	{
+		List<FunctionalSubgroup> subgroups = [];
+		foreach (var item in speciesList)
+		{
+			foreach (var (subgroup, _) in ChemicalSubgroupMap[item.chemical])
+			{
+				if (subgroups.Contains(subgroup)) continue;
+				else subgroups.Add(subgroup);
+			}
+		}
+		return subgroups;
+	}
+
+	/// <summary>
+	/// Lists out all functional subgroups present in a given chemical.
+	/// </summary>
+	private List<FunctionalSubgroup> GetAllFunctionalSubgroupsInSpecies(Chemical species)
+	{
+		List<FunctionalSubgroup> subgroups = [];
+		foreach (var (subgroup, _) in ChemicalSubgroupMap[species])
+		{
+			if (subgroups.Contains(subgroup)) continue;
+			else subgroups.Add(subgroup);
+		}
+		return subgroups;
+	}
+
+	/// <summary>
+	/// Gets the index in speciesList which represents the given chemical.
+	/// </summary>
+	int GetMixtureSpeciesIdx(Chemical species)
+	{
+		for (int i = 0; i < speciesList.Count; i++)
+		{
+			if (speciesList[i].chemical == species) return i;
+		}
+
+		throw new KeyNotFoundException("Species not found in speciesList.");
+	}
+
+	/// <summary>
+	/// Mole fraction of a subgroup in mixture, X_m.
+	/// Essentially breaks down all species in mixture into subgroups and considers only subgroups.
+	/// </summary>
+	Dictionary<FunctionalSubgroup, double> CalculateSubgroupMoleFractions()
+	{
+		double totalSubgroupMoles = 0;
+		foreach (var item in speciesList)
+		{
+			var species_i = item.chemical;
+			var x_i = item.speciesMoleFraction;
+			foreach (var (_, nu_k) in ChemicalSubgroupMap[species_i])
+			{
+				totalSubgroupMoles += x_i * nu_k;
+			}
+		}
+
+		Dictionary<FunctionalSubgroup, double> subgroupMoleFractions = [];
+		foreach (var item in speciesList)
+		{
+			var species_i = item.chemical;
+			var x_i = item.speciesMoleFraction;
+			foreach (var (subgroup_k, nu_k) in ChemicalSubgroupMap[species_i])
+			{
+				try
+				{
+					subgroupMoleFractions[subgroup_k] += x_i * nu_k / totalSubgroupMoles;
+				}
+				catch
+				{
+					subgroupMoleFractions.Add(subgroup_k, x_i * nu_k / totalSubgroupMoles);
+				}
+			}
+		}
+		return subgroupMoleFractions;
+	}
+
+	/// <summary>
+	/// Q-fraction of a subgroup in mixture, Θ_m
+	/// Essentially breaks down all species in mixture into subgroups and considers only subgroups.
+	/// </summary>
+	Dictionary<FunctionalSubgroup, double> CalculateSubgroupThetas()
+	{
+		double totalSubgroupQ = 0;
+		foreach (var item in SubgroupMoleFractions)
+		{
+			var X_i = item.Value;
+			var Q_i = SubgroupRQParameters[item.Key].Q;
+			totalSubgroupQ += X_i * Q_i;
+		}
+
+		Dictionary<FunctionalSubgroup, double> subgroupThetas = [];
+		foreach (var item in SubgroupMoleFractions)
+		{
+			var X_i = item.Value;
+			var Q_i = SubgroupRQParameters[item.Key].Q;
+			subgroupThetas[item.Key] = X_i * Q_i / totalSubgroupQ;
+		}
+		return subgroupThetas;
 	}
 
 	#endregion
 
 	public override double SpeciesActivityCoefficient(Chemical species, Temperature T)
 	{
-		var gammaC = SpeciesActivityCoefficientCombinatorial(species);
-		var gammaR = SpeciesActivityCoefficientResidual(species, T);
+		//var taskGammaC = Task.Run(() => LogSpeciesActivityCoefficientCombinatorial(species));
+		//var taskGammaR = Task.Run(() => LogSpeciesActivityCoefficientResidual(species, T));
+		//Task.WaitAll(taskGammaC, taskGammaR);
 
-		return Math.Exp(Math.Log(gammaC) + Math.Log(gammaR));
+		//return Math.Exp(taskGammaC.Result + taskGammaR.Result);
+
+		var gammaC = LogSpeciesActivityCoefficientCombinatorial(species);
+		var gammaR = LogSpeciesActivityCoefficientResidual(species, T);
+		return Math.Exp(gammaC + gammaR);
 	}
 
-	private double SpeciesActivityCoefficientCombinatorial(Chemical species)
+	private double LogSpeciesActivityCoefficientCombinatorial(Chemical species)
 	{
 		var z = 10;
 		var x = speciesList[GetMixtureSpeciesIdx(species)].speciesMoleFraction;
 		var q = SpeciesQParameter(species);
-		var phi = SpeciesQFraction(species);
-		var theta = SpeciesRFraction(species);
+		var theta = SpeciesQFraction(species);
+		var phi = SpeciesRFraction(species);
 		var L = SpeciesLParameter(species);
 
 		var termSpecies = Math.Log(phi / x) + z * q / 2 * Math.Log(theta / phi) + L;
@@ -1124,180 +1260,135 @@ public class UNIFACActivityModel : ActivityModel
 		foreach (var item in speciesList)
 		{
 			var xj = item.speciesMoleFraction;
-			var Lj = SpeciesLParameter(species);
+			var Lj = SpeciesLParameter(item.chemical);
 			termSum += xj * Lj;
 		}
 
-		return Math.Exp(termSpecies - phi / x * termSum);
+		return termSpecies - phi / x * termSum;
 	}
 
-	private double SpeciesActivityCoefficientResidual(Chemical species, Temperature T)
+	private double LogSpeciesActivityCoefficientResidual(Chemical species, Temperature T)
 	{
-		var listSG = GetAllFunctionalSubgroupsInMixture();
-
 		double sum = 0;
 		foreach (var (subgroup_k, nu_ki) in ChemicalSubgroupMap[species])
 		{
-			sum += nu_ki * ( Math.Log(GammaK(subgroup_k)) - Math.Log(GammaKI(subgroup_k)) );
+			var logGamma_k = LogGammaK(subgroup_k);
+			var logGamma_ki = LogGammaKI(subgroup_k);
+			var add = nu_ki * (logGamma_k - logGamma_ki);
+			sum += add;
 		}
-		return Math.Exp(sum);
+		return sum;
 
 
 		// subgroup k activity coefficient, Γ_k
-		double GammaK(FunctionalSubgroup sg_k)
+		double LogGammaK(FunctionalSubgroup sg_k)
 		{
+			var listSG = GetAllFunctionalSubgroupsInMixture();
 			var Q_k = SubgroupRQParameters[sg_k].Q;
 
-			double logsum = 0;
-			double fracsum = 0;
+			// Calculate σ_m = Σn[Θ_n * Ψ_mn] for each m-subgroup in mixture
+			Dictionary<FunctionalSubgroup, double> listDenoms = [];
 			foreach (var sg_m in listSG)
 			{
-				var theta_m = SubgroupThetaFraction(sg_m);
-
-				logsum += SubgroupThetaFraction(sg_m) * GroupInteractionEnergy(T, sg_m, sg_k);
-
-				double fraction = theta_m * GroupInteractionEnergy(T, sg_k, sg_m);
-				double denomsum = 0;
 				foreach (var sg_n in listSG)
 				{
-					denomsum += SubgroupThetaFraction(sg_n) * GroupInteractionEnergy(T, sg_n, sg_m);
+					var value = SubgroupThetas[sg_n] * GroupInteractionEnergy(T, sg_n, sg_m);
+					try
+					{
+						listDenoms[sg_m] += value;
+					} catch
+					{
+						listDenoms.Add(sg_m, value);
+					}
 				}
-				fracsum += theta_m * GroupInteractionEnergy(T, sg_k, sg_m);
 			}
 
-			return Q_k * (1 - Math.Log(logsum) - fracsum);
-
-
-			// Q-fraction of a subgroup in mixture, Θ_m
-			double SubgroupThetaFraction(FunctionalSubgroup sg_m)
+			// Get all that summation stuff done
+			double sumLn = 0;
+			double sumFr = 0;
+			foreach (var sg_m in listSG)
 			{
-				var aggregates = AggregateSubgroupQ();
-				var total = TotalSubgroupQ();
-
-				return aggregates[sg_m] / total;
-
-				// Calculates the total Q-parameter of subgroups (Q_m times mole fraction)
-				// across all species for use in subgroup fraction calculations.
-				Dictionary<FunctionalSubgroup, double> AggregateSubgroupQ()
-				{
-					Dictionary<FunctionalSubgroup, double> keyValuePairs = [];
-					foreach (var item in speciesList)
-					{
-						foreach (var (subgroup, nu) in ChemicalSubgroupMap[item.chemical])
-						{
-							var X = FunctionalSubgroupMoleFraction(subgroup) * SubgroupRQParameters[subgroup].Q;
-							try
-							{
-								keyValuePairs[subgroup] += X;
-							}
-							catch
-							{
-								keyValuePairs.Add(subgroup, X);
-							}
-						}
-					}
-					return keyValuePairs;
-				}
-
-				// Calculates total Q-parameter of all subgroups in mixtures.
-				double TotalSubgroupQ()
-				{
-					double sum = 0;
-					foreach (var item in AggregateSubgroupQ())
-					{
-						sum += item.Value;
-					}
-					return sum;
-				}
+				sumLn += GroupInteractionEnergy(T, sg_m, sg_k) * SubgroupThetas[sg_m];
+				sumFr += GroupInteractionEnergy(T, sg_k, sg_m) * SubgroupThetas[sg_m] / listDenoms[sg_m];
 			}
 
-			// Mole fraction of a subgroup in mixture, X_m.
-			// Essentially breaks down all species in mixture into subgroups and considers only subgroups.
-			double FunctionalSubgroupMoleFraction(FunctionalSubgroup sg_m)
-			{
-				var aggregates = AggregateSubgroupMoles();
-				var total = TotalSubgroupMoles();
-
-				return aggregates[sg_m] / total;
-
-				// Calculates the total moles of subgroups (nu times mole fraction)
-				// across all species for use in subgroup fraction calculations.
-				Dictionary<FunctionalSubgroup, double> AggregateSubgroupMoles()
-				{
-					Dictionary<FunctionalSubgroup, double> keyValuePairs = [];
-					foreach (var item in speciesList)
-					{
-						foreach (var (subgroup, nu) in ChemicalSubgroupMap[item.chemical])
-						{
-							try
-							{
-								keyValuePairs[subgroup] += item.speciesMoleFraction * nu;
-							}
-							catch
-							{
-								keyValuePairs.Add(subgroup, item.speciesMoleFraction * nu);
-							}
-						}
-					}
-					return keyValuePairs;
-				}
-
-				// Calculates total moles of all subgroups in mixtures.
-				double TotalSubgroupMoles()
-				{
-					double sum = 0;
-					foreach (var item in AggregateSubgroupMoles())
-					{
-						sum += item.Value;
-					}
-					return sum;
-				}
-			}
+			return Q_k * (1 - Math.Log(sumLn) - sumFr);
 		}
 
 		// reference subgroup k activity coefficient, Γ_k(i)
 		// Ignores all other species other than species i.
-		double GammaKI(FunctionalSubgroup sg_k)
+		double LogGammaKI(FunctionalSubgroup sg_k)
 		{
+			var listSG = GetAllFunctionalSubgroupsInSpecies(species);
+			var subgroupThetas = CalculateSubgroupThetas();
 			var Q_k = SubgroupRQParameters[sg_k].Q;
 
-			double logsum = 0;
-			double fracsum = 0;
-			foreach (var (sg_m, nu_m) in ChemicalSubgroupMap[species])
+			// Calculate σ_m = Σn[Θ_n * Ψ_mn] for each m-subgroup in mixture
+			Dictionary<FunctionalSubgroup, double> listDenoms = [];
+			foreach (var sg_m in listSG)
 			{
-				var theta_m = SubgroupThetaFraction(sg_m, nu_m);
-
-				logsum += SubgroupThetaFraction(sg_m, nu_m) * GroupInteractionEnergy(T, sg_m, sg_k);
-
-				double fraction = theta_m * GroupInteractionEnergy(T, sg_k, sg_m);
-				double denomsum = 0;
-				foreach (var (sg_n, nu_n) in ChemicalSubgroupMap[species])
+				foreach (var sg_n in listSG)
 				{
-					denomsum += SubgroupThetaFraction(sg_n, nu_m) * GroupInteractionEnergy(T, sg_n, sg_m);
+					var value = subgroupThetas[sg_n] * GroupInteractionEnergy(T, sg_n, sg_m);
+					try
+					{
+						listDenoms[sg_m] += value;
+					}
+					catch
+					{
+						listDenoms.Add(sg_m, value);
+					}
 				}
-				fracsum += theta_m * GroupInteractionEnergy(T, sg_k, sg_m);
 			}
 
-			return Q_k * (1 - Math.Log(logsum) - fracsum);
-
-
-			// Q-fraction of a subgroup in pure component i, Θ_m(i)
-			double SubgroupThetaFraction(FunctionalSubgroup sg_m, int nu_m)
+			// Get all that summation stuff done
+			double sumLn = 0;
+			double sumFr = 0;
+			foreach (var sg_m in listSG)
 			{
-				double denom = 0;
-				foreach (var (sg_n, nu_n) in ChemicalSubgroupMap[species])
-				{
-					denom += SubgroupRQParameters[sg_n].Q * FunctionalSubgroupMoleFraction(sg_n, nu_n);
-				}
-				return SubgroupRQParameters[sg_m].Q * FunctionalSubgroupMoleFraction(sg_m, nu_m) / denom;
+				sumLn += GroupInteractionEnergy(T, sg_m, sg_k) * subgroupThetas[sg_m];
+				sumFr += GroupInteractionEnergy(T, sg_k, sg_m) * subgroupThetas[sg_m] / listDenoms[sg_m];
 			}
 
-			// Mole fraction of a subgroup in pure component i, X_m(i)
-			double FunctionalSubgroupMoleFraction(FunctionalSubgroup sg_m, int nu_m)
+			return Q_k * (1 - Math.Log(sumLn) - sumFr);
+
+			// Overrides standard CalculateSubgroupThetas() to use in reference calculation.
+			Dictionary<FunctionalSubgroup, double> CalculateSubgroupThetas()
 			{
-				int totalnu = 0;
-				foreach (var (_, nu_n) in ChemicalSubgroupMap[species]) totalnu += nu_n;
-				return nu_m / totalnu;
+				var subgroupMoleFractions = CalculateSubgroupMoleFractions();
+				double totalSubgroupQ = 0;
+				foreach (var item in subgroupMoleFractions)
+				{
+					var X_i = item.Value;
+					var Q_i = SubgroupRQParameters[item.Key].Q;
+					totalSubgroupQ += X_i * Q_i;
+				}
+
+				Dictionary<FunctionalSubgroup, double> subgroupThetas = [];
+				foreach (var item in subgroupMoleFractions)
+				{
+					var X_i = item.Value;
+					var Q_i = SubgroupRQParameters[item.Key].Q;
+					subgroupThetas[item.Key] = X_i * Q_i / totalSubgroupQ;
+				}
+				return subgroupThetas;
+			}
+
+			// Overrides standard CalculateSubgroupFractions() to use in reference calculation.
+			Dictionary<FunctionalSubgroup, double> CalculateSubgroupMoleFractions()
+			{
+				double totalSubgroupMoles = 0;
+				foreach (var (_, nu_k) in ChemicalSubgroupMap[species])
+				{
+					totalSubgroupMoles += nu_k;
+				}
+
+				Dictionary<FunctionalSubgroup, double> subgroupMoleFractions = [];
+				foreach (var (subgroup_k, nu_k) in ChemicalSubgroupMap[species])
+				{
+					subgroupMoleFractions.Add(subgroup_k, nu_k / totalSubgroupMoles);
+				}
+				return subgroupMoleFractions;
 			}
 		}
 	}
@@ -1378,7 +1469,7 @@ public class UNIFACActivityModel : ActivityModel
 	{
 		var z = 10;
 		var r = SpeciesRParameter(species);
-		var q = SpeciesRParameter(species);
+		var q = SpeciesQParameter(species);
 		return z / 2 * (r - q) - (r - 1);
 	}
 
@@ -1395,35 +1486,5 @@ public class UNIFACActivityModel : ActivityModel
 	private double GroupInteractionEnergy(Temperature T, FunctionalSubgroup SG1, FunctionalSubgroup SG2)
 	{
 		return GroupInteractionEnergy(T, MaingroupSubgroupMap[SG1], MaingroupSubgroupMap[SG2]);
-	}
-
-	/// <summary>
-	/// Lists out all functional subgroups in the mixture.
-	/// </summary>
-	private List<FunctionalSubgroup> GetAllFunctionalSubgroupsInMixture()
-	{
-		List<FunctionalSubgroup> subgroups = [];
-		foreach(var item in speciesList)
-		{
-			foreach (var (subgroup, _) in ChemicalSubgroupMap[item.chemical])
-			{
-				if (subgroups.Contains(subgroup)) break;
-				else subgroups.Add(subgroup);
-			}
-		}
-		return subgroups;
-	}
-
-	/// <summary>
-	/// Gets the index in speciesList which represents the given chemical.
-	/// </summary>
-	int GetMixtureSpeciesIdx(Chemical species)
-	{
-		for (int i = 0; i < speciesList.Count; i++)
-		{
-			if (speciesList[i].chemical == species) return i;
-		}
-
-		throw new KeyNotFoundException("Species not found in speciesList.");
 	}
 }

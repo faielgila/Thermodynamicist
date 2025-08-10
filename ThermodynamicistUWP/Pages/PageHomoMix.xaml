@@ -1,12 +1,12 @@
 ﻿<Page
-	x:Class="ThermodynamicistUWP.PageRxnKin"
+	x:Class="ThermodynamicistUWP.PageHomoMix"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:vm="using:Core.ViewModels"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:viewmodels="using:Core.ViewModels"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -21,14 +21,14 @@
 		</Grid.RowDefinitions>
 
 		<!--
-		Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
+		Initialize : Bound to ViewModel (type PageHomoMixViewModel) which stores a list of ControlMixtureSpeciesViewModels.
 		Selection  : Bound to the ViewModel.
 		-->
 		<ListView Grid.Row="0" Grid.Column="0" SelectionMode="None"
 				  ItemsSource="{x:Bind ViewModel.Items}" HorizontalAlignment="Left">
 			<ListView.ItemTemplate>
-				<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-					<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}" />
+				<DataTemplate x:DataType="vm:ControlMixtureSpeciesViewModel">
+					<local:ControlMixtureSpecies ViewModel="{x:Bind Mode=TwoWay}" />
 				</DataTemplate>
 			</ListView.ItemTemplate>
 		</ListView>
