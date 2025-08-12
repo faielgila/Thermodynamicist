@@ -13,7 +13,7 @@ namespace ThermodynamicistUWP
 {
 	public sealed partial class PageRxnKin : Page
 	{
-		public ControlRxnViewModel ViewModel { get; } = new ControlRxnViewModel();
+		public PageRxnViewModel ViewModel { get; } = new PageRxnViewModel();
 
 		public PageRxnKin()
 		{
@@ -24,11 +24,11 @@ namespace ThermodynamicistUWP
 		{
 			ViewModel.AddItem( new ControlRxnSpeciesViewModel
 			{
-				Chemical = Chemical.Methane,
+				Chemical = Chemical.Acetone,
 				EoSFactory = new PengRobinsonEOSFactory(),
 				Stoich = 1,
-				Phase = "vapor",
-				IsReactant = false,
+				Phase = "",
+				IsReactant = true,
 				DeleteCommand = ViewModel.DeleteCommand
 			});
 		}

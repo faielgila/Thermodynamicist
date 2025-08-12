@@ -133,4 +133,27 @@ public partial class ControlMixtureSpeciesViewModel : ObservableObject
 		_EoS = EoSFactory.Create(Chemical);
 		ModeledPhases = _EoS.ModeledPhases;
 	}
+
+	/// <summary>
+	/// Validates all input properties.
+	/// </summary>
+	/// <returns>true if all inputs are valid.</returns>
+	public bool CheckValidInput()
+	{
+		if (EoSFactory is null ||
+			ModeledPhase is null ||
+			Chemical == null ||
+			SpeciesMoleFraction is null ||
+			DeleteCommand is null)
+		{
+			return false;
+		}
+
+		if (_EoS is null)
+		{
+			UpdateEoS(); return false;
+		}
+
+		return true;
+	}
 }

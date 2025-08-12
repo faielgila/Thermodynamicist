@@ -6,9 +6,9 @@ namespace Core.ViewModels;
 
 /// <summary>
 /// ViewModel for ControlRxn (or specifically, PageRxnKin).
-/// This is an Observable wrapper of <see cref="Reaction"/> for use in <see cref="ControlRxnViewModel"/>.
+/// This is an Observable wrapper of <see cref="Reaction"/> for use in <see cref="PageRxnViewModel"/>.
 /// </summary>
-public partial class ControlRxnViewModel : ObservableObject
+public partial class PageRxnViewModel : ObservableObject
 {
 	/// <summary>
 	/// Stores a list of <see cref="ControlRxnSpeciesViewModel"/>s as an Observable
@@ -25,7 +25,7 @@ public partial class ControlRxnViewModel : ObservableObject
 	[ObservableProperty]
 	private IRelayCommand<ControlRxnSpeciesViewModel> _deleteCommand;
 
-	public ControlRxnViewModel()
+	public PageRxnViewModel()
 	{
 		// Pass down the DeleteItem command to each ControlRxnSpeciesViewModel.
 		DeleteCommand = new RelayCommand<ControlRxnSpeciesViewModel>(DeleteItem);

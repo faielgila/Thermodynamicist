@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using Core;
 using Core.EquationsOfState;
 using Core.ViewModels;
 using Microsoft.UI.Xaml.Controls;
@@ -47,6 +48,23 @@ namespace ThermodynamicistUWP
 			DropdownEoS.Items.Add(new VanDerWaalsEOSFactory());
 			DropdownEoS.Items.Add(new PengRobinsonEOSFactory());
 			DropdownEoS.Items.Add(new ModSolidLiquidVaporEOSFactory());
+		}
+
+		/// <summary>
+		/// Validates all input properties.
+		/// </summary>
+		/// <returns>true if all inputs are valid.</returns>
+		public bool CheckValidInput()
+		{
+			if (DropdownEoS.SelectedItem is null ||
+				DropdownPhase.SelectedItem is null ||
+				DropdownSpecies.SelectedItem == null ||
+				NumBoxMoleFraction.Value is double.NaN)
+			{
+				return false;
+			}
+
+			return true;
 		}
 	}
 }

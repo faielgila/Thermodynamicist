@@ -10,7 +10,7 @@ namespace Core.ViewModels;
 /// ViewModel for an EoS (or specifically, PagePCSF).
 /// This is an observable wrapper of <see cref="EquationOfState"/>.
 /// </summary>
-public partial class PCSFViewModel : ObservableObject
+public partial class PagePCSFViewModel : ObservableObject
 {
 	/// <summary>
 	/// Stores the temperature to calculate thermo state variables at.

@@ -54,7 +54,7 @@
 		-->
 		<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
 				  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.ModeledPhase, Mode=TwoWay}"
-				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="2" Width="100"/>
+				  Margin="0, 0, 0, 0" Grid.Row="0" Grid.Column="2" Width="100"/>
 	
 		<!--
 		Command : Bound to ViewModel.DeleteCommand, which is itself passed down from PageRxnKin to ensure propery deletion from the

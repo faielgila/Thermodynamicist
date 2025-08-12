@@ -6,7 +6,7 @@ namespace Core.ViewModels;
 
 /// <summary>
 /// ViewModel for ControlRxnSpecies.
-/// This is an Observable wrapper of <see cref="RxnSpecies"/> for use in <see cref="ControlRxnViewModel"/>.
+/// This is an Observable wrapper of <see cref="RxnSpecies"/> for use in <see cref="PageRxnViewModel"/>.
 /// </summary>
 public partial class ControlRxnSpeciesViewModel : ObservableObject
 {

@@ -14,7 +14,7 @@ namespace ThermodynamicistUWP
 {
 	public sealed partial class PagePCSF : Page
 	{
-		public PCSFViewModel ViewModel { get; } = new PCSFViewModel();
+		public PagePCSFViewModel ViewModel { get; } = new PagePCSFViewModel();
 
 		public PagePCSF()
 		{

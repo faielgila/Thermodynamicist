@@ -4,50 +4,78 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:vm="using:Core.ViewModels"
+	xmlns:am="using:Core.Multicomponent.ActivityModels"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:viewmodels="using:Core.ViewModels"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
 	<Grid Margin="10">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="37"/>
+			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
-		<!--
-		Initialize : Bound to ViewModel (type PageHomoMixViewModel) which stores a list of ControlMixtureSpeciesViewModels.
-		Selection  : Bound to the ViewModel.
-		-->
-		<ListView Grid.Row="0" Grid.Column="0" SelectionMode="None"
-				  ItemsSource="{x:Bind ViewModel.Items}" HorizontalAlignment="Left">
-			<ListView.ItemTemplate>
-				<DataTemplate x:DataType="vm:ControlMixtureSpeciesViewModel">
-					<local:ControlMixtureSpecies ViewModel="{x:Bind Mode=TwoWay}" />
-				</DataTemplate>
-			</ListView.ItemTemplate>
-		</ListView>
-		
-		<!--
-		Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
-		-->
-		<Button Content="Add species" Click="ButtonAddSpecies_Click"
-				Grid.Row="1" Grid.Column="0" Width="135"
-				HorizontalAlignment="Left" VerticalAlignment="Top"/>
-		
-		<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="5" VerticalAlignment="Top">
-			<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+
+			<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
+				<!--
+				Initialize : See attached .cs file. Activity models must be added manually using their ActivityModelFactories.
+				Selection  : Bound to ViewModel.ActivityModelFactory, notably not an ActivityModel directly.
+				TextBlock  : Bound to ActivityModelFactory.Name which contains the human-readable name for the activity model.
+				Note : Binding to ActivityModelFactory removes the need to pass around a specific model instance and is more like the *concept* of a model.
+				-->
+				<ComboBox x:Name="DropdownModel" Header="Activity Model: " PlaceholderText="Pick an activity model"
+					  SelectedValue="{x:Bind ViewModel.ActivityModelFactory, Mode=TwoWay}"
+					  Margin="5" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+					<ComboBox.ItemTemplate>
+						<DataTemplate x:DataType="am:IActivityModelFactory">
+							<TextBlock Text="{x:Bind Name}"/>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+				<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
 							ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-			<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
+				<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
 							ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
-			<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output:"/>
-			<TextBlock x:Name="DataLabel"/>
+				<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
+			</StackPanel>
+
+			<StackPanel Grid.Row="0" Grid.Column="1">
+				<!--
+				Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
+				-->
+				<Button Content="Add species" Click="ButtonAddSpecies_Click"
+				Width="135" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+				<!--
+				Initialize : Bound to ViewModel (type PageHomoMixViewModel) which stores a list of ControlMixtureSpeciesViewModels.
+				Selection  : Bound to the ViewModel.
+				-->
+				<muxc:ItemsRepeater ItemsSource="{x:Bind ViewModel.Items}" x:Name="ItemsRepeaterMixtureSpecies" HorizontalAlignment="Left">
+					<muxc:ItemsRepeater.ItemTemplate>
+						<DataTemplate x:DataType="vm:ControlMixtureSpeciesViewModel">
+							<local:ControlMixtureSpecies Padding="0" ViewModel="{x:Bind Mode=TwoWay}" />
+						</DataTemplate>
+					</muxc:ItemsRepeater.ItemTemplate>
+				</muxc:ItemsRepeater>
+			</StackPanel>
+		</Grid>
+
+		<StackPanel Grid.Row="1" Grid.Column="0">
+			<TextBlock Margin="5" Style="{StaticResource SubtitleTextBlockStyle}" Text="Output:"/>
+			<TextBlock Margin="5" x:Name="DataLabel"/>
 		</StackPanel>
 
 	</Grid>
