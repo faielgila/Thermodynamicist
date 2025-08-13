@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThermodynamicistUWP", "Ther
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.ViewModels", "Core.ViewModels\Core.ViewModels.csproj", "{D3942AB5-5F30-470A-99FA-3A7BACC0348F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Console", "Core.Console\Core.Console.csproj", "{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,26 @@ Global
 		{D3942AB5-5F30-470A-99FA-3A7BACC0348F}.Release|x64.Build.0 = Release|Any CPU
 		{D3942AB5-5F30-470A-99FA-3A7BACC0348F}.Release|x86.ActiveCfg = Release|Any CPU
 		{D3942AB5-5F30-470A-99FA-3A7BACC0348F}.Release|x86.Build.0 = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|ARM.Build.0 = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|x64.Build.0 = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Debug|x86.Build.0 = Debug|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|ARM.ActiveCfg = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|ARM.Build.0 = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|ARM64.Build.0 = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|x64.ActiveCfg = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|x64.Build.0 = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|x86.ActiveCfg = Release|Any CPU
+		{C062C8BE-2D9D-4738-BE99-F99A7EF93D74}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
