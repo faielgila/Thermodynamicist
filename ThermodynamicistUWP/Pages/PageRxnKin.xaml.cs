@@ -82,10 +82,5 @@ namespace ThermodynamicistUWP
 				ErrorDialog.ShowErrorDialog(e);
 			}
 		}
-
-		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
-		{
-			//RunCalc(sender, null);
-		}
 	}
 }

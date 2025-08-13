@@ -66,7 +66,11 @@
 			<ToggleSwitch x:Name="TogglePlots" Header="Show plots?" Toggled="TogglePlots_Toggled"  Margin="5"/>
 			<ToggleSwitch x:Name="ToggleSCurve" Header="Show s-curves?" Toggled="ToggleSCurve_Toggled" Margin="5"/>
 
-			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
+			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc">
+				<Button.KeyboardAccelerators>
+					<KeyboardAccelerator Key="Enter"/>
+				</Button.KeyboardAccelerators>
+			</Button>
 		</StackPanel>
 		
 		<TextBlock x:Name="DataLabel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"/>

@@ -13,39 +13,52 @@
 	<Grid Margin="10">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="37"/>
 		</Grid.RowDefinitions>
 
-		<!--
-		Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
-		Selection  : Bound to the ViewModel.
-		-->
-		<ListView Grid.Row="0" Grid.Column="0" SelectionMode="None"
-				  ItemsSource="{x:Bind ViewModel.Items}" HorizontalAlignment="Left">
-			<ListView.ItemTemplate>
-				<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-					<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}" />
-				</DataTemplate>
-			</ListView.ItemTemplate>
-		</ListView>
-		
-		<!--
-		Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
-		-->
-		<Button Content="Add species" Click="ButtonAddSpecies_Click"
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+
+			<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
+				<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
+							AcceptsExpression="True"/>
+				<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
+							AcceptsExpression="True"/>
+				<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
+			</StackPanel>
+
+			<StackPanel Grid.Row="0" Grid.Column="1">
+				<!--
+				Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
+				-->
+				<Button Content="Add species" Click="ButtonAddSpecies_Click"
 				Grid.Row="1" Grid.Column="0" Width="135"
 				HorizontalAlignment="Left" VerticalAlignment="Top"/>
-		
-		<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="5" VerticalAlignment="Top">
-			<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
-							ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-			<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
-							ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
+
+				<!--
+				Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
+				Selection  : Bound to the ViewModel.
+				-->
+				<muxc:ItemsRepeater Grid.Row="0" Grid.Column="0" ItemsSource="{x:Bind ViewModel.Items}" HorizontalAlignment="Left">
+					<muxc:ItemsRepeater.ItemTemplate>
+						<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
+							<local:ControlRxnSpecies Padding="0" ViewModel="{x:Bind Mode=TwoWay}" />
+						</DataTemplate>
+					</muxc:ItemsRepeater.ItemTemplate>
+				</muxc:ItemsRepeater>
+			</StackPanel>
+		</Grid>
+
+		<StackPanel Grid.Row="1" Grid.Column="0">
 			<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output:"/>
 			<TextBlock x:Name="DataLabel"/>
 		</StackPanel>

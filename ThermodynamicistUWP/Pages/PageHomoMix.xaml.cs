@@ -93,29 +93,29 @@ namespace ThermodynamicistUWP
 				}
 			}
 
-			// Get species list from ControlMixtureSpecies.
-			var speciesList = ViewModel.GetMixtureSpeciesList();
-			var model = ViewModel.ActivityModelFactory.Create(ViewModel.GetMixtureSpeciesList());
-			var homogeneousMixture = new HomogeneousMixture(speciesList, "liquid", model);
-
-			// Mixture testing. TEMPORARY TODO
-			//var mixtureSpecies = new List<MixtureSpecies>
-			//{
-			//	new MixtureSpecies(Chemical.Acetone, 0.047, "liquid"),
-			//	new MixtureSpecies(Chemical.NPentane, 1-0.047, "liquid")
-			//};
-			//var homogeneousMixture = new HomogeneousMixture(mixtureSpecies, "liquid", new UNIFACActivityModel(mixtureSpecies));
-
-			UpdateData(homogeneousMixture, T, P);
+			/* Normally, the input data would be packaged into a Core object (in this case, HomogeneousMixture).
+			 * However, calculations for some activity models are done during initialization to prevent too many
+			 * duplicate calculations. Thus, the UpdateData() method will take care of the packaging and will directly
+			 * access the ViewModel property on its own.
+			 */
+			UpdateData(T, P);
 		}
 
 		/// <summary>
 		/// Runs calculations, updates DataLabel with outputs.
 		/// </summary>
-		private void UpdateData(HomogeneousMixture mixture, Temperature T, Pressure P)
+		private void UpdateData(Temperature T, Pressure P)
 		{
 			try
 			{
+				// Get species list from ControlMixtureSpecies.
+				var speciesList = ViewModel.GetMixtureSpeciesList();
+				// Instatiate activity model using the provided ActivityModelFactory.
+				var model = ViewModel.ActivityModelFactory.Create(ViewModel.GetMixtureSpeciesList());
+				// Instatiate HomogeneousMixture Core object. This will begin some preliminary calculations.
+				var mixture = new HomogeneousMixture(speciesList, "liquid", model);
+
+				// Run calculations and add to DataLabel text.
 				DataLabel.Text = "";
 				foreach (var ms in mixture.speciesList)
 				{
@@ -123,15 +123,11 @@ namespace ThermodynamicistUWP
 					var activity = mixture.activityModel.SpeciesActivityCoefficient(ms.chemical, T);
 					DataLabel.Text += "\nActivity coefficient, " + name + ": " + activity.ToEngrNotation(5);
 				}
-			} catch (Exception e)
-			{
-				ErrorDialog.ShowErrorDialog(e);
 			}
-		}
-
-		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
-		{
-			//RunCalc(sender, null);
+			catch (Exception ex)
+			{
+				ErrorDialog.ShowErrorDialog(ex);
+			}
 		}
 	}
 }

@@ -45,11 +45,16 @@
 						</DataTemplate>
 					</ComboBox.ItemTemplate>
 				</ComboBox>
+				
 				<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
-							ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
+							AcceptsExpression="True"/>
 				<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
-							ValueChanged="NumBox_ValueChanged" AcceptsExpression="True"/>
-				<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
+							AcceptsExpression="True"/>
+				<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc">
+					<Button.KeyboardAccelerators>
+						<KeyboardAccelerator Key="Enter"/>
+					</Button.KeyboardAccelerators>
+				</Button>
 			</StackPanel>
 
 			<StackPanel Grid.Row="0" Grid.Column="1">

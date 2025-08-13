@@ -1,28 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-
 
 namespace ThermodynamicistUWP.Dialogs
 {
 	public sealed partial class ErrorDialog : ContentDialog
 	{
 		public string ErrorText;
+		public string ErrorStacktrace;
 
 		public ErrorDialog()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 			Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
 		}
 
@@ -45,7 +34,8 @@ namespace ThermodynamicistUWP.Dialogs
 		{
 			var errorPopup = new ErrorDialog
 			{
-				ErrorText = e.Message + "\n\nStack trace:\n" + e.StackTrace
+				ErrorText = e.Message,
+				ErrorStacktrace = e.StackTrace
 			};
 			await errorPopup.ShowAsync();
 		}

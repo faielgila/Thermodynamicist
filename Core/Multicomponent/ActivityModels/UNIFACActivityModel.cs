@@ -7,6 +7,7 @@ public class UNIFACActivityModel : ActivityModel
 {
 	public UNIFACActivityModel(List<MixtureSpecies> _speciesList) : base(_speciesList)
 	{
+		ValidateSpeciesInList();
 		CalculateSubgroupMoleFractions();
 		CalculateSubgroupThetas();
 		CalculateSpeciesDerivedParameters();
@@ -1135,6 +1136,25 @@ public class UNIFACActivityModel : ActivityModel
 	private Dictionary<Chemical, double> SpeciesThetas = [];
 	private Dictionary<Chemical, double> SpeciesPhis = [];
 	private Dictionary<Chemical, double> SpeciesLs = [];
+
+	/// <summary>
+	/// Validates that all species in the speciesList can be modeled with this activity model.
+	/// </summary>
+	private void ValidateSpeciesInList()
+	{
+		foreach(var item in speciesList)
+		{
+			try
+			{
+				var _ = ChemicalSubgroupMap[item.chemical];
+			}
+			catch
+			{
+				var speciesName = Constants.ChemicalNames[item.chemical];
+				throw new KeyNotFoundException($"{speciesName} cannot be modeled using the UNIFAC activity model.");
+			}
+		}
+	}
 
 	/// <summary>
 	/// Lists out all functional subgroups in the mixture.
