@@ -20,7 +20,7 @@ foreach (var x in compositions)
 		new(Chemical.NPentane, 1-x, "liquid")
 	};
 	var model = new UNIFACActivityModel(mixtureSpecies);
-	var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", model);
+	var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", model, null);
 	var record = new HomogeneousMixtureActivityCoefficientRecord
 	{
 		composition = x,

@@ -13,7 +13,7 @@ public class CalculationCache
 	/// <summary>
 	/// Cache of calculated values.
 	/// </summary>
-	private readonly ConcurrentDictionary<Int32, double> hashCache = [];
+	public readonly ConcurrentDictionary<Int32, double> hashCache = [];
 
 	public CalculationCache() { }
 

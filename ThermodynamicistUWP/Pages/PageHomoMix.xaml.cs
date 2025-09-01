@@ -1,4 +1,5 @@
-﻿using Core;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Core;
 using Core.EquationsOfState;
 using Core.Multicomponent;
 using Core.Multicomponent.ActivityModels;
@@ -6,6 +7,7 @@ using Core.VariableTypes;
 using Core.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using ThermodynamicistUWP.Converters;
 using ThermodynamicistUWP.Dialogs;
 using Windows.UI.Xaml;
@@ -17,6 +19,8 @@ namespace ThermodynamicistUWP
 	public sealed partial class PageHomoMix : Page
 	{
 		public PageHomoMixViewModel ViewModel { get; } = new PageHomoMixViewModel();
+
+		private ObservableCollection<SpeciesOutputData> SpeciesOutputList = new ObservableCollection<SpeciesOutputData>();
 
 		public PageHomoMix()
 		{
@@ -113,21 +117,46 @@ namespace ThermodynamicistUWP
 				// Instatiate activity model using the provided ActivityModelFactory.
 				var model = ViewModel.ActivityModelFactory.Create(ViewModel.GetMixtureSpeciesList());
 				// Instatiate HomogeneousMixture Core object. This will begin some preliminary calculations.
-				var mixture = new HomogeneousMixture(speciesList, "liquid", model);
+				var mixture = new HomogeneousMixture(speciesList, "liquid", model, null);
 
 				// Run calculations and add to DataLabel text.
 				DataLabel.Text = "";
+				var totalG = mixture.TotalMolarGibbsEnergy(T, P);
+				var totalH = mixture.TotalMolarEnthalpy(T, P);
+				DataLabel.Text += $"Total molar Gibbs energy: {totalG.ToEngrNotation(5)}\n";
+				DataLabel.Text += $"Total molar Enthalpy: {totalH.ToEngrNotation(5)}";
+				DataLabel.Text.Remove(0, 5);
+
+
+				// Run calculations and add to output text
+				SpeciesOutputList.Clear();
 				foreach (var ms in mixture.speciesList)
 				{
 					var name = Constants.ChemicalNames[ms.chemical];
 					var activity = mixture.activityModel.SpeciesActivityCoefficient(ms.chemical, T);
-					DataLabel.Text += "\nActivity coefficient, " + name + ": " + activity.ToEngrNotation(5);
+					var fugacity = mixture.SpeciesFugacity(ms.chemical, T, P);
+					SpeciesOutputList.Add(new SpeciesOutputData(ms.chemical, activity, fugacity));
 				}
 			}
 			catch (Exception ex)
 			{
 				ErrorDialog.ShowErrorDialog(ex);
 			}
+		}
+	}
+
+	/// <summary>
+	/// Stores chemical and output data (in a pre-formatted string) for use in SpeciesResultsTemplate
+	/// </summary>
+	public struct SpeciesOutputData
+	{
+		public string species;
+		public string outputData;
+
+		public SpeciesOutputData(Chemical species, double activity, double fugacity)
+		{
+			this.species = Constants.ChemicalNames[species];
+			this.outputData = $"Activity coefficient: {activity.ToEngrNotation(5)}\nFugacity: {fugacity.ToEngrNotation(5)}\n";
 		}
 	}
 }

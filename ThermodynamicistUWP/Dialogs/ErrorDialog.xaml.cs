@@ -24,6 +24,8 @@ namespace ThermodynamicistUWP.Dialogs
 			{
 				ErrorText = text
 			};
+			errorPopup.TextBlockTitleStacktrace.Visibility = Visibility.Collapsed;
+			errorPopup.TextBlockErrorStacktrace.Visibility = Visibility.Collapsed;
 			await errorPopup.ShowAsync();
 		}
 

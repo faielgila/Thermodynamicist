@@ -11,14 +11,14 @@
 	CloseButtonText="Cancel calculation">
 
 	<StackPanel>
-		<TextBlock Text="{x:Bind ErrorText}" IsTextSelectionEnabled="True"/>
-		<TextBlock Text="Stack trace: "/>
+		<TextBlock x:Name="TextBlockErrorText" Text="{x:Bind ErrorText}" IsTextSelectionEnabled="True"/>
+		<TextBlock x:Name="TextBlockTitleStacktrace" Text="Stack trace: "/>
 		<ScrollViewer Padding="0, 0, 20, 20"
 					  VerticalScrollBarVisibility="Auto"
 					  VerticalScrollMode="Enabled"
 					  HorizontalScrollMode="Enabled"
 					  HorizontalScrollBarVisibility="Auto">
-			<TextBlock Text="{x:Bind ErrorStacktrace}" IsTextSelectionEnabled="True"/>
+			<TextBlock x:Name="TextBlockErrorStacktrace" Text="{x:Bind ErrorStacktrace}" IsTextSelectionEnabled="True"/>
 		</ScrollViewer>
 	</StackPanel>
 </ContentDialog>

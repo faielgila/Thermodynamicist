@@ -1,36 +1,43 @@
 ﻿using Core.EquationsOfState;
 using Core.Multicomponent.ActivityModels;
 using Core.VariableTypes;
-using System.Runtime.CompilerServices;
 
 namespace Core.Multicomponent;
 
 /// <summary>
 /// Represents a homogeneous mixture (a multicomponent, single-phase system).
 /// </summary>
-public class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, ActivityModel activityModel)
+public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase, ActivityModel _activityModel, MoleFraction? _moleFraction)
 {
+	private static readonly double R = Constants.R;
+	public Temperature dTPrecision { get; set; } = 0.5;
+
+	/// <summary>
+	/// Spin up a <see cref="CalculationCache"/> to store calculated values and avoid repeat math.
+	/// </summary>
+	public readonly MetadataCalculationCache calcCache = new();
+
 	/// <summary>
 	/// Stores all mixture species with their EoS, molar fraction in the mixture, and modeledPhase.
 	/// </summary>
-	public List<MixtureSpecies> speciesList = speciesList;
+	public List<MixtureSpecies> speciesList = _speciesList;
 
 	/// <summary>
 	/// Overall mixture phase.
 	/// </summary>
-	public string totalPhase = phase;
+	public string totalPhase = _phase;
 
 	/// <summary>
 	/// Mole fraction of this mixture relative to the system.
 	/// Can be null if the system contains only this mixture,
 	/// but this is not recommended.
 	/// </summary>
-	public MoleFraction? mixtureMoleFraction;
+	public MoleFraction? mixtureMoleFraction = _moleFraction;
 
 	/// <summary>
 	/// Activity coefficient model to use in thermodynamic calculations.
 	/// </summary>
-	public ActivityModel activityModel = activityModel;
+	public ActivityModel activityModel = _activityModel;
 
 	/// <summary>
 	/// Gets the index in speciesList which represents the given chemical.
@@ -45,20 +52,213 @@ public class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, 
 		throw new KeyNotFoundException("Species not found in speciesList.");
 	}
 
-	#region State functions - Gibbs energy
 
+	#region Total properties
+
+	/// <summary>
+	/// Calculates the total molar Gibbs energy of the mixture.
+	/// </summary>
+	/// <exception cref="KeyNotFoundException"/>
 	public GibbsEnergy TotalMolarGibbsEnergy(Temperature T, Pressure P)
 	{
-		return 0;
+		GibbsEnergy total = 0;
+		foreach (var species in speciesList)
+		{
+			total += SpeciesPartialMolarGibbsEnergy(T, P, species.chemical) * species.speciesMoleFraction;
+		}
+		return total;
 		// see Phase Diagrams and Thermodynamics of Solutions, eq 4.3
 	}
+
+	/// <summary>
+	/// Calculates the total molar enthalpy of the mixture.
+	/// </summary>
+	/// <exception cref="KeyNotFoundException"/>
+	public Enthalpy TotalMolarEnthalpy(Temperature T, Pressure P)
+	{
+		var sumH = new Enthalpy(0, ThermoVarRelations.RealMolar);
+		foreach (var item in speciesList)
+		{
+			var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(item.chemical)];
+			var x = mixtureSpecies.speciesMoleFraction;
+			var modeledPhase = mixtureSpecies.modeledPhase;
+			var EoS = mixtureSpecies.EoS;
+
+			var phases = EoS.PhaseFinder(T, P, true);
+			double VMol = 0;
+			try
+			{
+				VMol = phases[modeledPhase];
+			}
+			catch
+			{
+				throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[item.chemical]} not found using EoS phase finder.");
+			}
+
+			var pureH = EoS.ReferenceMolarEnthalpy(T, P, VMol);
+			sumH += item.speciesMoleFraction * pureH;
+		}
+		var mixH = MolarEnthalpyOfMixing(T, P);
+		return new Enthalpy(mixH + sumH, ThermoVarRelations.RealMolar);
+	}
+
+	#endregion
+
+
+	#region Mixing properties
 
 	public GibbsEnergy MolarGibbsEnergyOfMixing(Temperature T, Pressure P)
 	{
 		return 0;
 	}
 
+	/// <summary>
+	/// Calculates the molar enthalpy of mixing for the mixture.
+	/// </summary>
+	public Enthalpy MolarEnthalpyOfMixing(Temperature T, Pressure P)
+	{
+		var Hex = MolarExcessEnthalpy(T, P);
+		return new Enthalpy(Hex, ThermoVarRelations.Mixing);
+	}
+
 	#endregion
+
+
+	#region Partial Excess properties
+
+	/// <summary>
+	/// Calculates the partial molar excess Gibbs energy for a given species in the mixture.
+	/// See Sandler, eqn 9.3-12
+	/// </summary>
+	public GibbsEnergy SpeciesPartialMolarExcessGibbsEnergy(Temperature T, Chemical species)
+	{
+		var gamma = activityModel.SpeciesActivityCoefficient(species, T);
+		return new GibbsEnergy(R * T * Math.Log(gamma), ThermoVarRelations.PartialMolarExcess);
+	}
+
+	/// <summary>
+	/// Calculates the partial molar excess enthalpy for a given species in the mixture.
+	/// </summary>
+	public Enthalpy SpeciesPartialMolarExcessEnthalpy(Temperature T, Chemical species)
+	{
+		/* Use a first-order approximation of the partial derivative relationship between
+		 * activity coefficients and the partial molar excess enthalpy. A (δT)² term is
+		 * ignored for the purposes of this calculation.
+		 * See Sandler eqn 9.3-21
+		*/
+		var gamma0 = activityModel.SpeciesActivityCoefficient(species, T);
+		var gamma1 = activityModel.SpeciesActivityCoefficient(species, T + dTPrecision);
+		var val = -R * T / dTPrecision * (T + 2 * dTPrecision) * Math.Log(gamma1 / gamma0);
+		return new Enthalpy(val, ThermoVarRelations.PartialMolarExcess);
+	}
+
+	#endregion
+
+
+	#region Partial properties
+
+	/// <summary>
+	/// Calculates the partial molar Gibbs energy for a given species in the mixture.
+	/// </summary>
+	/// <exception cref="KeyNotFoundException"/>
+	public GibbsEnergy SpeciesPartialMolarGibbsEnergy(Temperature T, Pressure P, Chemical species)
+	{
+		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
+		var x = mixtureSpecies.speciesMoleFraction;
+		var modeledPhase = mixtureSpecies.modeledPhase;
+		var EoS = mixtureSpecies.EoS;
+
+		var phases = EoS.PhaseFinder(T, P, true);
+		double VMol = 0;
+		try
+		{
+			VMol = phases[modeledPhase];
+		}
+		catch
+		{
+			throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[species]} not found using EoS phase finder.");
+		}
+
+		var pureG = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
+		var partialGex = SpeciesPartialMolarExcessGibbsEnergy(T, species);
+		var entropicCorrectionTerm = R * T * Math.Log(x);
+
+		return new GibbsEnergy(partialGex + pureG + entropicCorrectionTerm, ThermoVarRelations.PartialMolar);
+	}
+
+	/// <summary>
+	/// Calculates the partial molar enthalpy for a given species in the mixture.
+	/// </summary>
+	/// <exception cref="KeyNotFoundException"/>
+	public Enthalpy SpeciesPartialMolarEnthalpy(Temperature T, Pressure P, Chemical species)
+	{
+		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
+		var x = mixtureSpecies.speciesMoleFraction;
+		var modeledPhase = mixtureSpecies.modeledPhase;
+		var EoS = mixtureSpecies.EoS;
+
+		var phases = EoS.PhaseFinder(T, P, true);
+		double VMol = 0;
+		try
+		{
+			VMol = phases[modeledPhase];
+		}
+		catch
+		{
+			throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[species]} not found using EoS phase finder.");
+		}
+
+		var pureH = EoS.ReferenceMolarEnthalpy(T, P, VMol);
+		var partialHex = SpeciesPartialMolarExcessEnthalpy(T, species);
+		return new Enthalpy(pureH + partialHex, ThermoVarRelations.PartialMolar);
+	}
+
+	#endregion
+
+
+	#region Excess properies
+
+	/// <summary>
+	/// Calculates the molar excess Enthalpy for the mixture.
+	/// </summary>
+	public Enthalpy MolarExcessEnthalpy(Temperature T, Pressure P)
+	{
+		double Hex = 0;
+		foreach (var item in speciesList)
+		{
+			Hex += item.speciesMoleFraction * SpeciesPartialMolarExcessEnthalpy(T, item.chemical);
+		}
+		return new Enthalpy(Hex, ThermoVarRelations.MolarExcess);
+	}
+
+	#endregion
+
+
+	#region Fugacity and Chemical potential
+
+	public double SpeciesFugacity(Chemical species, Temperature T, Pressure P)
+	{
+		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
+		var modeledPhase = mixtureSpecies.modeledPhase;
+		var EoS = mixtureSpecies.EoS;
+
+		var phases = EoS.PhaseFinder(T, P, true);
+		double VMol = 0;
+		try
+		{
+			VMol = phases[modeledPhase];
+		} catch
+		{
+			throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[species]} not found using EoS phase finder.");
+		}
+		var pureComponentFugacity = EoS.Fugacity(T, P, VMol);
+		var activityCoef = activityModel.SpeciesActivityCoefficient(species, T);
+
+		return activityCoef * pureComponentFugacity * mixtureSpecies.speciesMoleFraction;
+	}
+
+	#endregion
+
 
 	#region Ideal Gas Mixture (IGM) relations
 
@@ -174,6 +374,7 @@ public class HomogeneousMixture(List<MixtureSpecies> speciesList, string phase, 
 	}
 
 	#endregion
+
 
 	#region Ideal Solution/Mixture (IS) relations
 

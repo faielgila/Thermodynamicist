@@ -11,6 +11,15 @@
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+	<Page.Resources>
+		<DataTemplate x:Key="SpeciesResultsTemplate" x:Name="SpeciesResultsTemplate" x:DataType="local:SpeciesOutputData">
+			<StackPanel>
+				<TextBlock x:Name="SpeciesLabel" Text="{x:Bind species}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+				<TextBlock Padding="5, 0, 0, 0"  x:Name="ResultsLabel" Text="{x:Bind outputData}" />
+			</StackPanel>
+		</DataTemplate>
+	</Page.Resources>
+
 	<Grid Margin="10">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
@@ -45,7 +54,7 @@
 						</DataTemplate>
 					</ComboBox.ItemTemplate>
 				</ComboBox>
-				
+
 				<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
 							AcceptsExpression="True"/>
 				<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
@@ -78,11 +87,20 @@
 			</StackPanel>
 		</Grid>
 
+		<!--
+		Displays calculation outputs.
+		-->
 		<StackPanel Grid.Row="1" Grid.Column="0">
 			<TextBlock Margin="5" Style="{StaticResource SubtitleTextBlockStyle}" Text="Output:"/>
 			<TextBlock Margin="5" x:Name="DataLabel"/>
+			<ScrollViewer Visibility="Visible" MaxHeight="200" Width="300" HorizontalAlignment="Left">
+				<StackPanel Margin="5" x:Name="PanelSpecies" Orientation="Horizontal">
+					<muxc:ItemsRepeater x:Name="ItemsRepeaterSpeciesResults" ItemTemplate="{StaticResource SpeciesResultsTemplate}"
+										ItemsSource="{x:Bind SpeciesOutputList}"
+										HorizontalAlignment="Left"/>
+				</StackPanel>
+			</ScrollViewer>
 		</StackPanel>
-
 	</Grid>
-
+	
 </Page>
