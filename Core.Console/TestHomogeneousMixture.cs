@@ -3,13 +3,19 @@ using Core.Multicomponent.ActivityModels;
 using Core;
 using CsvHelper;
 using System.Globalization;
+using Spectre.Console;
+
 
 Console.WriteLine("Starting Thermodynamicist.Core testing console...\n\n");
+var dirConsole = Environment.CurrentDirectory;
+Path.GetDirectoryName(dirConsole);
 
-Console.WriteLine("┌ Homogeneous mixture: acetone + n-pentane ┐");
-Console.WriteLine("│ Activity coefficients at 298K            │");
-Console.WriteLine("│                                          │");
-Console.WriteLine("│                      acetone  pentane    │");
+var table = new Table();
+table.Title = new TableTitle("Homogeneous mixture: acetone + n-pentane @ 298K");
+table.AddColumn("mol% acetone");
+table.AddColumn("activity coefficient\nacetone");
+table.AddColumn("activity coefficient\npentane");
+
 double[] compositions = [.021, .061, .134, .2105, .292, .405, .503, .611, .728, .869, .953];
 
 var records = new List<HomogeneousMixtureActivityCoefficientRecord>();
@@ -32,9 +38,10 @@ foreach (var x in compositions)
 
 	var activityAcetone = record.species1.ToString().Remove(4);
 	var activityPentane = record.species2.ToString().Remove(4);
-	Console.WriteLine($"│  @ %-Pentane = {x.RoundToSigfigs(2)}:\t{activityAcetone}\t  {activityPentane}\t   │");
+
+	table.AddRow([x.ToString(), activityAcetone, activityPentane]);
 }
-Console.WriteLine("└──────────────────────────────────────────┘");
+AnsiConsole.Write(table);
 
 using (var writer = new StreamWriter("Y:\\Repos\\faielgila\\Thermodynamicist\\Core.Console\\csv\\test.csv"))
 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))

@@ -73,11 +73,11 @@ namespace ThermodynamicistUWP
 
 			// Calculate mole fraction total to ensure sum is 1.
 			double sum = 0;
-			foreach ( var item in ViewModel.Items)
+			foreach (var item in ViewModel.Items)
 			{
 				sum += item.SpeciesMoleFraction;
 			}
-			if ( sum != 1)
+			if (Math.Abs(sum - 1) >= 1e-2)
 			{
 				ErrorDialog.ShowErrorDialog("Species mole fractions does not sum to 1.");
 				return;
@@ -85,7 +85,7 @@ namespace ThermodynamicistUWP
 
 			// If any chemical are added multiple times in the speciesList, do not run calculations.
 			List<Chemical> chemicals = new List<Chemical>();
-			foreach ( var item in ViewModel.Items)
+			foreach (var item in ViewModel.Items)
 			{
 				if (chemicals.Contains(item.Chemical))
 				{
