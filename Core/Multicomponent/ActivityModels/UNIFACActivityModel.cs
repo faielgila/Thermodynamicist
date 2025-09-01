@@ -1197,7 +1197,7 @@ public class UNIFACActivityModel : ActivityModel
 			if (speciesList[i].chemical == species) return i;
 		}
 
-		throw new KeyNotFoundException("Species not found in speciesList.");
+		throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} not found in speciesList.");
 	}
 
 	/// <summary>

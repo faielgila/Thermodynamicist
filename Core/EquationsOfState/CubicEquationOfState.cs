@@ -285,8 +285,10 @@ public abstract class CubicEquationOfState(Chemical species) : EquationOfState(s
 	/// <exception cref="KeyNotFoundException">Thrown when phaseFrom or phaseTo is not modeled by the EoS.</exception>
 	public override Temperature PhaseChangeTemperature(Pressure P, string phaseFrom, string phaseTo)
 	{
-		if (!ModeledPhases.Contains(phaseFrom) || !ModeledPhases.Contains(phaseTo))
-			throw new KeyNotFoundException("Cubic EoS only models vapor and liquid. Supplied phase is not supported.");
+		if (!ModeledPhases.Contains(phaseFrom))
+			throw new KeyNotFoundException($"Cubic EoS only models vapor and liquid. {phaseFrom} phase is not supported.");
+		if (!ModeledPhases.Contains(phaseTo))
+			throw new KeyNotFoundException($"Cubic EoS only models vapor and liquid. {phaseTo} phase is not supported.");
 		else return BoilingTemperature(P);
 	}
 
@@ -297,8 +299,10 @@ public abstract class CubicEquationOfState(Chemical species) : EquationOfState(s
 	/// <exception cref="KeyNotFoundException">Thrown when phaseFrom or phaseTo is not modeled by the EoS.</exception>
 	public override Pressure PhaseChangePressure(Temperature T, string phaseFrom, string phaseTo)
 	{
-		if (!ModeledPhases.Contains(phaseFrom) || !ModeledPhases.Contains(phaseTo))
-			throw new KeyNotFoundException("Cubic EoS only models vapor and liquid. Supplied phase is not supported.");
+		if (!ModeledPhases.Contains(phaseFrom))
+			throw new KeyNotFoundException($"Cubic EoS only models vapor and liquid. {phaseFrom} phase is not supported.");
+		if (!ModeledPhases.Contains(phaseTo))
+			throw new KeyNotFoundException($"Cubic EoS only models vapor and liquid. {phaseTo} phase is not supported.");
 		else return VaporPressure(T);
 	}
 }

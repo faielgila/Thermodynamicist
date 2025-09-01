@@ -12,7 +12,7 @@ public class ModSolidLiquidVaporEOS : EquationOfState
 {
 	public ModSolidLiquidVaporEOS(Chemical species) : base(species, ["solid", "liquid", "vapor"])
 	{
-		if (!ReducedCriticalEoSFittingParameters.ContainsKey(species)) throw new KeyNotFoundException("The provided species is not supported by this EoS.");
+		if (!ReducedCriticalEoSFittingParameters.ContainsKey(species)) throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} is not supported by the mSLV EoS.");
 
 		// Define the EoS fitting parameters from their critical reduced counterparts.
 		// a is defined as a method because it is temperature-dependent.

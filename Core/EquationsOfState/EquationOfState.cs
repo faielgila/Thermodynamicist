@@ -155,6 +155,7 @@ public abstract class EquationOfState
 		return (H2-H1)/dTPrecision;
 	}
 
+
 	#region State Variables - Enthalpy
 
 	/// <summary>
@@ -246,10 +247,10 @@ public abstract class EquationOfState
 		// Retrieve standard formation enthalpy and phase for the species.
 		Enthalpy H_Θ;
 		try { H_Θ = FormationThermodynamics.StandardFormationEnthalpy[Species]; }
-		catch { throw new KeyNotFoundException("Species not found in standard formation enthalpy data list."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} not found in standard formation enthalpy data list."); }
 		string phase_Θ;
 		try { phase_Θ = FormationThermodynamics.StandardFormationPhase[Species]; }
-		catch { throw new KeyNotFoundException("Species not found in standard formation phase data list."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} not found in standard formation phase data list."); }
 
 		// Create easy names for the standard reference state closer to the mathematical notation.
 		var T_Θ = Constants.StandardConditions.T;
@@ -259,13 +260,13 @@ public abstract class EquationOfState
 		var phaseFinder_Θ = PhaseFinder(T_Θ, P_Θ, true);
 		Volume VMol_Θ;
 		try { VMol_Θ = phaseFinder_Θ[phase_rxn]; }
-		catch { throw new KeyNotFoundException("Species standard phase not found at given T and P."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} standard phase not found at T={T_Θ}, P={P_Θ}."); }
 
 		// Get molar volume of species at final reaction state.
 		var phaseFinder_rxn = PhaseFinder(T_rxn, P_rxn, true);
 		Volume VMol_rxn;
 		try { VMol_rxn = phaseFinder_rxn[phase_rxn]; }
-		catch { throw new KeyNotFoundException("Species reaction phase not found at given T and P."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} reaction phase not found at T={T_rxn}, P={P_rxn}."); }
 
 		// Set phase, temperature, and pressure change flags.
 		bool flagPhaseChange = !string.Equals(phase_rxn, phase_Θ);
@@ -319,7 +320,7 @@ public abstract class EquationOfState
 			var phaseFinder_Φ =	PhaseFinder(T_Θ, P_Θ, true);
 			Volume VMol_Φ;
 			try { VMol_Φ = phaseFinder_Φ[phase_rxn]; }
-			catch { throw new KeyNotFoundException("Species reaction phase not found at given T and P."); }
+			catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} reaction phase not found at T={T_Φ}, P={P_Φ}."); }
 
 			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
 			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
@@ -336,6 +337,7 @@ public abstract class EquationOfState
 	}
 
 	#endregion
+
 
 	#region State Variables - Entropy
 
@@ -426,10 +428,10 @@ public abstract class EquationOfState
 		// Retrieve standard formation enthalpy and phase for the species.
 		Entropy S_Θ;
 		try { S_Θ = FormationThermodynamics.StandardFormationEntropy(Species); }
-		catch { throw new KeyNotFoundException("Species not found in standard formation entropy data list."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} not found in standard formation enthalpy data list."); }
 		string phase_Θ;
 		try { phase_Θ = FormationThermodynamics.StandardFormationPhase[Species]; }
-		catch { throw new KeyNotFoundException("Species not found in standard formation phase data list."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} not found in standard formation phase data list."); }
 
 		// Create easy names for the standard reference state closer to the mathematical notation.
 		var T_Θ = Constants.StandardConditions.T;
@@ -439,13 +441,13 @@ public abstract class EquationOfState
 		var phaseFinder_Θ = PhaseFinder(T_Θ, P_Θ, true);
 		Volume VMol_Θ;
 		try { VMol_Θ = phaseFinder_Θ[phase_rxn]; }
-		catch { throw new KeyNotFoundException("Standard phase not found at given T and P."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} standard phase not found at T={T_Θ}, P={P_Θ}."); }
 
 		// Get molar volume of species at final reaction state.
 		var phaseFinder_rxn = PhaseFinder(T_rxn, P_rxn, true);
 		Volume VMol_rxn;
 		try { VMol_rxn = phaseFinder_rxn[phase_rxn]; }
-		catch { throw new KeyNotFoundException("Reaction phase not found at given T and P."); }
+		catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} reaction phase not found at T={T_rxn}, P={P_rxn}."); }
 
 		// Set phase, temperature, and pressure change flags.
 		bool flagPhaseChange = !string.Equals(phase_rxn, phase_Θ);
@@ -499,7 +501,7 @@ public abstract class EquationOfState
 			var phaseFinder_Φ = PhaseFinder(T_Θ, P_Θ, true);
 			Volume VMol_Φ;
 			try { VMol_Φ = phaseFinder_Φ[phase_rxn]; }
-			catch { throw new KeyNotFoundException("Species reaction phase not found at given T and P."); }
+			catch { throw new KeyNotFoundException($"{Constants.ChemicalNames[Species]} reaction phase not found at T={T_Φ}, P={P_Φ}."); }
 
 			// Use basic molar enthalpy calc to get difference between Point 0 and Point 2.
 			// Implied calculation of value at Point 1 inside EoS.MolarEnthalpyChange(...).
@@ -516,6 +518,7 @@ public abstract class EquationOfState
 	}
 
 	#endregion
+
 
 	#region State Variables - Gibbs energy
 
@@ -568,6 +571,7 @@ public abstract class EquationOfState
 
 	#endregion
 
+
 	#region State Variables - other
 
 	/// <summary>
@@ -597,6 +601,7 @@ public abstract class EquationOfState
 	}
 
 	#endregion
+
 
 	#region Phase equilibrium
 
@@ -789,6 +794,7 @@ public abstract class EquationOfState
 	public abstract Pressure PhaseChangePressure(Temperature T, string phaseFrom, string phaseTo);
 
 	#endregion
+
 
 	/// <summary>
 	/// Gets every state variable for a pure component at the specified temperature, pressure, and molar volume.

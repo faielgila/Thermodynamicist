@@ -49,7 +49,7 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 			if (speciesList[i].chemical == species) return i;
 		}
 
-		throw new KeyNotFoundException("Species not found in speciesList.");
+		throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} not found in speciesList.");
 	}
 
 
@@ -92,7 +92,7 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 			}
 			catch
 			{
-				throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[item.chemical]} not found using EoS phase finder.");
+				throw new KeyNotFoundException($"Phase \"{modeledPhase}\" for {Constants.ChemicalNames[item.chemical]} not found using {EoS.GetType().Name} phase finder.");
 			}
 
 			var pureH = EoS.ReferenceMolarEnthalpy(T, P, VMol);
@@ -176,7 +176,7 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 		}
 		catch
 		{
-			throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[species]} not found using EoS phase finder.");
+			throw new KeyNotFoundException($"Phase \"{modeledPhase}\" for {Constants.ChemicalNames[species]} not found using {EoS.GetType().Name} phase finder.");
 		}
 
 		var pureG = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
@@ -205,7 +205,7 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 		}
 		catch
 		{
-			throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[species]} not found using EoS phase finder.");
+			throw new KeyNotFoundException($"Phase \"{modeledPhase}\" for {Constants.ChemicalNames[species]} not found using {EoS.GetType().Name} phase finder.");
 		}
 
 		var pureH = EoS.ReferenceMolarEnthalpy(T, P, VMol);
@@ -249,7 +249,7 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 			VMol = phases[modeledPhase];
 		} catch
 		{
-			throw new KeyNotFoundException($"Phase {modeledPhase} for {Constants.ChemicalNames[species]} not found using EoS phase finder.");
+			throw new KeyNotFoundException($"Phase \"{modeledPhase}\" for {Constants.ChemicalNames[species]} not found using {EoS.GetType().Name} phase finder.");
 		}
 		var pureComponentFugacity = EoS.Fugacity(T, P, VMol);
 		var activityCoef = activityModel.SpeciesActivityCoefficient(species, T);

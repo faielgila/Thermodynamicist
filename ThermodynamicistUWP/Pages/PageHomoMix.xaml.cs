@@ -110,6 +110,10 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void UpdateData(Temperature T, Pressure P)
 		{
+			// Clear output data.
+			DataLabel.Text = "";
+			SpeciesOutputList.Clear();
+
 			try
 			{
 				// Get species list from ControlMixtureSpecies.
@@ -120,7 +124,6 @@ namespace ThermodynamicistUWP
 				var mixture = new HomogeneousMixture(speciesList, "liquid", model, null);
 
 				// Run calculations and add to DataLabel text.
-				DataLabel.Text = "";
 				var totalG = mixture.TotalMolarGibbsEnergy(T, P);
 				var totalH = mixture.TotalMolarEnthalpy(T, P);
 				DataLabel.Text += $"Total molar Gibbs energy: {totalG.ToEngrNotation(5)}\n";
@@ -129,7 +132,6 @@ namespace ThermodynamicistUWP
 
 
 				// Run calculations and add to output text
-				SpeciesOutputList.Clear();
 				foreach (var ms in mixture.speciesList)
 				{
 					var name = Constants.ChemicalNames[ms.chemical];
