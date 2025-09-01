@@ -152,12 +152,13 @@ namespace ThermodynamicistUWP
 	/// </summary>
 	public struct SpeciesOutputData
 	{
-		public string species;
+		public Chemical species;
 		public string outputData;
 
 		public SpeciesOutputData(Chemical species, double activity, double fugacity)
 		{
-			this.species = Constants.ChemicalNames[species];
+			//this.species = Constants.ChemicalNames[species];
+			this.species = species;
 			this.outputData = $"Activity coefficient: {activity.ToEngrNotation(5)}\nFugacity: {fugacity.ToEngrNotation(5)}\n";
 		}
 	}

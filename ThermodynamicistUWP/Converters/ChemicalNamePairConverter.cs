@@ -17,6 +17,8 @@ namespace ThermodynamicistUWP.Converters
 		{
 			if (!(value is Chemical chem))
 				return null;
+			if (targetType == typeof(string))
+				return Constants.ChemicalNames[chem];
 
 			return new ChemicalNamePair(chem);
 		}

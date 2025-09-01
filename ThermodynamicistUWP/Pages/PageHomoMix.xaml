@@ -14,7 +14,7 @@
 	<Page.Resources>
 		<DataTemplate x:Key="SpeciesResultsTemplate" x:Name="SpeciesResultsTemplate" x:DataType="local:SpeciesOutputData">
 			<StackPanel>
-				<TextBlock x:Name="SpeciesLabel" Text="{x:Bind species}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+				<TextBlock x:Name="SpeciesLabel" Text="{x:Bind species, Converter={StaticResource ChemicalNamePairConverter}}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
 				<TextBlock Padding="5, 0, 0, 0"  x:Name="ResultsLabel" Text="{x:Bind outputData}" />
 			</StackPanel>
 		</DataTemplate>
