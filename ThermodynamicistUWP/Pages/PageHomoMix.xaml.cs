@@ -29,6 +29,7 @@ namespace ThermodynamicistUWP
 			// Initializes activity model list in ActivityModel dropdown.
 			// Note the use of ActivityModelFactory instead of the ActivityModel object directly.
 			DropdownModel.Items.Add(new UNIFACActivityModelFactory());
+			DropdownModel.Items.Add(new IdealMixtureModelFactory());
 		}
 
 		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)

@@ -1,58 +1,102 @@
 ﻿using Core.Multicomponent;
 using Core.Multicomponent.ActivityModels;
 using Core;
-using CsvHelper;
-using System.Globalization;
 using Spectre.Console;
+using Core.VariableTypes;
 
-
-Console.WriteLine("Starting Thermodynamicist.Core testing console...\n\n");
-var dirConsole = Environment.CurrentDirectory;
-Path.GetDirectoryName(dirConsole);
-
-var table = new Table();
-table.Title = new TableTitle("Homogeneous mixture: acetone + n-pentane @ 298K");
-table.AddColumn("mol% acetone");
-table.AddColumn("activity coefficient\nacetone");
-table.AddColumn("activity coefficient\npentane");
-
-double[] compositions = [.021, .061, .134, .2105, .292, .405, .503, .611, .728, .869, .953];
-
-var records = new List<HomogeneousMixtureActivityCoefficientRecord>();
-foreach (var x in compositions)
+static class TestHomogeneousMixture
 {
-	var mixtureSpecies = new List<MixtureSpecies>() {
-		new(Chemical.Acetone, x, "liquid"),
-		new(Chemical.NPentane, 1-x, "liquid")
-	};
-	var model = new UNIFACActivityModel(mixtureSpecies);
-	var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", model, null);
-	var record = new HomogeneousMixtureActivityCoefficientRecord
+	public static void Test(string dirConsole)
 	{
-		composition = x,
-		species1 = homomix.activityModel.SpeciesActivityCoefficient(Chemical.Acetone, 298),
-		species2 = homomix.activityModel.SpeciesActivityCoefficient(Chemical.NPentane, 298)
-	};
 
-	records.Add(record);
+		Temperature T = 365;
+		Pressure P = 101325;
+		LinearEnumerable compositions = new(0.05, 1, 0.05);
+		Chemical species0 = Chemical.NPropanol;
+		Chemical species1 = Chemical.Water;
 
-	var activityAcetone = record.species1.ToString().Remove(4);
-	var activityPentane = record.species2.ToString().Remove(4);
+		var table = new Table();
+		var spec0Name = Constants.ChemicalNames[species0];
+		var spec1Name = Constants.ChemicalNames[species1];
+		table.Title = new TableTitle($"Homogeneous mixture: {spec0Name} + {spec1Name} @ {T}K, {P}Pa\nliquid phase (UNIFAC)");
+		table.AddColumn($"mol% {spec0Name}");
+		table.AddColumn($"activity coefficient\n{spec0Name}");
+		table.AddColumn($"activity coefficient\n{spec1Name}");
+		table.AddColumn($"chemical potential\n{spec0Name}");
+		table.AddColumn($"chemical potential\n{spec1Name}");
+		table.AddColumn("total Gibbs energy");
 
-	table.AddRow([x.ToString(), activityAcetone, activityPentane]);
-}
-AnsiConsole.Write(table);
+		string filename_L = "testUNIFAC";
+		StreamWriter generateCSV_L = new(Path.Combine(dirConsole, $"{filename_L}.csv"), false);
+		generateCSV_L.WriteLine($"composition,activity {spec0Name},activity {spec1Name},potential {spec0Name},potential {spec1Name},total Gibbs energy");
+		generateCSV_L.Dispose();
+		StreamWriter outputCSV_L = new(Path.Combine(dirConsole, $"{filename_L}.csv"), true);
 
-using (var writer = new StreamWriter("Y:\\Repos\\faielgila\\Thermodynamicist\\Core.Console\\csv\\test.csv"))
-using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-{
-	csv.WriteRecords(records);
-}
+		string filename_V = "testIdeal";
+		StreamWriter generateCSV_V = new(Path.Combine(dirConsole, $"{filename_V}.csv"), false);
+		generateCSV_V.WriteLine($"composition,activity {spec0Name},activity {spec1Name},potential {spec0Name},potential {spec1Name},total Gibbs energy");
+		generateCSV_V.Dispose();
+		StreamWriter outputCSV_V = new(Path.Combine(dirConsole, $"{filename_V}.csv"), true);
+
+		AnsiConsole.Progress().Start(ctx =>
+		{
+			var taskL = ctx.AddTask("[green]Calculating liquid phase...[/]", maxValue: (1-.05)/.05);
+			var taskV = ctx.AddTask("[green]Calculating vapor phase...[/]", maxValue: (1-.05)/.05);
 
 
-public class HomogeneousMixtureActivityCoefficientRecord
-{
-	public double composition { get; set; }
-	public double species1 { get; set; }
-	public double species2 { get; set; }
+			List<string> csvRecord_L = [];
+			List<string> csvRecord_V = [];
+			foreach (var x in compositions)
+			{
+				// Calculate liquid (UNIFAC)
+				var mixtureSpecies = new List<MixtureSpecies>() {
+					new(species0, x, "liquid"),
+					new(species1, 1-x, "liquid")
+				};
+				var modelL = new UNIFACActivityModel(mixtureSpecies);
+				var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", modelL, null);
+				var activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T).ToString();
+				var activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T).ToString();
+				var mu0 = homomix.SpeciesChemicalPotential(T, P, species0).ToString();
+				var mu1 = homomix.SpeciesChemicalPotential(T, P, species1).ToString();
+				var totalG = homomix.TotalMolarGibbsEnergy(T, P).ToString();
+				csvRecord_L.Add(x.ToString());
+				csvRecord_L.Add(activity0);
+				csvRecord_L.Add(activity1);
+				csvRecord_L.Add(mu0);
+				csvRecord_L.Add(mu1);
+				csvRecord_L.Add(totalG);
+
+				table.AddRow([x.ToString(), activity0, activity1, mu0, mu1, totalG]);
+				outputCSV_L.WriteLine($"{x},{activity0},{activity1},{mu0},{mu1},{totalG}");
+				taskL.Increment(1); ctx.Refresh();
+
+				// Calculate vapor (ideal)
+				mixtureSpecies = new List<MixtureSpecies>() {
+					new(species0, x, "vapor"),
+					new(species1, 1-x, "vapor")
+				};
+				var modelV = new IdealMixture("vapor", mixtureSpecies);
+				homomix = new HomogeneousMixture(mixtureSpecies, "vapor", modelV, null);
+				activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T).ToString();
+				activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T).ToString();
+				mu0 = homomix.SpeciesChemicalPotential(T, P, species0).ToString();
+				mu1 = homomix.SpeciesChemicalPotential(T, P, species1).ToString();
+				totalG = homomix.TotalMolarGibbsEnergy(T, P).ToString();
+				csvRecord_V.Add(x.ToString());
+				csvRecord_V.Add(activity0);
+				csvRecord_V.Add(activity1);
+				csvRecord_V.Add(mu0);
+				csvRecord_V.Add(mu1);
+				csvRecord_V.Add(totalG);
+
+				outputCSV_V.WriteLine($"{x},{activity0},{activity1},{mu0},{mu1},{totalG}");
+				taskV.Increment(1); ctx.Refresh();
+			}
+		});
+		AnsiConsole.Write(table);
+		outputCSV_L.Dispose();
+		outputCSV_V.Dispose();
+
+	}
 }

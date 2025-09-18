@@ -34,3 +34,11 @@ public class UNIFACActivityModelFactory : IActivityModelFactory
 
 	public ActivityModel Create(List<MixtureSpecies> speciesList) => new UNIFACActivityModel(speciesList);
 }
+
+/// <inheritdoc cref="IActivityModelFactory"/>
+public class IdealMixtureModelFactory : IActivityModelFactory
+{
+	public string Name => "Ideal Mixture/Solution";
+
+	public ActivityModel Create(List<MixtureSpecies> speciesList) => new IdealMixture("vapor", speciesList);
+}

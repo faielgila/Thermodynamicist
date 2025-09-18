@@ -3,15 +3,8 @@ using System.Linq;
 
 namespace Core.Multicomponent.ActivityModels;
 
-public class UNIFACActivityModel : ActivityModel
+public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityModel(_speciesList)
 {
-	public UNIFACActivityModel(List<MixtureSpecies> _speciesList) : base(_speciesList)
-	{
-		ValidateSpeciesInList();
-		CalculateSubgroupMoleFractions();
-		CalculateSubgroupThetas();
-		CalculateSpeciesDerivedParameters();
-	}
 
 	#region Parameters
 
@@ -1305,14 +1298,43 @@ public class UNIFACActivityModel : ActivityModel
 		}
 	}
 
+	/// <summary>
+	/// Runs all precalculations. This should be run before any external-facing method
+	/// to ensure up-to-date speciesList is used.
+	/// </summary>
+	private void RunPrecalculations()
+	{
+		ClearPrecalculations();
+		ValidateSpeciesInList();
+		CalculateSubgroupMoleFractions();
+		CalculateSubgroupThetas();
+		CalculateSpeciesDerivedParameters();
+	}
+
+	/// <summary>
+	/// Clears all precalculation output fields.
+	/// </summary>
+	private void ClearPrecalculations()
+	{
+		SubgroupMoleFractions = [];
+		SubgroupThetas = [];
+		SpeciesQs = [];
+		SpeciesRs = [];
+		SpeciesThetas = [];
+		SpeciesPhis = [];
+		SpeciesLs = [];
+	}
+
 	#endregion
 
 	public override double SpeciesActivityCoefficient(Chemical species, Temperature T)
 	{
+		// Calculates all para-static variables (i.e., precalculations that only rely on the speciesList).
+		RunPrecalculations();
+
 		var taskGammaC = Task.Run(() => LogSpeciesActivityCoefficientCombinatorial(species));
 		var taskGammaR = Task.Run(() => LogSpeciesActivityCoefficientResidual(species, T));
 		Task.WaitAll(taskGammaC, taskGammaR);
-
 		return Math.Exp(taskGammaC.Result + taskGammaR.Result);
 
 		//var gammaC = LogSpeciesActivityCoefficientCombinatorial(species);

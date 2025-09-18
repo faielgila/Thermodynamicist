@@ -257,6 +257,15 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 		return activityCoef * pureComponentFugacity * mixtureSpecies.speciesMoleFraction;
 	}
 
+	/// <summary>
+	/// Calculates the chemical potential for a species in the mixture.
+	/// Equivalent to <see cref="SpeciesPartialMolarGibbsEnergy(Temperature, Pressure, Chemical)"/>.
+	/// </summary>
+	public ChemicalPotential SpeciesChemicalPotential(Temperature T, Pressure P, Chemical species)
+	{
+		return new ChemicalPotential(SpeciesPartialMolarGibbsEnergy(T, P, species), ThermoVarRelations.RealMolar);
+	}
+
 	#endregion
 
 
@@ -371,147 +380,6 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 	{
 		// See Sandler, eqn 9.1-10
 		return -T * IGMMolarEntropyOfMixing();
-	}
-
-	#endregion
-
-
-	#region Ideal Solution/Mixture (IS) relations
-
-	/// <summary>
-	/// Calculates the total molar volume for an ideal solution.
-	/// </summary>
-	public double ISTotalMolarVolume(Temperature T, Pressure P)
-	{
-		Volume V = 0;
-
-		foreach (var mixSpecies in speciesList)
-		{
-			var Vi = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
-			var xi = mixSpecies.speciesMoleFraction;
-
-			// See Perry's handbook, eqn 4-118
-			// or Sandler, eqn 9.3-5b
-			V += xi * Vi;
-		}
-
-		return V;
-	}
-
-	/// <summary>
-	/// Calculates the overall molar heat capacity for an ideal solution.
-	/// </summary>
-	public double ISMolarHeatCapacity(Temperature T, Pressure P)
-	{
-		double Cp = 0;
-		foreach (var mixSpecies in speciesList)
-		{
-			var Vi = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
-
-			var xi = mixSpecies.speciesMoleFraction;
-			var Cpi = mixSpecies.EoS.MolarHeatCapacity(T, P, Vi);
-			Cp += xi * Cpi;
-		}
-		return Cp;
-	}
-
-	/// <summary>
-	/// Calculates the total molar enthalpy for an ideal solution.
-	/// </summary>
-	public Enthalpy ISTotalMolarEnthalpy(Temperature T, Pressure P)
-	{
-		Enthalpy H = 0;
-
-		foreach (var mixSpecies in speciesList)
-		{
-			var VMol = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
-
-			var xi = mixSpecies.speciesMoleFraction;
-			var Hi = mixSpecies.EoS.ReferenceMolarEnthalpy(T, P, VMol);
-
-			// See Perry's handbook, eqn 4-120
-			// or Sandler, eqn 9.3-5c
-			H += xi * Hi;
-		}
-
-		return H;
-	}
-
-	/// <summary>
-	/// Calculates the total molar entropy for an ideal solution.
-	/// </summary>
-	public Entropy ISTotalMolarEntropy(Temperature T, Pressure P)
-	{
-		Entropy S = 0;
-
-		foreach (var mixSpecies in speciesList)
-		{
-			var VMol = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
-
-			var xi = mixSpecies.speciesMoleFraction;
-			var Si = mixSpecies.EoS.ReferenceMolarEntropy(T, P, VMol);
-
-			// See Perry's handbook, eqn 4-119
-			// or Sandler, eqn 9.3-5d
-			S += xi * Si - Constants.R * xi * Math.Log(xi);
-		}
-
-		return S;
-	}
-
-	/// <summary>
-	/// Calculates the total molar Gibbs energy for an ideal solution.
-	/// </summary>
-	public GibbsEnergy ISTotalMolarGibbsEnergy(Temperature T, Pressure P)
-	{
-		GibbsEnergy G = 0;
-
-		foreach (var mixSpecies in speciesList)
-		{
-			var VMol = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
-
-			var xi = mixSpecies.speciesMoleFraction;
-			var Gi = mixSpecies.EoS.ReferenceMolarGibbsEnergy(T,P,VMol);
-
-			// See Perry's handbook, eqn 4-117
-			// or Sandler, eqn 9.3-5e
-			G += xi * Gi + Constants.R * T * xi * Math.Log(xi);
-		}
-
-		return G;
-	}
-
-	/// <summary>
-	/// Calculates the chemical potential (partial molar Gibbs energy) for
-	/// a component in an ideal solution.
-	/// </summary>
-	public ChemicalPotential ISComponentChemicalPotential(Temperature T, Pressure P, Chemical species)
-	{
-		var EoS = speciesList[GetMixtureSpeciesIdx(species)].EoS;
-		var VMol = EoS.PhaseFinder(T, P, true)[totalPhase];
-
-		var Gi = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
-		var xi = speciesList[GetMixtureSpeciesIdx(species)].speciesMoleFraction;
-
-		// See Perry's handbook, eqn 4-113
-		return Gi + Constants.R * T * Math.Log(xi);
-	}
-
-	/// <summary>
-	/// Calculates the fugacity of a component in an ideal solution.
-	/// Uses the Lewis-Randall rule.
-	/// </summary>
-	public double ISComponentFugacity(Temperature T, Pressure P, Chemical species)
-	{
-		var EoS = speciesList[GetMixtureSpeciesIdx(species)].EoS;
-		var VMol = EoS.PhaseFinder(T, P, true)[totalPhase];
-
-		var fi = EoS.Fugacity(T, P, VMol);
-		var xi = speciesList[GetMixtureSpeciesIdx(species)].speciesMoleFraction;
-
-		// See Perry's handbook, eqn 4-122
-		// or Sandler, eqn 9.3-3
-		return xi * fi;
 	}
 
 	#endregion

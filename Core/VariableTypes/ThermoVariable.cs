@@ -1,10 +1,24 @@
 ﻿namespace Core.VariableTypes
 {
-	public abstract class ThermoVariable(double value, ThermoVarRelations relation, string units) : IComparable<ThermoVariable>
+	public abstract class ThermoVariable : IComparable<ThermoVariable>
 	{
-		public double Value { get; set; } = value;
-		public ThermoVarRelations Relation { get; set; } = relation;
-		public string Units { get; set; } = units;
+		public ThermoVariable(double value, ThermoVarRelations relation, string units)
+		{
+			Value = value;
+			Relation = relation;
+			Units = units;
+		}
+
+		public ThermoVariable()
+		{
+			Value = 0;
+			Relation = ThermoVarRelations.Undefined;
+			Units = "";
+		}
+
+		public double Value { get; set; }
+		public ThermoVarRelations Relation { get; set; }
+		public string Units { get; set; }
 
 		public int CompareTo(ThermoVariable other)
 		{
