@@ -1129,41 +1129,31 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	private Dictionary<Chemical, double> SpeciesThetas = [];
 	private Dictionary<Chemical, double> SpeciesPhis = [];
 	private Dictionary<Chemical, double> SpeciesLs = [];
+	private List<FunctionalSubgroup> FunctionalSubgroupsInMixture = [];
 
 	/// <summary>
 	/// Validates that all species in the speciesList can be modeled with this activity model.
 	/// </summary>
+	/// <exception cref="KeyNotFoundException">Thrown when a species in the speciesList is not in the ChemicalSubgroupMap.</exception>
 	private void ValidateSpeciesInList()
 	{
+		if (ChemicalSubgroupMap.Keys.Intersect(speciesList.Select(spec => spec.chemical)).Count() == speciesList.Count) return;
+
+		// This code is only reached when there are fewer elements in the intersection than in the speciesList.
+		// That is, some chemicals in the speciesList were not present in the ChemicalSubgroupMap.
+		// Find which chemicals those are and thrown an error listing them out.
+		string missingSpecies = "";
 		foreach(var item in speciesList)
 		{
-			try
-			{
-				var _ = ChemicalSubgroupMap[item.chemical];
-			}
-			catch
+			if (!ChemicalSubgroupMap.ContainsKey(item.chemical))
 			{
 				var speciesName = Constants.ChemicalNames[item.chemical];
-				throw new KeyNotFoundException($"{speciesName} cannot be modeled using the UNIFAC activity model.");
+				var addString = missingSpecies == "" ? speciesName : $", {speciesName}";
+				missingSpecies += addString;
+				
 			}
 		}
-	}
-
-	/// <summary>
-	/// Lists out all functional subgroups in the mixture.
-	/// </summary>
-	private List<FunctionalSubgroup> GetAllFunctionalSubgroupsInMixture()
-	{
-		List<FunctionalSubgroup> subgroups = [];
-		foreach (var item in speciesList)
-		{
-			foreach (var (subgroup, _) in ChemicalSubgroupMap[item.chemical])
-			{
-				if (subgroups.Contains(subgroup)) continue;
-				else subgroups.Add(subgroup);
-			}
-		}
-		return subgroups;
+		throw new KeyNotFoundException($"The following chemicals cannot be modeled using the UNIFAC activity model:\n{missingSpecies}.");
 	}
 
 	/// <summary>
@@ -1368,10 +1358,13 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 		double sum = 0;
 		foreach (var (subgroup_k, nu_ki) in ChemicalSubgroupMap[species])
 		{
-			var taskGamma_k = Task.Run(() => LogGammaK(subgroup_k));
-			var taskGamma_ki = Task.Run(() => LogGammaKI(subgroup_k));
-			Task.WaitAll(taskGamma_k, taskGamma_ki);
-			sum += nu_ki * (taskGamma_k.Result - taskGamma_ki.Result);
+			double gamma_k = 0;
+			double gamma_ki = 0;
+			Parallel.Invoke(
+				() => gamma_k = LogGammaK(subgroup_k),
+				() => gamma_ki = LogGammaKI(subgroup_k)
+				);
+			sum += nu_ki * (gamma_k - gamma_ki);
 
 			//var logGamma_k = LogGammaK(subgroup_k);
 			//var logGamma_ki = LogGammaKI(subgroup_k);
@@ -1383,14 +1376,13 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 		// subgroup k activity coefficient, Γ_k
 		double LogGammaK(FunctionalSubgroup sg_k)
 		{
-			var listSG = GetAllFunctionalSubgroupsInMixture();
 			var Q_k = SubgroupRQParameters[sg_k].Q;
 
 			// Calculate σ_m = Σn[Θ_n * Ψ_mn] for each m-subgroup in mixture
 			Dictionary<FunctionalSubgroup, double> listDenoms = [];
-			foreach (var sg_m in listSG)
+			foreach (var sg_m in FunctionalSubgroupsInMixture)
 			{
-				foreach (var sg_n in listSG)
+				foreach (var sg_n in FunctionalSubgroupsInMixture)
 				{
 					var value = SubgroupThetas[sg_n] * GroupInteractionEnergy(T, sg_n, sg_m);
 					try
@@ -1406,7 +1398,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 			// Get all that summation stuff done
 			double sumLn = 0;
 			double sumFr = 0;
-			foreach (var sg_m in listSG)
+			foreach (var sg_m in FunctionalSubgroupsInMixture)
 			{
 				sumLn += GroupInteractionEnergy(T, sg_m, sg_k) * SubgroupThetas[sg_m];
 				sumFr += GroupInteractionEnergy(T, sg_k, sg_m) * SubgroupThetas[sg_m] / listDenoms[sg_m];
