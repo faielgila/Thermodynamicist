@@ -52,6 +52,15 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 		throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} not found in speciesList.");
 	}
 
+	/// <summary>
+	/// Returns an exact copy of the mixture which is not linked to the original (i.e., a deep copy).
+	/// </summary>
+	public HomogeneousMixture Copy()
+	{
+		var activityModelCopy = activityModel.Copy();
+		return new HomogeneousMixture(speciesList, totalPhase, activityModelCopy, mixtureMoleFraction);
+	}
+
 
 	#region Total properties
 
@@ -236,6 +245,9 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 
 	#region Fugacity and Chemical potential
 
+	/// <summary>
+	/// Calculates the fugacity coefficient of a species in the mixture.
+	/// </summary>
 	public double SpeciesFugacity(Chemical species, Temperature T, Pressure P)
 	{
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];

@@ -6,11 +6,18 @@ namespace Core.Multicomponent.ActivityModels;
 public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityModel(_speciesList)
 {
 
+	public override ActivityModel Copy()
+	{
+		var speciesListCopy = new List<MixtureSpecies>();
+		foreach (var item in speciesList) speciesListCopy.Add(item.Copy());
+		return new UNIFACActivityModel(speciesListCopy);
+	}
+
 	#region Parameters
 
 	private enum FunctionalSubgroup
 	{
-		//CarbonylCO, // For temporary testing
+		CarbonylCO, // For temporary testing
 
 		Alkyl_1, // CH3, primary alkyl carbon (methyl group)
 		Alkyl_2, // CH2, secondary alkyl carbon
@@ -129,7 +136,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 
 	private enum FunctionalMaingroup
 	{
-		//CarbonylCO, // For temporary testing
+		CarbonylCO, // For temporary testing
 
 		AlkaneC,
 		AlkeneC,
@@ -192,7 +199,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	/// </summary>
 	private static readonly Dictionary<FunctionalSubgroup, FunctionalMaingroup> MaingroupSubgroupMap = new()
 	{
-		//[FunctionalSubgroup.CarbonylCO] = FunctionalMaingroup.CarbonylCO, // For temporary testing
+		[FunctionalSubgroup.CarbonylCO] = FunctionalMaingroup.CarbonylCO, // For temporary testing
 
 		[FunctionalSubgroup.Alkyl_1] = FunctionalMaingroup.AlkaneC,
 		[FunctionalSubgroup.Alkyl_2] = FunctionalMaingroup.AlkaneC,
@@ -314,8 +321,8 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	/// </summary>
 	private static readonly Dictionary<Chemical, List<(FunctionalSubgroup subgroup, int nu)>> ChemicalSubgroupMap = new()
 	{
-		[Chemical.Acetone] = [ (FunctionalSubgroup.MethylKetone, 1), (FunctionalSubgroup.Alkyl_1, 1) ],
-		//[Chemical.Acetone] = [ (FunctionalSubgroup.CarbonylCO, 1), (FunctionalSubgroup.Alkyl_1, 2) ],
+		//[Chemical.Acetone] = [ (FunctionalSubgroup.MethylKetone, 1), (FunctionalSubgroup.Alkyl_1, 1) ],
+		[Chemical.Acetone] = [ (FunctionalSubgroup.CarbonylCO, 1), (FunctionalSubgroup.Alkyl_1, 2) ],
 		[Chemical.Benzene] = [ (FunctionalSubgroup.UnsubAromaticC, 6) ],
 		[Chemical.NButane] = [ (FunctionalSubgroup.Alkyl_1, 2), (FunctionalSubgroup.Alkyl_2, 2) ],
 		[Chemical.Isobutane] = [ (FunctionalSubgroup.Alkyl_1, 3), (FunctionalSubgroup.Alkyl_3, 1) ],
@@ -336,7 +343,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	/// </summary>
 	private static readonly Dictionary<FunctionalSubgroup, (double R, double Q)> SubgroupRQParameters = new()
 	{
-		//[FunctionalSubgroup.CarbonylCO] = (0.7713, 0.640), // For temporary testing
+		[FunctionalSubgroup.CarbonylCO] = (0.7713, 0.640), // For temporary testing
 
 		[FunctionalSubgroup.Alkyl_1] = (0.9011, 0.8480),
 		[FunctionalSubgroup.Alkyl_2] = (0.6744, 0.5400),
@@ -458,7 +465,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	/// </summary>
 	private static readonly Dictionary<(FunctionalMaingroup i, FunctionalMaingroup j), (double aij, double aji)> MaingroupInteractionParameters = new()
 	{
-		//[(FunctionalMaingroup.CarbonylCO, FunctionalMaingroup.AlkaneC)] = (3000, 1565), // For temporary testing
+		[(FunctionalMaingroup.CarbonylCO, FunctionalMaingroup.AlkaneC)] = (3000, 1565), // For temporary testing
 
 		[(FunctionalMaingroup.AlkaneC, FunctionalMaingroup.AlkeneC)] = (86.0200, -35.3600),
 		[(FunctionalMaingroup.AlkaneC, FunctionalMaingroup.AromaticC)] = (61.1300, -11.1200),
@@ -1100,16 +1107,10 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	private double GetFGInteractionParameter(FunctionalMaingroup FG1, FunctionalMaingroup FG2)
 	{
 		if (FG1 == FG2) return 0;
-		double a;
-		try
-		{
-			a = MaingroupInteractionParameters[(FG1, FG2)].aij;
-		} catch
-		{
-			a = MaingroupInteractionParameters[(FG2, FG1)].aji;
-		}
-
-		return a;
+		if (MaingroupInteractionParameters.ContainsKey((FG1, FG2))) return MaingroupInteractionParameters[(FG1, FG2)].aij;
+		if (MaingroupInteractionParameters.ContainsKey((FG2, FG1))) return MaingroupInteractionParameters[(FG2, FG1)].aji;
+		
+		throw new KeyNotFoundException($"UNIFAC functional maingroup interaction parameter is not available for {FG1}, {FG2}.");
 	}
 
 	/// <summary>
@@ -1171,6 +1172,15 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	}
 
 	/// <summary>
+	/// Lists out all functional subgroups present in the mixture.
+	/// </summary>
+	private void GetAllFunctionalSubgroupsInMixture()
+	{
+		var list = speciesList.SelectMany(item => GetAllFunctionalSubgroupsInSpecies(item.chemical)).Distinct().ToList();
+		FunctionalSubgroupsInMixture = list;
+	}
+
+	/// <summary>
 	/// Gets the index in speciesList which represents the given chemical.
 	/// </summary>
 	int GetMixtureSpeciesIdx(Chemical species)
@@ -1207,14 +1217,9 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 			var x_i = item.speciesMoleFraction;
 			foreach (var (subgroup_k, nu_k) in ChemicalSubgroupMap[species_i])
 			{
-				try
-				{
-					subgroupMoleFractions[subgroup_k] += x_i * nu_k / totalSubgroupMoles;
-				}
-				catch
-				{
-					subgroupMoleFractions.Add(subgroup_k, x_i * nu_k / totalSubgroupMoles);
-				}
+				var value = x_i * nu_k / totalSubgroupMoles;
+				if (subgroupMoleFractions.ContainsKey(subgroup_k)) subgroupMoleFractions[subgroup_k] += value;
+				else subgroupMoleFractions.Add(subgroup_k, value);
 			}
 		}
 		SubgroupMoleFractions = subgroupMoleFractions;
@@ -1296,6 +1301,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 	{
 		ClearPrecalculations();
 		ValidateSpeciesInList();
+		GetAllFunctionalSubgroupsInMixture();
 		CalculateSubgroupMoleFractions();
 		CalculateSubgroupThetas();
 		CalculateSpeciesDerivedParameters();
@@ -1322,14 +1328,14 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 		// Calculates all para-static variables (i.e., precalculations that only rely on the speciesList).
 		RunPrecalculations();
 
-		var taskGammaC = Task.Run(() => LogSpeciesActivityCoefficientCombinatorial(species));
-		var taskGammaR = Task.Run(() => LogSpeciesActivityCoefficientResidual(species, T));
-		Task.WaitAll(taskGammaC, taskGammaR);
-		return Math.Exp(taskGammaC.Result + taskGammaR.Result);
+		//var taskGammaC = Task.Run(() => LogSpeciesActivityCoefficientCombinatorial(species));
+		//var taskGammaR = Task.Run(() => LogSpeciesActivityCoefficientResidual(species, T));
+		//Task.WaitAll(taskGammaC, taskGammaR);
+		//return Math.Exp(taskGammaC.Result + taskGammaR.Result);
 
-		//var gammaC = LogSpeciesActivityCoefficientCombinatorial(species);
-		//var gammaR = LogSpeciesActivityCoefficientResidual(species, T);
-		//return Math.Exp(gammaC + gammaR);
+		var gammaC = LogSpeciesActivityCoefficientCombinatorial(species);
+		var gammaR = LogSpeciesActivityCoefficientResidual(species, T);
+		return Math.Exp(gammaC + gammaR);
 	}
 
 	private double LogSpeciesActivityCoefficientCombinatorial(Chemical species)
@@ -1358,17 +1364,13 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 		double sum = 0;
 		foreach (var (subgroup_k, nu_ki) in ChemicalSubgroupMap[species])
 		{
-			double gamma_k = 0;
-			double gamma_ki = 0;
-			Parallel.Invoke(
-				() => gamma_k = LogGammaK(subgroup_k),
-				() => gamma_ki = LogGammaKI(subgroup_k)
-				);
-			sum += nu_ki * (gamma_k - gamma_ki);
+			//var taskGammaK = Task.Run(() => LogGammaK(subgroup_k));
+			//var taskGammaKI = Task.Run(() => LogGammaKI(subgroup_k));
+			//sum += nu_ki * (taskGammaK.Result - taskGammaKI.Result);
 
-			//var logGamma_k = LogGammaK(subgroup_k);
-			//var logGamma_ki = LogGammaKI(subgroup_k);
-			//sum += nu_ki * (logGamma_k - logGamma_ki);
+			var logGamma_k = LogGammaK(subgroup_k);
+			var logGamma_ki = LogGammaKI(subgroup_k);
+			sum += nu_ki * (logGamma_k - logGamma_ki);
 		}
 		return sum;
 
@@ -1385,13 +1387,8 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 				foreach (var sg_n in FunctionalSubgroupsInMixture)
 				{
 					var value = SubgroupThetas[sg_n] * GroupInteractionEnergy(T, sg_n, sg_m);
-					try
-					{
-						listDenoms[sg_m] += value;
-					} catch
-					{
-						listDenoms.Add(sg_m, value);
-					}
+					if (listDenoms.ContainsKey(sg_m)) listDenoms[sg_m] += value;
+					else listDenoms.Add(sg_m, value);
 				}
 			}
 
@@ -1421,15 +1418,11 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 			{
 				foreach (var sg_n in listSG)
 				{
-					var value = subgroupThetas[sg_n] * GroupInteractionEnergy(T, sg_n, sg_m);
-					try
-					{
-						listDenoms[sg_m] += value;
-					}
-					catch
-					{
-						listDenoms.Add(sg_m, value);
-					}
+					var psi_nm = GroupInteractionEnergy(T, sg_n, sg_m);
+					var theta_n = subgroupThetas[sg_n];
+					var value = theta_n * psi_nm;
+					if (listDenoms.ContainsKey(sg_m)) listDenoms[sg_m] += value;
+					else listDenoms.Add(sg_m, value);
 				}
 			}
 

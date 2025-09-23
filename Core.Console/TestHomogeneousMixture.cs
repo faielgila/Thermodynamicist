@@ -9,11 +9,11 @@ static class TestHomogeneousMixture
 	public static void Test(string dirConsole)
 	{
 
-		Temperature T = 365;
+		Temperature T = 307;
 		Pressure P = 101325;
 		LinearEnumerable compositions = new(0.05, 1, 0.05);
-		Chemical species0 = Chemical.NPropanol;
-		Chemical species1 = Chemical.Water;
+		Chemical species0 = Chemical.Acetone;
+		Chemical species1 = Chemical.NPentane;
 
 		var table = new Table();
 		var spec0Name = Constants.ChemicalNames[species0];

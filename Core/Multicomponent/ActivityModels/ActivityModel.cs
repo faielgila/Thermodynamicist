@@ -19,5 +19,10 @@ public abstract class ActivityModel
 	/// </summary>
 	/// <returns>activity coefficient, dimensionless</returns>
 	public abstract double SpeciesActivityCoefficient(Chemical species, Temperature T);
+
+	/// <summary>
+	/// Returns an exact copy of the activity model.
+	/// </summary>
+	public abstract ActivityModel Copy();
 }
 

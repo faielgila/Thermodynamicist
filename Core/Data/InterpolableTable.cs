@@ -31,10 +31,23 @@ public class InterpolableTable<Tx, Ty> where Tx : ThermoVariable, new() where Ty
 	/// <summary>
 	/// Appends the row to the bottom of the table.
 	/// Does not reorder or invert the table.
+	/// Will overwrite the existing value of 'y' if 'x' already has an entry in the table.
 	/// </summary>
 	public void Add(Tx x, Ty y)
 	{
-		Table.Add(x, y);
+		if (Table.ContainsKey(x)) Table[x] = y;
+		else {  Table.Add(x, y); }
+	}
+
+	/// <summary>
+	/// Appends the given table to the bottom of this table.
+	/// </summary>
+	public void Append(InterpolableTable<Tx, Ty> table)
+	{
+		foreach (var row in table.Table)
+		{
+			Add(row.Key, row.Value);
+		}
 	}
 
 	/// <summary>

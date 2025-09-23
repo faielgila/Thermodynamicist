@@ -11,6 +11,17 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 	public string totalPhase = _phase;
 
 	/// <summary>
+	/// Returns an exact copy of the mixture which is not linked to the original (i.e., a deep copy).
+	/// totalPhase will remain a shallow copy of the original.
+	/// </summary>
+	public override ActivityModel Copy()
+	{
+		var speciesListCopy = new List<MixtureSpecies>();
+		foreach (var item in speciesList) speciesListCopy.Add(item.Copy());
+		return new IdealMixture(totalPhase, speciesListCopy);
+	}
+
+	/// <summary>
 	/// Gets the index in speciesList which represents the given chemical.
 	/// </summary>
 	int GetMixtureSpeciesIdx(Chemical species)
