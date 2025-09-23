@@ -44,4 +44,13 @@ public class MixtureSpecies
 		// Since no EoS is given, assign default values based on phase.
 		EoS = EquationOfState.GetDefaultEoSFromPhase(_phase).Create(_chemical);
 	}
+
+	/// <summary>
+	/// Returns an exact copy of the species which is not linked to the original (i.e., a deep copy).
+	/// Since the equation of state shouldn't change, it will remain a shallow copy of the original.
+	/// </summary>
+	public MixtureSpecies Copy()
+	{
+		return new MixtureSpecies(chemical, EoS, speciesMoleFraction, modeledPhase);
+	}
 }

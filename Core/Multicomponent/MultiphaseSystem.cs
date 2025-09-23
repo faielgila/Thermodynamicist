@@ -1,7 +1,7 @@
 ﻿using Core.Data;
 using Core.VariableTypes;
 using System;
-using System.Text;
+using System.Collections.Concurrent;
 
 namespace Core.Multicomponent;
 
@@ -45,6 +45,8 @@ public class MultiphaseSystem
 	/// </summary>
 	public Dictionary<(string phase, Temperature T, Pressure P), PhaseTotalGibbsEnergyCurve> totalGibbsEnergyCurves = [];
 
+	public List<(MoleFraction, double)> Error;
+
 	public MultiphaseSystem(Dictionary<Chemical, MoleFraction> _speciesList, List<HomogeneousMixture> _mixtureList)
 	{
 		if (_speciesList.Count < 2 || _mixtureList.Count < 2)
@@ -72,22 +74,26 @@ public class MultiphaseSystem
 		if (!IsBinarySystem) throw new NotImplementedException("Multicomponent equilibrium currently only supports binary mixtures.");
 		if (SystemPhases.Count > 2) throw new NotImplementedException("Multicomponent equilibrium currently only supports two phases.");
 
-		MoleFraction startX = 0.01;
-		MoleFraction stepX = 0.01;
-
+		var searchDensity = 0.01;
+		var compositions = new LinearEnumerable(0.01, 1, searchDensity).ToList();
 		foreach (var phase in SystemPhases)
 		{
-			CalculatePotentialAndEnergyCurves(T, P, phase);
-			Console.WriteLine($"Calculated potential curves for phase \"{phase}\".");
+			CalculatePotentialAndEnergyCurves(T, P, phase, compositions);
 		}
+
+
+		// Run a roughing search across all compositions.
 
 		// All compositions are mol% species0.
 		// TODO: Add detection for which species the user wants to use as the basis.
-		// TODO: Use for loop here for nonbinary mixtures.
-		List<MultiphaseEquilibriumResult> results = [];
-		for (MoleFraction xV = startX; xV <= 1; xV += stepX)
+		// TODO: Use for loop here for nonbinary mixtures
+		List<MoleFraction> roughing = [];
+		//List<MultiphaseEquilibriumResult> results = [];
+		Error = [];
+		for (MoleFraction xV = 0.01; xV <= 1; xV += searchDensity)
 		{
-			Console.WriteLine($"Testing equilibrium for x0V={xV}...");
+			//Console.WriteLine($"Testing equilibrium for x0V={xV}");
+
 			var species0 = speciesList.Keys.ToList()[0];
 			var species1 = speciesList.Keys.ToList()[1];
 			var curves_V = GetChemicalPotentialCurves(T, P, "vapor");
@@ -101,12 +107,21 @@ public class MultiphaseSystem
 			var mu_V1 = curvePotential_V1.GetValue(xV);
 			var xL_from0 = curveComposition_L0.GetValue(mu_V0);
 			var xL_from1 = curveComposition_L1.GetValue(mu_V1);
-			if (mu_V0 is null || xL_from0 is null) continue;
-			if (mu_V1 is null || xL_from1 is null) continue;
+			if (mu_V0 is null || xL_from0 is null)
+			{
+				//Console.WriteLine($"Common tangent not possible for x0V={xV}");
+				continue;
+			}
+			if (mu_V1 is null || xL_from1 is null)
+			{
+				//Console.WriteLine($"Common tangent not possible for x0V={xV}");
+				continue;
+			}
 
 			var error = Math.Abs(xL_from0 - xL_from1);
-			Console.WriteLine($"Phase compositions found. Error={error}");
-			if (error <= 0.008)
+			Error.Add((xV, error));
+			Console.WriteLine($"State found at x0V={xV} with error {error}");
+			if (error <= 0.01)
 			{
 				var xL = (xL_from0 + xL_from1) / 2;
 				var equilibrium = new MultiphaseEquilibriumResult();
@@ -114,12 +129,82 @@ public class MultiphaseSystem
 				equilibrium.Value.Add(("vapor", species1), 1-xV);
 				equilibrium.Value.Add(("liquid", species0), xL);
 				equilibrium.Value.Add(("liquid", species1), 1-xL);
-				results.Add(equilibrium);
-				Console.WriteLine($"Equilibrium point found: x0V={xV}, x0L={xL}");
+				roughing.Add(xV);
+				//results.Add(equilibrium);
+				Console.WriteLine($"Roughing candidate found at x0V={xV} x0L={xL}");
 			}
 		}
-		Console.WriteLine($"Equilibrium search complete. Equilibria found: {results.Count}");
 
+
+		// Run a final search near the roughing solutions.
+		List<MultiphaseEquilibriumResult> results = [];
+		List<MoleFraction> resultFractions = [];
+		var searchRadius = 0.01;
+		searchDensity /= 10;
+		foreach (var xVr in roughing)
+		{
+			compositions = new LinearEnumerable(xVr - searchRadius, xVr + searchRadius, searchDensity).ToList();
+			foreach (var phase in SystemPhases)
+			{
+				CalculatePotentialAndEnergyCurves(T, P, phase, compositions);
+			}
+
+			for (MoleFraction xV = xVr - searchRadius; xV <= xVr + searchRadius; xV += searchDensity)
+			{
+				//Console.WriteLine($"Testing equilibrium for x0V={xV}");
+
+				var species0 = speciesList.Keys.ToList()[0];
+				var species1 = speciesList.Keys.ToList()[1];
+				var curves_V = GetChemicalPotentialCurves(T, P, "vapor");
+				var curves_L = GetChemicalPotentialCurves(T, P, "liquid");
+				var curvePotential_V0 = curves_V[species0];
+				var curvePotential_V1 = curves_V[species1];
+				var curveComposition_L0 = curves_L[species0].Invert();
+				var curveComposition_L1 = curves_L[species1].Invert();
+
+				var mu_V0 = curvePotential_V0.GetValue(xV);
+				var mu_V1 = curvePotential_V1.GetValue(xV);
+				var xL_from0 = curveComposition_L0.GetValue(mu_V0);
+				var xL_from1 = curveComposition_L1.GetValue(mu_V1);
+				if (mu_V0 is null || xL_from0 is null)
+				{
+					//Console.WriteLine($"Common tangent not possible for x0V={xV}");
+					continue;
+				}
+				if (mu_V1 is null || xL_from1 is null)
+				{
+					//Console.WriteLine($"Common tangent not possible for x0V={xV}");
+					continue;
+				}
+
+				// TODO: Replace the 0.01 redundancy check with an expression
+				// that picks the solution with the least error.
+				var error = Math.Abs(xL_from0 - xL_from1);
+				Error.Add((xV, error));
+				Console.WriteLine($"Final candidate found at x0V={xV} with error {error}");
+				if (error <= 0.001)
+				{
+					var xL = (xL_from0 + xL_from1) / 2;
+					var xL_prev = resultFractions.Find(x => Math.Abs(xL - x) <= 0.01);
+					if (xL_prev is not null)
+					{
+						xL = (xL_prev + xL) / 2;
+						resultFractions.Remove(xL_prev);
+						resultFractions.Add(xL);
+						Console.WriteLine($"Updated equilibrium found at x0V={xV} x0L={xL}");
+						continue;
+					}
+					resultFractions.Add(xL);
+					var equilibrium = new MultiphaseEquilibriumResult();
+					equilibrium.Value.Add(("vapor", species0), xV);
+					equilibrium.Value.Add(("vapor", species1), 1 - xV);
+					equilibrium.Value.Add(("liquid", species0), xL);
+					equilibrium.Value.Add(("liquid", species1), 1 - xL);
+					results.Add(equilibrium);
+					Console.WriteLine($"New equilibrium found at x0V={xV} x0L={xL}");
+				}
+			}
+		}
 		return results;
 	}
 
@@ -127,7 +212,7 @@ public class MultiphaseSystem
 	/// Calculates the chemical potential curves for all species in the given phase
 	/// at the specified temperature and pressure.
 	/// </summary>
-	public void CalculatePotentialAndEnergyCurves(Temperature T, Pressure P, string phase)
+	public void CalculatePotentialAndEnergyCurves(Temperature T, Pressure P, string phase, List<double> compositions)
 	{
 		// Check for already calculated curves.
 		//foreach (var entry in speciesList)
@@ -136,37 +221,93 @@ public class MultiphaseSystem
 		//	if (chemicalPotentialCurves.ContainsKey(state)) { return; }
 		//}
 
-		MoleFraction startComposition = 0.001;
-		MoleFraction stopComposition = 1;
-		MoleFraction stepComposition = 0.05;
-		var compositions = new LinearEnumerable(startComposition, stopComposition, stepComposition);
+		//MoleFraction startComposition = 0.001;
+		//MoleFraction stopComposition = 1;
+		//MoleFraction stepComposition = 0.05;
+		//var compositions = new LinearEnumerable(startComposition, stopComposition, stepComposition).ToList();
 
-		var homomix_local = mixtureList[GetMixutureIdxFromPhase(phase)];
+		var state0 = new MultiphaseStatePoint(speciesList.First().Key, phase, T, P);
+		var state1 = new MultiphaseStatePoint(speciesList.Last().Key, phase, T, P);
+		var phaseCurve0 = new ConcurrentDictionary<MoleFraction, ChemicalPotential>();
+		var phaseCurve1 = new ConcurrentDictionary<MoleFraction, ChemicalPotential>();
+		var energyCurve = new ConcurrentDictionary<MoleFraction, GibbsEnergy>();
 
-		var state0 = new MultiphaseStatePoint(homomix_local.speciesList[0].chemical, phase, T, P);
-		var state1 = new MultiphaseStatePoint(homomix_local.speciesList[1].chemical, phase, T, P);
-		var phaseCurve0 = new ChemicalPotentialCurve() { state = state0 };
-		var phaseCurve1 = new ChemicalPotentialCurve() { state = state1 };
-		var energyCurve = new PhaseTotalGibbsEnergyCurve() { state = (phase, T, P) };
+		//foreach (var x in compositions)
+		//{
+		//	var homomix_local = mixtureList[GetMixutureIdxFromPhase(phase)];
 
-		foreach (var x in compositions)
-		{
+		//	// Assume that the composition x is the mole fraction of the first species in speciesList.
+		//	homomix_local.speciesList[0].speciesMoleFraction = x;
+		//	homomix_local.speciesList[1].speciesMoleFraction = 1 - x;
+
+		//	var mu0 = homomix_local.SpeciesChemicalPotential(T, P, state0.species);
+		//	var mu1 = homomix_local.SpeciesChemicalPotential(T, P, state1.species);
+		//	var G = homomix_local.TotalMolarGibbsEnergy(T, P);
+		//	// Note the use of composition 'x' for both species.
+		//	// TODO: This should be replaced by a full vector of the composition when non-binary systems are implemented.
+		//	phaseCurve0.TryAdd(x, mu0);
+		//	phaseCurve1.TryAdd(x, mu1);
+		//	energyCurve.TryAdd(x, G);
+		//}
+
+		Console.WriteLine($"Calculating chemical potential curves for phase \"{phase}\"");
+		Parallel.ForEach(compositions, x => {
 			// Assume that the composition x is the mole fraction of the first species in speciesList.
-			homomix_local.speciesList[0].speciesMoleFraction = x;
-			homomix_local.speciesList[1].speciesMoleFraction = 1-x;
+			var speciesList_local = new List<MixtureSpecies>
+			{
+				new(state0.species, x, state0.phase),
+				new(state1.species, 1-x, state1.phase)
+			};
+			var activityModel_local = mixtureList[GetMixutureIdxFromPhase(phase)].activityModel.Copy();
+			activityModel_local.speciesList = speciesList_local;
+			var homomix_local = new HomogeneousMixture(speciesList_local, phase, activityModel_local, null);
 
 			var mu0 = homomix_local.SpeciesChemicalPotential(T, P, state0.species);
 			var mu1 = homomix_local.SpeciesChemicalPotential(T, P, state1.species);
 			var G = homomix_local.TotalMolarGibbsEnergy(T, P);
 			// Note the use of composition 'x' for both species.
 			// TODO: This should be replaced by a full vector of the composition when non-binary systems are implemented.
-			phaseCurve0.Add(x, mu0);
-			phaseCurve1.Add(x, mu1);
-			energyCurve.Add(x, G);
+			phaseCurve0.TryAdd(x, mu0);
+			phaseCurve1.TryAdd(x, mu1);
+			energyCurve.TryAdd(x, G);
+
+			Console.WriteLine($"Calculated chemical potentials at x0={x}");
+		});
+
+		var phaseTable0 = new ChemicalPotentialCurve(state0, phaseCurve0.ToDictionary(x => x.Key, x => x.Value));
+		var phaseTable1 = new ChemicalPotentialCurve(state1, phaseCurve1.ToDictionary(x => x.Key, x => x.Value));
+		var energyTable = new PhaseTotalGibbsEnergyCurve((phase, T, P), energyCurve.ToDictionary(x => x.Key, x => x.Value));
+		phaseTable0.Resort();
+		phaseTable1.Resort();
+		energyTable.Resort();
+
+		if (ChemicalPotentialCurvesContainsKey(state0))
+		{
+			chemicalPotentialCurves[state0].Append(phaseTable0);
+			chemicalPotentialCurves[state0].Resort();
+		} else
+		{
+			chemicalPotentialCurves.Add(state0, phaseTable0);
 		}
-		chemicalPotentialCurves.Add(phaseCurve0.state, phaseCurve0);
-		chemicalPotentialCurves.Add(phaseCurve1.state , phaseCurve1);
-		totalGibbsEnergyCurves.Add(energyCurve.state, energyCurve);
+
+		if (ChemicalPotentialCurvesContainsKey(state1))
+		{
+			chemicalPotentialCurves[state1].Append(phaseTable1);
+			chemicalPotentialCurves[state1].Resort();
+		} else
+		{
+			chemicalPotentialCurves.Add(state1, phaseTable1);
+		}
+
+		if (totalGibbsEnergyCurves.ContainsKey((phase, T, P)))
+		{
+			totalGibbsEnergyCurves[(phase, T, P)].Append(energyTable);
+			totalGibbsEnergyCurves[(phase, T, P)].Resort();
+		} else
+		{
+			totalGibbsEnergyCurves.Add((phase, T, P), energyTable);
+		}
+		
 	}
 
 	/// <summary>
@@ -206,6 +347,19 @@ public class MultiphaseSystem
 	}
 
 	/// <summary>
+	/// Determines if the chemical potential curves list already contains an
+	/// entry for the given state.
+	/// </summary>
+	public bool ChemicalPotentialCurvesContainsKey(MultiphaseStatePoint state)
+	{
+		foreach (var curve in chemicalPotentialCurves)
+		{
+			if (curve.Key.Equals(state)) return true;
+		}
+		return false;
+	}
+
+	/// <summary>
 	/// Converts all chemical potential curves in <see cref="ChemicalPotentialCurves"/>
 	/// to a CSV-formatted string.
 	/// </summary>
@@ -238,12 +392,22 @@ public class MultiphaseSystem
 /// <summary>
 /// Stores a state point for the system according to phase, species, temperature, and pressure.
 /// </summary>
-public class MultiphaseStatePoint(Chemical _species, string _phase, Temperature _T, Pressure _P)
+public struct MultiphaseStatePoint(Chemical _species, string _phase, Temperature _T, Pressure _P)
 {
 	public Chemical species = _species;
 	public string phase = _phase;
 	public Temperature T = _T;
 	public Pressure P = _P;
+
+	public bool Equals(MultiphaseStatePoint compare)
+	{
+		if (compare.species == species &&
+			compare.phase == phase &&
+			compare.T.Value == T &&
+			compare.P.Value == P)
+			return true;
+		else return false;
+	}
 }
 
 public class MultiphaseEquilibriumResult()
