@@ -1,6 +1,7 @@
 ﻿using Core.Data;
 using Core.VariableTypes;
 using System;
+using System.Linq;
 using System.Collections.Concurrent;
 
 namespace Core.Multicomponent;
@@ -9,21 +10,40 @@ namespace Core.Multicomponent;
 /// Represents a closed system with multiple phases present.
 /// Each phase is assumed to be a homogeneous mixture (as implemented in <see cref="HomogeneousMixture"/>).
 /// </summary>
-// Nonbinary systems require multiple species mole fractions to specify the state of the system.
-// TODO: Refactor use of MoleFraction to Dictionary<Chemical, MoleFraction>.
+// TODO: Nonbinary systems require multiple species mole fractions to specify the state of the system.
 public class MultiphaseSystem
 {
-	public Dictionary<Chemical, MoleFraction> speciesList;
+	/// <summary>
+	/// Represents total system mole fractions for all species in the system.
+	/// </summary>
+	public CompositionVector compositionVector;
 
+	/// <summary>
+	/// List of all species in the system.
+	/// </summary>
+	public List<Chemical> SpeciesList { get; }
+
+	/// <summary>
+	/// List of homogeneous mixtures which comprise the system.
+	/// Each mixture represents a single phase in the system.
+	/// </summary>
 	public List<HomogeneousMixture> mixtureList;
 
 	/// <summary>
-	/// Species to use as a basis; for example, a specification for mole fraction
+	/// Species to use as a basis. A specification for mole fraction
 	/// for this species is not required and will be back-calculated from all
 	/// other species. Unless overriden, species basis will be set to whichever
 	/// is first in speciesList.
+	/// For example, a mixture of water and ethanol could use water
+	/// as the species basis, where the ethanol mole fraction is treated
+	/// as an independent variable and water is treated as dependent.
 	/// </summary>
 	public Chemical SpeciesBasis { get; set; }
+
+	/// <summary>
+	/// List of non-basis chemicals in the system.
+	/// </summary>
+	private List<Chemical> SpeciesListNonBasis;
 
 	/// <summary>
 	/// True if there are only two species in the system.
@@ -33,7 +53,7 @@ public class MultiphaseSystem
 	/// <summary>
 	/// Lists all phases present in the system.
 	/// </summary>
-	List<string> SystemPhases { get; }
+	List<string> PhasesList { get; }
 
 	/// <summary>
 	/// Stores all calculated chemical potential curves for each species at various temperatures, pressures, and phases.
@@ -45,19 +65,52 @@ public class MultiphaseSystem
 	/// </summary>
 	public Dictionary<(string phase, Temperature T, Pressure P), PhaseTotalGibbsEnergyCurve> totalGibbsEnergyCurves = [];
 
-	public List<(MoleFraction, double)> Error;
+	public Dictionary<MoleFraction, double> LastPhaseEquilibriaErrors = [];
 
-	public MultiphaseSystem(Dictionary<Chemical, MoleFraction> _speciesList, List<HomogeneousMixture> _mixtureList)
+	/// <summary>
+	/// Creates a multiphase system.
+	/// </summary>
+	/// <param name="_compositionList">Composition vector of all species mole fractions.</param>
+	/// <param name="_mixtureList">List of homogeneous mixtures, one for each phase in the system.</param>
+	/// <param name="_basis">Species to treat as the derived composition.</param>
+	public MultiphaseSystem(CompositionVector _compositionList, List<HomogeneousMixture> _mixtureList, Chemical _basis)
 	{
-		if (_speciesList.Count < 2 || _mixtureList.Count < 2)
-			throw new NotSupportedException("Systems must contain more than one species and phase.");
-		speciesList = _speciesList;
-		mixtureList = _mixtureList;
-		SpeciesBasis = speciesList.Keys.FirstOrDefault();
-		IsBinarySystem = (speciesList.Count == 2);
+		SpeciesList = [.. _compositionList.compositions.Keys];
 
-		SystemPhases = [];
-		foreach (var mixture in mixtureList) SystemPhases.Add(mixture.totalPhase);
+		if (SpeciesList.Count < 2 || _mixtureList.Count < 2)
+			throw new NotSupportedException("Systems must contain more than one species and phase.");
+
+		compositionVector = _compositionList;
+		mixtureList = _mixtureList;
+		SpeciesBasis = _basis;
+		SpeciesListNonBasis = [.. from spec in SpeciesList
+								  where spec != SpeciesBasis
+								  select spec];
+		IsBinarySystem = (SpeciesList.Count == 2);
+		PhasesList = [.. mixtureList.Select(mix => mix.totalPhase)];
+
+		// Validate compositions in mixture species.
+		// If any of the mixture mole fractions are not set, skip this part.
+		if (mixtureList.Select(mix => mix.mixtureMoleFraction).Any(x => x is null)) return;
+		Dictionary<Chemical, MoleFraction> aggregateSpecies = [];
+		foreach (var homoMix in mixtureList)
+		{
+			foreach (var mixtureSpecies in homoMix.speciesList)
+			{
+				var val = mixtureSpecies.speciesMoleFraction * homoMix.mixtureMoleFraction;
+				if (aggregateSpecies.ContainsKey(mixtureSpecies.chemical))
+				{
+					aggregateSpecies[mixtureSpecies.chemical] += val;
+				} else
+				{
+					aggregateSpecies.Add(mixtureSpecies.chemical, val);
+				}
+			}
+		}
+		if (aggregateSpecies.Any(entry => compositionVector.compositions[entry.Key] != entry.Value))
+		{
+			throw new ArgumentException("Mixture species compositions do not add to system composition.");
+		}
 	}
 
 	/// <summary>
@@ -72,36 +125,178 @@ public class MultiphaseSystem
 	public List<MultiphaseEquilibriumResult> FindPhaseEquilibria(Temperature T, Pressure P)
 	{
 		if (!IsBinarySystem) throw new NotImplementedException("Multicomponent equilibrium currently only supports binary mixtures.");
-		if (SystemPhases.Count > 2) throw new NotImplementedException("Multicomponent equilibrium currently only supports two phases.");
+		if (PhasesList.Count > 2) throw new NotImplementedException("Multicomponent equilibrium currently only supports two phases.");
+
+		var errorTolerance = 0.02;
 
 		var searchDensity = 0.01;
 		var compositions = new LinearEnumerable(0.01, 1, searchDensity).ToList();
-		foreach (var phase in SystemPhases)
+		foreach (var phase in PhasesList)
 		{
 			CalculatePotentialAndEnergyCurves(T, P, phase, compositions);
 		}
 
 
 		// Run a roughing search across all compositions.
-
-		// All compositions are mol% species0.
-		// TODO: Add detection for which species the user wants to use as the basis.
-		// TODO: Use for loop here for nonbinary mixtures
+		Console.WriteLine("== Performing rough search across all compositions ==");
+		// All compositions (e.g. xV) are mole fractions of the non-basis species.
+		// For a binary mixture, this is really easy.
 		List<MoleFraction> roughing = [];
-		//List<MultiphaseEquilibriumResult> results = [];
-		Error = [];
+		List<MoleFraction> possibleStates = [];
 		for (MoleFraction xV = 0.01; xV <= 1; xV += searchDensity)
 		{
-			//Console.WriteLine($"Testing equilibrium for x0V={xV}");
+			(MoleFraction xL, double error) = SearchForCommonTangets(xV);
+			if (double.IsNaN(error))
+			{
+				Console.WriteLine($"No state found at x0V={xV.RoundToSigfigs(3)}");
+				continue;
+			}
+			possibleStates.Add(xV);
+			LastPhaseEquilibriaErrors.Add(xV, error);
+			Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
+			if (error <= errorTolerance*2)
+			{
+				roughing.Add(xV);
+				Console.WriteLine($"Roughing candidate found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)}");
+			}
+		}
 
-			var species0 = speciesList.Keys.ToList()[0];
-			var species1 = speciesList.Keys.ToList()[1];
-			var curves_V = GetChemicalPotentialCurves(T, P, "vapor");
-			var curves_L = GetChemicalPotentialCurves(T, P, "liquid");
-			var curvePotential_V0 = curves_V[species0];
-			var curvePotential_V1 = curves_V[species1];
-			var curveComposition_L0 = curves_L[species0].Invert();
-			var curveComposition_L1 = curves_L[species1].Invert();
+		// Include roughing near edges of the 'no state found' region.
+		roughing.Add(possibleStates.Min());
+		roughing.Add(possibleStates.Max());
+
+		// Run a final search near the roughing solutions.
+		Dictionary<(MoleFraction xV, MoleFraction xL), double> resultsPrelim = [];
+		var searchRadius = 0.02;
+		searchDensity /= 10;
+		var finalSearchSpace = new MoleFractionSearchRanges(roughing, searchRadius);
+		foreach (var xVr in finalSearchSpace.Ranges)
+		{
+			Console.WriteLine($"== Performing final search for xV = [{xVr.min.RoundToSigfigs(3)}, {xVr.max.RoundToSigfigs(3)}] ==");
+
+			// Beware of NaN states!
+			// If the range being tested extends beyond the 'no state found' region,
+			// you'll need to find exactly where the edge of that region is.
+			var compositionsV = new LinearEnumerable(xVr.min, xVr.max, searchDensity).ToList();
+			CalculatePotentialAndEnergyCurves(T, P, "vapor", compositionsV);
+			MoleFraction xL_fromMin = double.NaN;
+			foreach (var xVtest in compositionsV)
+			{
+				(var xL, _) = SearchForCommonTangets(xVtest);
+				if (double.IsNaN(xL))
+				{
+					continue;
+				} else {
+					xL_fromMin = xL;
+					break;
+				}
+			}
+			MoleFraction xL_fromMax = double.NaN;
+			compositionsV.Reverse();
+			foreach (var xVtest in compositionsV)
+			{
+				(var xL, _) = SearchForCommonTangets(xVtest);
+				if (double.IsNaN(xL))
+				{
+					continue;
+				}
+				else
+				{
+					xL_fromMax = xL;
+					break;
+				}
+			}
+			var compositionsL = new LinearEnumerable(Math.Min(xL_fromMin, xL_fromMax), Math.Max(xL_fromMin, xL_fromMax), searchDensity).ToList();
+			CalculatePotentialAndEnergyCurves(T, P, "liquid", compositionsL);
+			Console.WriteLine($"Determined search range for xL to be between {xL_fromMin} and {xL_fromMax}");
+
+			(MoleFraction xV, MoleFraction xL, double error) previousResult = (double.NaN, double.NaN, double.NaN);
+			for (MoleFraction xV = xVr.min; xV <= xVr.max; xV += searchDensity)
+			{
+				(MoleFraction xL, double error) = SearchForCommonTangets(xV);
+				if (double.IsNaN(xL)) continue;
+				Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
+				LastPhaseEquilibriaErrors.Add(xV, error);
+
+				// Check to ensure error is below accepted tolerance.
+				// Necesary to avoid always finding solutions at the no-state boundaries.
+				if (error > errorTolerance)
+				{
+					//Console.WriteLine($"State ignored at x0V={xV.RoundToSigfigs(3)} with error {error}");
+					continue;
+				}
+
+				// Get all preliminary equilibria from this search region.
+				//var regionPrelimResults = from entry in resultsPrelim
+				//						  where xVr.min <= entry.Key.xV && entry.Key.xV <= xVr.max
+				//						  select entry;
+				// If there are no results for this segment yet (i.e., this is the first), always add the current result to the list.
+				//if (!regionPrelimResults.Any())
+				if (double.IsNaN(error))
+				{
+					resultsPrelim.Add((xV, xL), error);
+					previousResult = (xV, xL, error);
+					Console.WriteLine($"New final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+					continue;
+				}
+
+				// Get the last result which has xV lower than current xV.
+				// Relies on resultsPrelim being ordered in ascending xV (at least within the same search range)
+				//var largestPrevResultInRange = (from entry in regionPrelimResults
+				//								where entry.Key.xV <= xV && entry.Key.xV >= xVr.min
+				//								select entry).Last();
+				
+				// If the error has decreased, replace the previous preliminary result with the current result.
+				//if (error < largestPrevResultInRange.Value)
+				if (error < previousResult.error)
+				{
+					//resultsPrelim.Remove(largestPrevResultInRange.Key);
+					resultsPrelim.Remove((previousResult.xV, previousResult.xL));
+					resultsPrelim.Add((xV, xL), error);
+					Console.WriteLine($"Better final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+				}
+				//else if (error == largestPrevResultInRange.Value)
+				else if (error == previousResult.error)
+				{
+					//resultsPrelim.Remove(largestPrevResultInRange.Key);
+					//xV = (xV + largestPrevResultInRange.Key.xV) / 2;
+					resultsPrelim.Remove((previousResult.xV, previousResult.xL));
+					xV = (xV + previousResult.xV) / 2;
+					(xL, error) = SearchForCommonTangets(xV);
+					resultsPrelim.Add((xV, xL), error);
+					LastPhaseEquilibriaErrors.Add(xV, error);
+					Console.WriteLine($"Equivalent final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+				}
+
+				// Store this current state for future use.
+				previousResult = (xV, xL, error);
+			}
+		}
+
+		// Search complete. Any remaining preliminary results are now final results.
+		List<MultiphaseEquilibriumResult> results = [];
+		foreach (var entry in resultsPrelim)
+		{
+			var xV = entry.Key.xV;
+			var xL = entry.Key.xL;
+			var equilibrium = new MultiphaseEquilibriumResult(T, P);
+			equilibrium.Value.Add((PhasesList[0], SpeciesListNonBasis[0]), xV);
+			equilibrium.Value.Add((PhasesList[0], SpeciesBasis), 1 - xV);
+			equilibrium.Value.Add((PhasesList[1], SpeciesListNonBasis[0]), xL);
+			equilibrium.Value.Add((PhasesList[1], SpeciesBasis), 1 - xL);
+			results.Add(equilibrium);
+		}
+		LastPhaseEquilibriaErrors.ToList();
+		return results;
+
+		(MoleFraction xL, double error) SearchForCommonTangets(MoleFraction xV)
+		{
+			var curves_V = GetChemicalPotentialCurves(T, P, PhasesList[0]);
+			var curves_L = GetChemicalPotentialCurves(T, P, PhasesList[1]);
+			var curvePotential_V0 = curves_V[SpeciesListNonBasis[0]];
+			var curvePotential_V1 = curves_V[SpeciesBasis];
+			var curveComposition_L0 = curves_L[SpeciesListNonBasis[0]].Invert();
+			var curveComposition_L1 = curves_L[SpeciesBasis].Invert();
 
 			var mu_V0 = curvePotential_V0.GetValue(xV);
 			var mu_V1 = curvePotential_V1.GetValue(xV);
@@ -110,102 +305,17 @@ public class MultiphaseSystem
 			if (mu_V0 is null || xL_from0 is null)
 			{
 				//Console.WriteLine($"Common tangent not possible for x0V={xV}");
-				continue;
+				return (double.NaN, double.NaN);
 			}
 			if (mu_V1 is null || xL_from1 is null)
 			{
 				//Console.WriteLine($"Common tangent not possible for x0V={xV}");
-				continue;
+				return (double.NaN, double.NaN);
 			}
-
 			var error = Math.Abs(xL_from0 - xL_from1);
-			Error.Add((xV, error));
-			Console.WriteLine($"State found at x0V={xV} with error {error}");
-			if (error <= 0.01)
-			{
-				var xL = (xL_from0 + xL_from1) / 2;
-				var equilibrium = new MultiphaseEquilibriumResult();
-				equilibrium.Value.Add(("vapor", species0), xV);
-				equilibrium.Value.Add(("vapor", species1), 1-xV);
-				equilibrium.Value.Add(("liquid", species0), xL);
-				equilibrium.Value.Add(("liquid", species1), 1-xL);
-				roughing.Add(xV);
-				//results.Add(equilibrium);
-				Console.WriteLine($"Roughing candidate found at x0V={xV} x0L={xL}");
-			}
+			var xL = (xL_from0 + xL_from1) / 2;
+			return (xL, error);
 		}
-
-
-		// Run a final search near the roughing solutions.
-		List<MultiphaseEquilibriumResult> results = [];
-		List<MoleFraction> resultFractions = [];
-		var searchRadius = 0.01;
-		searchDensity /= 10;
-		foreach (var xVr in roughing)
-		{
-			compositions = new LinearEnumerable(xVr - searchRadius, xVr + searchRadius, searchDensity).ToList();
-			foreach (var phase in SystemPhases)
-			{
-				CalculatePotentialAndEnergyCurves(T, P, phase, compositions);
-			}
-
-			for (MoleFraction xV = xVr - searchRadius; xV <= xVr + searchRadius; xV += searchDensity)
-			{
-				//Console.WriteLine($"Testing equilibrium for x0V={xV}");
-
-				var species0 = speciesList.Keys.ToList()[0];
-				var species1 = speciesList.Keys.ToList()[1];
-				var curves_V = GetChemicalPotentialCurves(T, P, "vapor");
-				var curves_L = GetChemicalPotentialCurves(T, P, "liquid");
-				var curvePotential_V0 = curves_V[species0];
-				var curvePotential_V1 = curves_V[species1];
-				var curveComposition_L0 = curves_L[species0].Invert();
-				var curveComposition_L1 = curves_L[species1].Invert();
-
-				var mu_V0 = curvePotential_V0.GetValue(xV);
-				var mu_V1 = curvePotential_V1.GetValue(xV);
-				var xL_from0 = curveComposition_L0.GetValue(mu_V0);
-				var xL_from1 = curveComposition_L1.GetValue(mu_V1);
-				if (mu_V0 is null || xL_from0 is null)
-				{
-					//Console.WriteLine($"Common tangent not possible for x0V={xV}");
-					continue;
-				}
-				if (mu_V1 is null || xL_from1 is null)
-				{
-					//Console.WriteLine($"Common tangent not possible for x0V={xV}");
-					continue;
-				}
-
-				// TODO: Replace the 0.01 redundancy check with an expression
-				// that picks the solution with the least error.
-				var error = Math.Abs(xL_from0 - xL_from1);
-				Error.Add((xV, error));
-				Console.WriteLine($"Final candidate found at x0V={xV} with error {error}");
-				if (error <= 0.001)
-				{
-					var xL = (xL_from0 + xL_from1) / 2;
-					var xL_prev = resultFractions.Find(x => Math.Abs(xL - x) <= 0.01);
-					if (xL_prev is not null)
-					{
-						xL = (xL_prev + xL) / 2;
-						resultFractions.Remove(xL_prev);
-						resultFractions.Add(xL);
-						Console.WriteLine($"Updated equilibrium found at x0V={xV} x0L={xL}");
-						continue;
-					}
-					resultFractions.Add(xL);
-					var equilibrium = new MultiphaseEquilibriumResult();
-					equilibrium.Value.Add(("vapor", species0), xV);
-					equilibrium.Value.Add(("vapor", species1), 1 - xV);
-					equilibrium.Value.Add(("liquid", species0), xL);
-					equilibrium.Value.Add(("liquid", species1), 1 - xL);
-					results.Add(equilibrium);
-					Console.WriteLine($"New equilibrium found at x0V={xV} x0L={xL}");
-				}
-			}
-		}
-		return results;
 	}
 
 	/// <summary>
@@ -221,38 +331,14 @@ public class MultiphaseSystem
 		//	if (chemicalPotentialCurves.ContainsKey(state)) { return; }
 		//}
 
-		//MoleFraction startComposition = 0.001;
-		//MoleFraction stopComposition = 1;
-		//MoleFraction stepComposition = 0.05;
-		//var compositions = new LinearEnumerable(startComposition, stopComposition, stepComposition).ToList();
-
-		var state0 = new MultiphaseStatePoint(speciesList.First().Key, phase, T, P);
-		var state1 = new MultiphaseStatePoint(speciesList.Last().Key, phase, T, P);
+		var state0 = new MultiphaseStatePoint(SpeciesListNonBasis[0], phase, T, P);
+		var state1 = new MultiphaseStatePoint(SpeciesBasis, phase, T, P);
 		var phaseCurve0 = new ConcurrentDictionary<MoleFraction, ChemicalPotential>();
 		var phaseCurve1 = new ConcurrentDictionary<MoleFraction, ChemicalPotential>();
 		var energyCurve = new ConcurrentDictionary<MoleFraction, GibbsEnergy>();
 
-		//foreach (var x in compositions)
-		//{
-		//	var homomix_local = mixtureList[GetMixutureIdxFromPhase(phase)];
-
-		//	// Assume that the composition x is the mole fraction of the first species in speciesList.
-		//	homomix_local.speciesList[0].speciesMoleFraction = x;
-		//	homomix_local.speciesList[1].speciesMoleFraction = 1 - x;
-
-		//	var mu0 = homomix_local.SpeciesChemicalPotential(T, P, state0.species);
-		//	var mu1 = homomix_local.SpeciesChemicalPotential(T, P, state1.species);
-		//	var G = homomix_local.TotalMolarGibbsEnergy(T, P);
-		//	// Note the use of composition 'x' for both species.
-		//	// TODO: This should be replaced by a full vector of the composition when non-binary systems are implemented.
-		//	phaseCurve0.TryAdd(x, mu0);
-		//	phaseCurve1.TryAdd(x, mu1);
-		//	energyCurve.TryAdd(x, G);
-		//}
-
-		Console.WriteLine($"Calculating chemical potential curves for phase \"{phase}\"");
+		//Console.WriteLine($"Calculating chemical potential curves for phase \"{phase}\"");
 		Parallel.ForEach(compositions, x => {
-			// Assume that the composition x is the mole fraction of the first species in speciesList.
 			var speciesList_local = new List<MixtureSpecies>
 			{
 				new(state0.species, x, state0.phase),
@@ -271,12 +357,12 @@ public class MultiphaseSystem
 			phaseCurve1.TryAdd(x, mu1);
 			energyCurve.TryAdd(x, G);
 
-			Console.WriteLine($"Calculated chemical potentials at x0={x}");
+			//Console.WriteLine($"Calculated chemical potentials at x0={x}");
 		});
 
-		var phaseTable0 = new ChemicalPotentialCurve(state0, phaseCurve0.ToDictionary(x => x.Key, x => x.Value));
-		var phaseTable1 = new ChemicalPotentialCurve(state1, phaseCurve1.ToDictionary(x => x.Key, x => x.Value));
-		var energyTable = new PhaseTotalGibbsEnergyCurve((phase, T, P), energyCurve.ToDictionary(x => x.Key, x => x.Value));
+		var phaseTable0 = new ChemicalPotentialCurve(state0, phaseCurve0);
+		var phaseTable1 = new ChemicalPotentialCurve(state1, phaseCurve1);
+		var energyTable = new PhaseTotalGibbsEnergyCurve((phase, T, P), energyCurve);
 		phaseTable0.Resort();
 		phaseTable1.Resort();
 		energyTable.Resort();
@@ -285,7 +371,8 @@ public class MultiphaseSystem
 		{
 			chemicalPotentialCurves[state0].Append(phaseTable0);
 			chemicalPotentialCurves[state0].Resort();
-		} else
+		}
+		else
 		{
 			chemicalPotentialCurves.Add(state0, phaseTable0);
 		}
@@ -294,7 +381,8 @@ public class MultiphaseSystem
 		{
 			chemicalPotentialCurves[state1].Append(phaseTable1);
 			chemicalPotentialCurves[state1].Resort();
-		} else
+		}
+		else
 		{
 			chemicalPotentialCurves.Add(state1, phaseTable1);
 		}
@@ -303,7 +391,8 @@ public class MultiphaseSystem
 		{
 			totalGibbsEnergyCurves[(phase, T, P)].Append(energyTable);
 			totalGibbsEnergyCurves[(phase, T, P)].Resort();
-		} else
+		}
+		else
 		{
 			totalGibbsEnergyCurves.Add((phase, T, P), energyTable);
 		}
@@ -322,6 +411,9 @@ public class MultiphaseSystem
 		throw new KeyNotFoundException($"Mixture with phase \'{phase}\' not found in mixtureList.");
 	}
 
+	/// <summary>
+	/// Retrieves all chemical potential curves from <see cref="chemicalPotentialCurves"/> with the given phase.
+	/// </summary>
 	public Dictionary<(Temperature T, Pressure P, Chemical species), ChemicalPotentialCurve> GetChemicalPotentialCurves(string phase)
 	{
 		Dictionary<(Temperature T, Pressure P, Chemical species), ChemicalPotentialCurve> results = [];
@@ -332,6 +424,9 @@ public class MultiphaseSystem
 		return results;
 	}
 
+	/// <summary>
+	/// Retrieves all chemical potential curves from <see cref="chemicalPotentialCurves"/> with the given temperature, pressure, and phase.
+	/// </summary>
 	public Dictionary<Chemical, ChemicalPotentialCurve> GetChemicalPotentialCurves(Temperature T, Pressure P, string phase)
 	{
 		Dictionary<Chemical, ChemicalPotentialCurve> results = [];
@@ -390,6 +485,35 @@ public class MultiphaseSystem
 
 
 /// <summary>
+/// Represents the composition vector of a phase in the system.
+/// If a SpeciesBasis is specified, that species's composition
+/// will be calculated based on the other fractions specified.
+/// </summary>
+public struct CompositionVector(Dictionary<Chemical, MoleFraction> _compositions)
+{
+	public Dictionary<Chemical, MoleFraction> compositions = _compositions;
+
+	/// <summary>
+	/// Calculates a final mole fraction based on a list of all other mole fractions.
+	/// </summary>
+	/// <param name="fractions">List of all other mole fractions.</param>
+	public static MoleFraction CalculateRemainingFraction(List<MoleFraction> fractions)
+	{
+		var sum = fractions.Aggregate((a, b) => a + b);
+		if (sum > 1) throw new Exception("Mole fractions must sum to at most 1.");
+		return 1 - sum;
+	}
+
+	/// <inheritdoc cref="CalculateRemainingFraction(List{MoleFraction})"/>
+	public static MoleFraction CalculateRemainingFraction(Dictionary<Chemical, MoleFraction> fractions)
+	{
+		return CalculateRemainingFraction(fractions.Values.ToList());
+	}
+
+	public static implicit operator Dictionary<Chemical, MoleFraction>(CompositionVector vec) => vec.compositions;
+}
+
+/// <summary>
 /// Stores a state point for the system according to phase, species, temperature, and pressure.
 /// </summary>
 public struct MultiphaseStatePoint(Chemical _species, string _phase, Temperature _T, Pressure _P)
@@ -414,12 +538,27 @@ public struct MultiphaseStatePoint(Chemical _species, string _phase, Temperature
 /// Represents a result from equilibrium searches.
 /// Stores temperature, pressure, and a Dictionary containing mole fractions for each species in each phase.
 /// </summary>
-public struct MultiphaseEquilibriumResult()
+public struct MultiphaseEquilibriumResult
 {
 	public Temperature T;
 	public Pressure P;
+	public Dictionary<(string phase, Chemical species), MoleFraction> Value;
 
-	public Dictionary<(string phase, Chemical species), MoleFraction> Value = [];
+	public MultiphaseEquilibriumResult(Temperature _T, Pressure _P, Dictionary<(string phase, Chemical species), MoleFraction> _value)
+	{
+		T = _T;
+		P = _P;
+		Value = _value;
+	}
+
+	public MultiphaseEquilibriumResult(Temperature _T, Pressure _P)
+	{
+		T = _T;
+		P = _P;
+		Value = [];
+	}
+
+	public static implicit operator Dictionary<(string phase, Chemical species), MoleFraction>(MultiphaseEquilibriumResult result) => result.Value;
 }
 
 /// <summary>
@@ -432,6 +571,12 @@ public class ChemicalPotentialCurve : InterpolableTable<MoleFraction, ChemicalPo
 	public ChemicalPotentialCurve() { headers = ("mole fraction", "chemical potential"); }
 
 	public ChemicalPotentialCurve(MultiphaseStatePoint _state, Dictionary<MoleFraction, ChemicalPotential> data) : base(data)
+	{
+		state = _state;
+		headers = ("mole fraction", "chemical potential");
+	}
+
+	public ChemicalPotentialCurve(MultiphaseStatePoint _state, ConcurrentDictionary<MoleFraction, ChemicalPotential> data) : base(data.ToDictionary(x => x.Key, x => x.Value))
 	{
 		state = _state;
 		headers = ("mole fraction", "chemical potential");
@@ -451,5 +596,106 @@ public class PhaseTotalGibbsEnergyCurve : InterpolableTable<MoleFraction, GibbsE
 	{
 		state = _state;
 		headers = ("mole fraction", "total molar Gibbs energy");
+	}
+
+	public PhaseTotalGibbsEnergyCurve((string phase, Temperature T, Pressure P) _state, ConcurrentDictionary<MoleFraction, GibbsEnergy> data) : base(data.ToDictionary(x => x.Key, x => x.Value))
+	{
+		state = _state;
+		headers = ("mole fraction", "total molar Gibbs energy");
+	}
+}
+
+struct MoleFractionSearchRanges
+{
+	
+	public List<(MoleFraction min, MoleFraction max)> Ranges { private set; get; }
+
+	public MoleFractionSearchRanges(List<(MoleFraction min, MoleFraction max)> minmaxRanges)
+	{
+		UnifyRanges(minmaxRanges);
+	}
+
+	public MoleFractionSearchRanges(List<MoleFraction> _centerRanges, MoleFraction radius)
+	{
+		List<(MoleFraction min, MoleFraction max)> minmaxRanges = [];
+		foreach (var x in _centerRanges)
+		{
+			minmaxRanges.Add((x-radius, x+radius));
+		}
+		UnifyRanges(minmaxRanges);
+	}
+
+	/// <summary>
+	/// Converts a potentially overlapping set of ranges in minmaxRanges
+	/// to be the union of those ranges.
+	/// </summary>
+	private void UnifyRanges(List<(MoleFraction min, MoleFraction max)> minmaxRanges)
+	{
+		Ranges = [];
+		foreach (var x in minmaxRanges)
+		{
+			if (!Ranges.Any())
+			{
+				Ranges.Add(x);
+				continue;
+			}
+
+			// Get all s such that x is entirely contained in s.
+			var range_contained = (from s in Ranges
+								   where s.min <= x.min && s.max >= x.max
+								   select s).ToArray();
+			if (range_contained.Length != 0)
+			{
+				continue;
+			}
+
+			// Get all s such that s is entirely contained in x.
+			var range_contains = (from s in Ranges
+								  where s.min >= x.min && s.max <= x.max
+								  select s).ToArray();
+			if (range_contains.Length != 0)
+			{
+				var s = range_contains[0];
+				Ranges.Remove(s);
+				Ranges.Add(x);
+				continue;
+			}
+
+			// Get all s such that only the 'top' portion of s is contained in x.
+			var range_left = (from s in Ranges
+							  where s.min <= x.min && x.min <= s.max && s.max <= x.max
+							  select s).ToArray();
+			if (range_left.Length != 0)
+			{
+				var s = range_left[0];
+				Ranges.Remove(s);
+				Ranges.Add((s.min, x.max));
+				continue;
+			}
+
+			// Get all s such that only the 'bottom' portion of s is contained in x.
+			var range_right = (from s in Ranges
+							   where s.max >= x.max && x.min <= s.min && s.min <= x.max
+							   select s).ToArray();
+			if (range_right.Length != 0)
+			{
+				var s = range_right[0];
+				Ranges.Remove(s);
+				Ranges.Add((x.min, s.max));
+				continue;
+			}
+
+			// All other cases are such that s and x have no intersection.
+			Ranges.Add(x);
+		}
+	}
+
+	/// <summary>
+	/// Adds a min-max defined range and unifies it with the existing set of ranges.
+	/// </summary>
+	public void AddRange(MoleFraction min, MoleFraction max)
+	{
+		Ranges.Add((min, max));
+		UnifyRanges(Ranges);
 	}
 }

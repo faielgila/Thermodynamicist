@@ -9,7 +9,7 @@ static class TestBinaryMultiphaseSystem
 {
 	public static void Test(string dirConsole)
 	{
-		Temperature T = 365;
+		Temperature T = 361.8;
 		Pressure P = 101325;
 		var species0 = Chemical.NPropanol;
 		var species1 = Chemical.Water;
@@ -19,6 +19,7 @@ static class TestBinaryMultiphaseSystem
 			[species0] = 0.5,
 			[species1] = 0.5
 		};
+		var systemCompVec = new CompositionVector(systemSpeciesList);
 		var vaporSpeciesList = new List<MixtureSpecies>() {
 			new(species0, 0.5, "vapor"),
 			new(species1, 0.5, "vapor")
@@ -31,13 +32,13 @@ static class TestBinaryMultiphaseSystem
 			new(vaporSpeciesList, "vapor", new IdealMixture("vapor", vaporSpeciesList), null),
 			new(liquidSpeciesList, "liquid", new UNIFACActivityModel(liquidSpeciesList), null)
 		};
-		var system = new MultiphaseSystem(systemSpeciesList, mixtureList);
+		var system = new MultiphaseSystem(systemCompVec, mixtureList, Chemical.Water);
 
 		var equilibria = system.FindPhaseEquilibria(T, P);
 
 		foreach (var entry in system.ConvertChemicalPotentialCurvesToCSV())
 		{
-			string filename = $"T{T}-P{P}-{entry.Key.phase}-{entry.Key.species}.csv";
+			string filename = $"T365-P{P}-{entry.Key.phase}-{entry.Key.species}.csv";
 			File.Delete(filename);
 			StreamWriter file = new(Path.Combine(dirConsole, filename), false);
 			file.WriteLine(entry.Value);
@@ -47,13 +48,25 @@ static class TestBinaryMultiphaseSystem
 
 		foreach (var entry in system.ConvertTotalGibbsEnergyCurvesToCSV())
 		{
-			string filename = $"T{T}-P{P}-{entry.Key.phase}.csv";
+			string filename = $"T365-P{P}-{entry.Key.phase}.csv";
 			File.Delete(filename);
 			StreamWriter file = new(Path.Combine(dirConsole, filename), false);
 			file.WriteLine(entry.Value);
 			file.Close();
 			AnsiConsole.WriteLine($"Wrote to file: {filename}.");
 		}
+
+		string filenameErr = $"T365-P{P}-errors.csv";
+		File.Delete(filenameErr);
+		StreamWriter fileErr = new(Path.Combine(dirConsole, filenameErr), false);
+		fileErr.WriteLine("xV,error");
+		var errors = system.LastPhaseEquilibriaErrors.ToList();
+		foreach (var entry in errors.OrderBy(entry => entry.Key))
+		{
+			fileErr.WriteLine($"{entry.Key},{entry.Value}");
+		}
+		fileErr.Close();
+		AnsiConsole.WriteLine($"Wrote to file: {filenameErr}.");
 
 		var search = system.FindPhaseEquilibria(T, P);
 		foreach (var item in search)
@@ -63,42 +76,5 @@ static class TestBinaryMultiphaseSystem
 			AnsiConsole.MarkupLine($"[green]Equilibrium found: {first.phase} phase, {first.Item3}mol% {first.Item2}[/]");
 		}
 		AnsiConsole.MarkupLine($"[bold][springgreen1]Found {search.Count} equilibria @ T={T}[/][/]");
-
-		string filenameErr = $"T{T}-P{P}-errors.csv";
-		File.Delete(filenameErr);
-		StreamWriter fileErr = new(Path.Combine(dirConsole, filenameErr), false);
-		foreach (var entry in system.Error)
-		{
-			fileErr.WriteLine($"{entry.Item1},{entry.Item2}");
-		}
-		fileErr.Close();
-		AnsiConsole.WriteLine($"Wrote to file: {filenameErr}.");
-
-
-		//LinearEnumerable temps = new(365, 365.5, 1);
-		//foreach (Temperature T in temps)
-		//{
-		//	var header = new Rule($"[cyan]Testing for multiphase equilibria @ T={T}[/]");
-		//	AnsiConsole.Write(header);
-
-		//	var search = system.FindPhaseEquilibria(T, P);
-		//	foreach (var item in search)
-		//	{
-		//		var undict = item.Value.Select(x => (x.Key.phase, Constants.ChemicalNames[x.Key.species], x.Value.RoundToSigfigs(2)));
-		//		var first = undict.First();
-		//		AnsiConsole.MarkupLine($"[green]Equilibrium found: {first.phase} phase, {first.Item3}mol% {first.Item2}[/]");
-		//	}
-		//	AnsiConsole.MarkupLine($"[bold][springgreen1]Found {search.Count} equilibria @ T={T}[/][/]");
-
-		//	string filename = $"T{T}-P{P}-errors.csv";
-		//	File.Delete(filename);
-		//	StreamWriter file = new(Path.Combine(dirConsole, filename), false);
-		//	foreach (var entry in system.Error)
-		//	{
-		//		file.WriteLine($"{entry.Item1},{entry.Item2}");
-		//	}
-		//	file.Close();
-		//	AnsiConsole.WriteLine($"Wrote to file: {filename}.");
-		//}
 	}
 }

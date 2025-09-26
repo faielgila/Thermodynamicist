@@ -128,4 +128,8 @@ public class InterpolableTable<Tx, Ty> where Tx : ThermoVariable, new() where Ty
 		}
 		return sb.ToString();
 	}
+
+	public static implicit operator SortedDictionary<Tx, Ty>(InterpolableTable<Tx, Ty> T) => T.Table;
+
+	public static implicit operator InterpolableTable<Tx, Ty>(Dictionary<Tx, Ty> dict) => new(dict);
 }
