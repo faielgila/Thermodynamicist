@@ -9,7 +9,7 @@ static class TestBinaryMultiphaseSystem
 {
 	public static void Test(string dirConsole)
 	{
-		Temperature T = 361.8;
+		Temperature T = 369.5;
 		Pressure P = 101325;
 		var species0 = Chemical.NPropanol;
 		var species1 = Chemical.Water;

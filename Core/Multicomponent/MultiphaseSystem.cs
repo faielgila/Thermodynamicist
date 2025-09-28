@@ -130,15 +130,16 @@ public class MultiphaseSystem
 		var errorTolerance = 0.02;
 
 		var searchDensity = 0.01;
-		var compositions = new LinearEnumerable(0.01, 1, searchDensity).ToList();
+		var compositions = new LinearEnumerable(0.001, 1, searchDensity).ToList();
 		foreach (var phase in PhasesList)
 		{
 			CalculatePotentialAndEnergyCurves(T, P, phase, compositions);
 		}
+		LastPhaseEquilibriaErrors = [];
 
 
 		// Run a roughing search across all compositions.
-		Console.WriteLine("== Performing rough search across all compositions ==");
+		//Console.WriteLine("== Performing rough search across all compositions ==");
 		// All compositions (e.g. xV) are mole fractions of the non-basis species.
 		// For a binary mixture, this is really easy.
 		List<MoleFraction> roughing = [];
@@ -148,16 +149,16 @@ public class MultiphaseSystem
 			(MoleFraction xL, double error) = SearchForCommonTangets(xV);
 			if (double.IsNaN(error))
 			{
-				Console.WriteLine($"No state found at x0V={xV.RoundToSigfigs(3)}");
+				//Console.WriteLine($"No state found at x0V={xV.RoundToSigfigs(3)}");
 				continue;
 			}
 			possibleStates.Add(xV);
 			LastPhaseEquilibriaErrors.Add(xV, error);
-			Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
+			//Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
 			if (error <= errorTolerance*2)
 			{
 				roughing.Add(xV);
-				Console.WriteLine($"Roughing candidate found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)}");
+				//Console.WriteLine($"Roughing candidate found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)}");
 			}
 		}
 
@@ -172,7 +173,7 @@ public class MultiphaseSystem
 		var finalSearchSpace = new MoleFractionSearchRanges(roughing, searchRadius);
 		foreach (var xVr in finalSearchSpace.Ranges)
 		{
-			Console.WriteLine($"== Performing final search for xV = [{xVr.min.RoundToSigfigs(3)}, {xVr.max.RoundToSigfigs(3)}] ==");
+			//Console.WriteLine($"== Performing final search for xV = [{xVr.min.RoundToSigfigs(3)}, {xVr.max.RoundToSigfigs(3)}] ==");
 
 			// Beware of NaN states!
 			// If the range being tested extends beyond the 'no state found' region,
@@ -208,14 +209,14 @@ public class MultiphaseSystem
 			}
 			var compositionsL = new LinearEnumerable(Math.Min(xL_fromMin, xL_fromMax), Math.Max(xL_fromMin, xL_fromMax), searchDensity).ToList();
 			CalculatePotentialAndEnergyCurves(T, P, "liquid", compositionsL);
-			Console.WriteLine($"Determined search range for xL to be between {xL_fromMin} and {xL_fromMax}");
+			//Console.WriteLine($"Determined search range for xL to be between {xL_fromMin} and {xL_fromMax}");
 
 			(MoleFraction xV, MoleFraction xL, double error) previousResult = (double.NaN, double.NaN, double.NaN);
 			for (MoleFraction xV = xVr.min; xV <= xVr.max; xV += searchDensity)
 			{
 				(MoleFraction xL, double error) = SearchForCommonTangets(xV);
 				if (double.IsNaN(xL)) continue;
-				Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
+				//Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
 				LastPhaseEquilibriaErrors.Add(xV, error);
 
 				// Check to ensure error is below accepted tolerance.
@@ -236,36 +237,25 @@ public class MultiphaseSystem
 				{
 					resultsPrelim.Add((xV, xL), error);
 					previousResult = (xV, xL, error);
-					Console.WriteLine($"New final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+					//Console.WriteLine($"New final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
 					continue;
 				}
-
-				// Get the last result which has xV lower than current xV.
-				// Relies on resultsPrelim being ordered in ascending xV (at least within the same search range)
-				//var largestPrevResultInRange = (from entry in regionPrelimResults
-				//								where entry.Key.xV <= xV && entry.Key.xV >= xVr.min
-				//								select entry).Last();
 				
 				// If the error has decreased, replace the previous preliminary result with the current result.
-				//if (error < largestPrevResultInRange.Value)
 				if (error < previousResult.error)
 				{
-					//resultsPrelim.Remove(largestPrevResultInRange.Key);
 					resultsPrelim.Remove((previousResult.xV, previousResult.xL));
 					resultsPrelim.Add((xV, xL), error);
-					Console.WriteLine($"Better final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+					//Console.WriteLine($"Better final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
 				}
-				//else if (error == largestPrevResultInRange.Value)
 				else if (error == previousResult.error)
 				{
-					//resultsPrelim.Remove(largestPrevResultInRange.Key);
-					//xV = (xV + largestPrevResultInRange.Key.xV) / 2;
 					resultsPrelim.Remove((previousResult.xV, previousResult.xL));
 					xV = (xV + previousResult.xV) / 2;
 					(xL, error) = SearchForCommonTangets(xV);
 					resultsPrelim.Add((xV, xL), error);
 					LastPhaseEquilibriaErrors.Add(xV, error);
-					Console.WriteLine($"Equivalent final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+					//Console.WriteLine($"Equivalent final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
 				}
 
 				// Store this current state for future use.
