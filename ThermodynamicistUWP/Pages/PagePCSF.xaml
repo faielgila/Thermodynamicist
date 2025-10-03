@@ -12,7 +12,8 @@
 	xmlns:eos="using:Core.EquationsOfState"
 	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d"
-	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+	NavigationCacheMode="Required">
 
 	<Grid Margin="10">
 		<Grid.ColumnDefinitions>
