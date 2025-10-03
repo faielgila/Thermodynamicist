@@ -1,7 +1,5 @@
 ﻿using Core.Data;
 using Core.VariableTypes;
-using System;
-using System.Linq;
 using System.Collections.Concurrent;
 
 namespace Core.Multicomponent;
@@ -224,20 +222,6 @@ public class MultiphaseSystem
 				if (error > errorTolerance)
 				{
 					//Console.WriteLine($"State ignored at x0V={xV.RoundToSigfigs(3)} with error {error}");
-					continue;
-				}
-
-				// Get all preliminary equilibria from this search region.
-				//var regionPrelimResults = from entry in resultsPrelim
-				//						  where xVr.min <= entry.Key.xV && entry.Key.xV <= xVr.max
-				//						  select entry;
-				// If there are no results for this segment yet (i.e., this is the first), always add the current result to the list.
-				//if (!regionPrelimResults.Any())
-				if (double.IsNaN(error))
-				{
-					resultsPrelim.Add((xV, xL), error);
-					previousResult = (xV, xL, error);
-					//Console.WriteLine($"New final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
 					continue;
 				}
 				
@@ -471,36 +455,6 @@ public class MultiphaseSystem
 		}
 		return dict;
 	}
-}
-
-
-/// <summary>
-/// Represents the composition vector of a phase in the system.
-/// If a SpeciesBasis is specified, that species's composition
-/// will be calculated based on the other fractions specified.
-/// </summary>
-public struct CompositionVector(Dictionary<Chemical, MoleFraction> _compositions)
-{
-	public Dictionary<Chemical, MoleFraction> compositions = _compositions;
-
-	/// <summary>
-	/// Calculates a final mole fraction based on a list of all other mole fractions.
-	/// </summary>
-	/// <param name="fractions">List of all other mole fractions.</param>
-	public static MoleFraction CalculateRemainingFraction(List<MoleFraction> fractions)
-	{
-		var sum = fractions.Aggregate((a, b) => a + b);
-		if (sum > 1) throw new Exception("Mole fractions must sum to at most 1.");
-		return 1 - sum;
-	}
-
-	/// <inheritdoc cref="CalculateRemainingFraction(List{MoleFraction})"/>
-	public static MoleFraction CalculateRemainingFraction(Dictionary<Chemical, MoleFraction> fractions)
-	{
-		return CalculateRemainingFraction(fractions.Values.ToList());
-	}
-
-	public static implicit operator Dictionary<Chemical, MoleFraction>(CompositionVector vec) => vec.compositions;
 }
 
 /// <summary>
