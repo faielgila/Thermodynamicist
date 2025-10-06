@@ -1,6 +1,8 @@
 ﻿using Core.EquationsOfState;
 using Core;
 
+namespace Core.Reactions;
+
 /// <summary>
 /// Stores all data that <see cref="Reaction"/> needs for each species in a reaction.
 /// </summary>

@@ -22,8 +22,20 @@ AnsiConsole.MarkupLine("[orangered1]		  engineering software[/]");
 AnsiConsole.WriteLine();
 
 
+//
+// PHASE III - MULTICOMPONENT MULTIPHASE SYSTEMS
+//
+
 //TestHomogeneousMixture.Test(dirConsole);
 //TestBinaryMultiphaseSystem.Test(dirConsole);
-TestBinaryPhaseDiagram.Test(dirConsole);
+//TestBinaryPhaseDiagram.Test(dirConsole);
+
+
+//
+// PHASE IV - REACTIVE SYSTEMS
+//
+TestElementaryRateLaw.Test(dirConsole);
+
+
 
 AnsiConsole.MarkupLine("\n\n[skyblue1]Thermodynamicist.Core test completed.[/]");

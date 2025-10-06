@@ -6,7 +6,7 @@ namespace Core.ViewModels;
 
 /// <summary>
 /// ViewModel for ControlRxn (or specifically, PageRxnKin).
-/// This is an Observable wrapper of <see cref="Reaction"/> for use in <see cref="PageRxnViewModel"/>.
+/// This is an Observable wrapper of <see cref="IrreversibleSimpleReaction"/> for use in <see cref="PageRxnViewModel"/>.
 /// </summary>
 public partial class PageRxnViewModel : ObservableObject
 {
@@ -52,7 +52,7 @@ public partial class PageRxnViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Converts <see cref="_items"/> into a usable form for instatiating <see cref="Reaction"/>.
+	/// Converts <see cref="_items"/> into a usable form for instatiating <see cref="IrreversibleSimpleReaction"/>.
 	/// </summary>
 	/// <returns>List of <see cref="RxnSpecies"/> items whose data is defined by <see cref="_items"/>.</returns>
 	public List<RxnSpecies> GetRxnSpeciesList()

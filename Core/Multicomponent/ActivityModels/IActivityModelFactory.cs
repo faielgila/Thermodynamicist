@@ -10,7 +10,7 @@
 /// <example>
 /// This factory is used in the UI and is bound to the DropdownActivityModel control.
 /// Using a factory instead of the model directly means that the UI doesn't need to instantiate
-/// an activity model, so that the EoS can be properly instantiated later when all the input
+/// an activity model, so that the activity model can be properly instantiated later when all the input
 /// controls are set to the desired value.
 /// </example>
 public interface IActivityModelFactory

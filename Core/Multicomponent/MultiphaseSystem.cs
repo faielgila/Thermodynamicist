@@ -73,7 +73,7 @@ public class MultiphaseSystem
 	/// <param name="_basis">Species to treat as the derived composition.</param>
 	public MultiphaseSystem(CompositionVector _compositionList, List<HomogeneousMixture> _mixtureList, Chemical _basis)
 	{
-		SpeciesList = [.. _compositionList.compositions.Keys];
+		SpeciesList = [.. _compositionList.dict.Keys];
 
 		if (SpeciesList.Count < 2 || _mixtureList.Count < 2)
 			throw new NotSupportedException("Systems must contain more than one species and phase.");
@@ -105,7 +105,7 @@ public class MultiphaseSystem
 				}
 			}
 		}
-		if (aggregateSpecies.Any(entry => compositionVector.compositions[entry.Key] != entry.Value))
+		if (aggregateSpecies.Any(entry => compositionVector.dict[entry.Key] != entry.Value))
 		{
 			throw new ArgumentException("Mixture species compositions do not add to system composition.");
 		}

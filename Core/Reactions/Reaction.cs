@@ -1,5 +1,7 @@
 ﻿using Core.VariableTypes;
-using Core;
+using Core.Reactions.Kinetics;
+
+namespace Core.Reactions;
 
 /// <summary>
 /// Represents a chemical reaction and its related variables.
@@ -11,29 +13,27 @@ public class Reaction
 	/// </summary>
 	public List<RxnSpecies> speciesList;
 
-	public Reaction(List<RxnSpecies> _speciesList)
-	{
-		speciesList = _speciesList;
-	}
-	public Reaction(List<(Chemical species, int stoich, string phase, bool IsReactant)> _speciesListNoEOS)
-	{
-		var _speciesList = new List<RxnSpecies>(); 
-		foreach (var (species, stoich, phase, IsReactant) in _speciesListNoEOS)
-		{
-			var item = new RxnSpecies(species, stoich, phase, IsReactant);
-			_speciesList.Add(item);
-		}
+	/// <summary>
+	/// Stores the rate law that defines the relationship between species compositions and the rate of reaction.
+	/// </summary>
+	public RateLaw rateLaw;
 
+	public Reaction(List<RxnSpecies> _speciesList, IRateLawFactory _rateLawFactory)
+	{
 		speciesList = _speciesList;
+		rateLaw = _rateLawFactory.Create(speciesList);
 	}
+
+
+	#region Thermodynamics
 
 	/// <summary>
 	/// Estimates the molar enthalpy of reaction at a given temperature and pressure.
 	/// </summary>
-	/// <param name="T_rxn">temperature, in [K]</param>
-	/// <param name="P_rxn">pressure, in [Pa]</param>
+	/// <param name="T">temperature, in [K]</param>
+	/// <param name="P">pressure, in [Pa]</param>
 	/// <returns>molar enthalpy, in [J/mol]</returns>
-	public Enthalpy MolarEnthalpyOfReaction(Temperature T_rxn, Pressure P_rxn)
+	public Enthalpy MolarEnthalpyOfReaction(Temperature T, Pressure P)
 	{
 		// Init empty list of enthalpy changes for each species.
 		var speciesFormationEnthalpy = new List<Enthalpy>();
@@ -43,7 +43,7 @@ public class Reaction
 		{
 			
 			// Calculate formation enthalpy for species.
-			var speciesEnthalpy = speciesItem.EoS.FormationMolarEnthalpy(T_rxn, P_rxn, speciesItem.phase);
+			var speciesEnthalpy = speciesItem.EoS.FormationMolarEnthalpy(T, P, speciesItem.phase);
 
 			// Add formation enthalpy to list, multiplied by stoichiometric coefficient.
 			// Formation enthalpy is considered negative for reactants, and positive for products.
@@ -67,7 +67,7 @@ public class Reaction
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <returns>molar entropy, in [J/K/mol]</returns>
-	public Entropy MolarEntropyOfReaction(Temperature T_rxn, Pressure P_rxn)
+	public Entropy MolarEntropyOfReaction(Temperature T, Pressure P)
 	{
 		// Init empty list of entropy changes for each species.
 		var speciesFormationEntropy = new List<Entropy>();
@@ -77,7 +77,7 @@ public class Reaction
 		{
 
 			// Calculate formation enthalpy for species.
-			var speciesEntropy = speciesItem.EoS.FormationMolarEntropy(T_rxn, P_rxn, speciesItem.phase);
+			var speciesEntropy = speciesItem.EoS.FormationMolarEntropy(T, P, speciesItem.phase);
 
 			// Add formation enthalpy to list, multiplied by stoichiometric coefficient.
 			// Formation enthalpy is considered negative for reactants, and positive for products.
@@ -106,4 +106,6 @@ public class Reaction
 	{
 		return new GibbsEnergy(MolarEnthalpyOfReaction(T,P) - T*MolarEntropyOfReaction(T,P), ThermoVarRelations.OfReaction);
 	}
+
+	#endregion
 }
