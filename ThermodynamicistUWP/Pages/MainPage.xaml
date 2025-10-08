@@ -9,6 +9,10 @@
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+	<Page.Resources>
+		
+	</Page.Resources>
+
 	<NavigationView
 		PaneTitle="Thermodynamicist"
 		SelectionChanged="NavigationView_SelectionChanged"
@@ -17,9 +21,26 @@
 		IsSettingsVisible="False">
 		
 		<NavigationView.MenuItems>
-			<NavigationViewItem Icon="Calculator" Content="Pure-component state functions" Tag="ThermodynamicistUWP.PagePCSF" />
-			<NavigationViewItem Icon="Memo" Content="Reaction kinetics" Tag="ThermodynamicistUWP.PageRxnKin" />
-			<NavigationViewItem Icon="Shuffle" Content="Homogeneous mixture" Tag="ThermodynamicistUWP.PageHomoMix" />
+			<NavigationViewItem Content="Pure-component state functions" Tag="ThermodynamicistUWP.PagePCSF">
+				<NavigationViewItem.Icon>
+					<FontIcon Glyph="&#xE9CA;"/>
+				</NavigationViewItem.Icon>
+			</NavigationViewItem>
+			<NavigationViewItem Content="Reaction kinetics" Tag="ThermodynamicistUWP.PageRxnKin">
+				<NavigationViewItem.Icon>
+					<FontIcon Glyph="&#xF196;"/>
+				</NavigationViewItem.Icon>
+			</NavigationViewItem>
+			<NavigationViewItem Content="Homogeneous mixture" Tag="ThermodynamicistUWP.PageHomoMix">
+				<NavigationViewItem.Icon>
+					<muxc:ImageIcon Source="/Assets/TypeIcons/HomogeneousMixture@3x.png"/>
+				</NavigationViewItem.Icon>
+			</NavigationViewItem>
+			<NavigationViewItem Content="Binary two-phase system" Tag="ThermodynamicistUWP.PageHomoMix">
+				<NavigationViewItem.Icon>
+					<muxc:ImageIcon Source="/Assets/TypeIcons/MultiphaseSystem@3x.png"/>
+				</NavigationViewItem.Icon>
+			</NavigationViewItem>
 		</NavigationView.MenuItems>
 		
 		<Frame x:Name="contentFrame"/>

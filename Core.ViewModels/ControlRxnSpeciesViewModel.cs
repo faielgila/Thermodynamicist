@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.EquationsOfState;
+using Core.Reactions;
 
 namespace Core.ViewModels;
 

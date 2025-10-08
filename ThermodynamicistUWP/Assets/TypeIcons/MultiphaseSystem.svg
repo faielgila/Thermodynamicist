@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-2 {
+        fill: none;
+        stroke: #fff;
+        stroke-miterlimit: 10;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M28,6c1.1,0,2,.9,2,2v16c0,1.1-.9,2-2,2H4c-1.1,0-2-.9-2-2V8c0-1.1.9-2,2-2h24M28,4H4C1.79,4,0,5.79,0,8v16c0,2.21,1.79,4,4,4h24c2.21,0,4-1.79,4-4V8c0-2.21-1.79-4-4-4h0Z"/>
+  <line class="cls-2" x1="16" y1="4" x2="16" y2="28"/>
+  <line class="cls-2" x1="8.5" y1="12" x2="8.5" y2="20"/>
+  <line class="cls-2" x1="6.5" y1="12" x2="10.5" y2="12"/>
+  <line class="cls-2" x1="6.5" y1="20" x2="10.5" y2="20"/>
+  <line class="cls-2" x1="21.28" y1="12" x2="21.28" y2="20"/>
+  <line class="cls-2" x1="19.28" y1="12" x2="23.28" y2="12"/>
+  <line class="cls-2" x1="19.28" y1="20" x2="23.28" y2="20"/>
+  <line class="cls-2" x1="26.01" y1="12" x2="26.01" y2="20"/>
+  <line class="cls-2" x1="24.01" y1="12" x2="28.01" y2="12"/>
+  <line class="cls-2" x1="24.01" y1="20" x2="28.01" y2="20"/>
+</svg>

@@ -2,6 +2,8 @@
 using Core.EquationsOfState;
 using Core.VariableTypes;
 using Core.ViewModels;
+using Core.Reactions;
+using Core.Reactions.Kinetics;
 using System;
 using System.Collections.Generic;
 using ThermodynamicistUWP.Dialogs;
@@ -52,7 +54,7 @@ namespace ThermodynamicistUWP
 			var P = new Pressure(NumBoxP.Value);
 
 			// Get species list from ControlRxnSpecies
-			var rxn = new IrreversibleSimpleReaction(ViewModel.GetRxnSpeciesList());
+			//var rxn = new IrreversibleSimpleReaction(ViewModel.GetRxnSpeciesList());
 
 			// Reactions testing. TEMPORARY TODO
 			var rxnSpecies = new List<RxnSpecies>
@@ -62,7 +64,7 @@ namespace ThermodynamicistUWP
 				new RxnSpecies(Chemical.Chlorobenzene, 1, "liquid", false),
 				new RxnSpecies(Chemical.HydrogenChloride, 1, "vapor", false)
 			};
-			var reactionA = new IrreversibleSimpleReaction(rxnSpecies);
+			var reactionA = new Reaction(rxnSpecies, new ElementaryRateLawFactory(10, 8e3));
 
 			UpdateData(reactionA, T, P);
 		}
@@ -70,7 +72,7 @@ namespace ThermodynamicistUWP
 		/// <summary>
 		/// Runs calculations, updates DataLabel with outputs.
 		/// </summary>
-		private void UpdateData(IrreversibleSimpleReaction rxn, Temperature T, Pressure P)
+		private void UpdateData(Reaction rxn, Temperature T, Pressure P)
 		{
 			try
 			{
