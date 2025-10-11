@@ -4,65 +4,157 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:vm="using:Core.ViewModels"
+	xmlns:rl="using:Core.Reactions.Kinetics"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+	xmlns:oxy="using:OxyPlot.Windows"
+	
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	NavigationCacheMode="Required">
 
+	<Page.Resources>
+		<!-- DataTemplate for TreeOutputSelection, folder -->
+		<DataTemplate x:Key="TreeOutputSelection_Folder" x:DataType="local:RxnKinOutputItem">
+			<TreeViewItem AutomationProperties.Name="{x:Bind Name}"
+				ItemsSource="{x:Bind Children}" IsExpanded="True">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Margin="0,0,10,0"/>
+					<TextBlock Text="{x:Bind Name}" Padding="0,0,5,0"/>
+				</StackPanel>
+			</TreeViewItem>
+		</DataTemplate>
+
+		<!-- DataTemplate for TreeOutputSelection, numerical options -->
+		<DataTemplate x:Key="TreeOutputSelection_Number" x:DataType="local:RxnKinOutputItem">
+			<TreeViewItem AutomationProperties.Name="{x:Bind Name}">
+				<StackPanel Orientation="Horizontal">
+					<SymbolIcon Width="20" Symbol="Calculator"/>
+					<TextBlock Margin="0,0,10,0"/>
+					<TextBlock Text="{x:Bind Name}" Padding="0,0,5,0"/>
+				</StackPanel>
+			</TreeViewItem>
+		</DataTemplate>
+
+		<!-- DataTemplate for TreeOutputSelection, plot options -->
+		<DataTemplate x:Key="TreeOutputSelection_Plot" x:DataType="local:RxnKinOutputItem">
+			<TreeViewItem AutomationProperties.Name="{x:Bind Name}"
+				ItemsSource="{x:Bind Children}" IsExpanded="True">
+				<StackPanel Orientation="Horizontal">
+					<FontIcon Width="20" Glyph="&#xE9D2;"/>
+					<TextBlock Margin="0,0,10,0"/>
+					<TextBlock Text="{x:Bind Name}" Padding="0,0,5,0"/>
+				</StackPanel>
+			</TreeViewItem>
+		</DataTemplate>
+
+		<!-- Template selector for RxnKinOutputItem types -->
+		<local:RxnKinOutputItemTemplateSelector x:Key="RxnKinOutputItemTemplateSelector"
+												FolderTemplate="{StaticResource TreeOutputSelection_Folder}"
+												NumberTemplate="{StaticResource TreeOutputSelection_Number}"
+												PlotTemplate="{StaticResource TreeOutputSelection_Plot}"/>
+	</Page.Resources>
+	
+
 	<Grid Margin="10">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="320"/>
+			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="400"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
-		<Grid>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto"/>
-				<ColumnDefinition Width="Auto"/>
-			</Grid.ColumnDefinitions>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
+		<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
+			<!--
+			Initialize : See attached .cs file. Rate laws must be added manually using their RateLawFactories.
+			Selection  : Bound to ViewModel.RateLawFactory, notably not a RateLaw directly.
+			TextBlock  : Bound to RateLawFactory.Name which contains the human-readable name for the rate law.
+			Note : Binding to RateLawFactory removes the need to pass around a specific rate law instance and is more like the *concept* of a rate law.
+			-->
+			<ComboBox x:Name="DropdownRateLaw" Header="Rate law:" PlaceholderText="Pick a rate law"
+					SelectedValue="{x:Bind ViewModel.RateLawFactory, Mode=TwoWay}"
+					Margin="5" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+				<ComboBox.ItemTemplate>
+					<DataTemplate x:DataType="rl:IRateLawFactory">
+						<TextBlock Text="{x:Bind Name}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+				
+			<muxc:NumberBox x:Name="NumBoxT" Header="Temperature:" PlaceholderText="[K]" Margin="5" Width="150" MaxHeight="60"
+							Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
+			<muxc:NumberBox x:Name="NumBoxP" Header="Pressure:" PlaceholderText="[Pa]" Margin="5" Width="150" MaxHeight="60"
+							Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
+			<muxc:NumberBox x:Name="NumBoxFrequencyFactor" Header="Frequency factor:" PlaceholderText="[1]"
+							Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}" AcceptsExpression="True" Margin="5" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
+			<muxc:NumberBox x:Name="NumBoxActivationEnergy" Header="Activation energy: " PlaceholderText="[J/mol]"
+							Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True" Margin="5" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
 
-			<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
-				<muxc:NumberBox x:Name="NumBoxT" Header="Temperature: " PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
-							AcceptsExpression="True"/>
-				<muxc:NumberBox x:Name="NumBoxP" Header="Pressure: " PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
-							AcceptsExpression="True"/>
-				<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc"/>
+			<StackPanel Orientation="Horizontal">
+				<Button Margin="5">
+					<SymbolIcon Symbol="Setting"/>
+					<Button.Flyout>
+						<Flyout>
+							<ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="350">
+								<TreeView x:Name="TreeOuputSelection" SelectionMode="Multiple" Margin="5"
+											   ItemsSource="{x:Bind RxnKinOutputDataSource}"
+											   ItemTemplateSelector="{StaticResource RxnKinOutputItemTemplateSelector}"/>
+							</ScrollViewer>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+				<Button Style="{StaticResource AccentButtonStyle}"  Margin="5" Click="RunCalc">
+					<StackPanel Orientation="Horizontal">
+						<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
+						<TextBlock Text="Run calculation"/>
+					</StackPanel>
+				</Button>
 			</StackPanel>
+		</StackPanel>
 
-			<StackPanel Grid.Row="0" Grid.Column="1">
-				<!--
-				Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
-				-->
-				<Button Content="Add species" Click="ButtonAddSpecies_Click"
-				Grid.Row="1" Grid.Column="0" Width="135"
-				HorizontalAlignment="Left" VerticalAlignment="Top"/>
+		<StackPanel Grid.Row="0" Grid.Column="1">
+			<!--
+			Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
+			-->
+			<Button Click="ButtonAddSpecies_Click" Margin="5"
+			Grid.Row="1" Grid.Column="0" Width="135"
+			HorizontalAlignment="Left" VerticalAlignment="Top">
+				<StackPanel Orientation="Horizontal">
+					<SymbolIcon Symbol="Add" Margin="0,0,5,0"/>
+					<TextBlock Text="Add species"/>
+				</StackPanel>
+			</Button>
 
-				<!--
-				Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
-				Selection  : Bound to the ViewModel.
-				-->
-				<muxc:ItemsRepeater Grid.Row="0" Grid.Column="0" ItemsSource="{x:Bind ViewModel.Items}" HorizontalAlignment="Left">
-					<muxc:ItemsRepeater.ItemTemplate>
-						<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-							<local:ControlRxnSpecies Padding="0" ViewModel="{x:Bind Mode=TwoWay}" />
-						</DataTemplate>
-					</muxc:ItemsRepeater.ItemTemplate>
-				</muxc:ItemsRepeater>
-			</StackPanel>
-		</Grid>
+			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MaxHeight="355" HorizontalAlignment="Left">
+				<StackPanel Visibility="Visible" HorizontalAlignment="Left" Padding="0,0,15,0">
+					<!--
+					Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
+					Selection  : Bound to the ViewModel.
+					-->
+					<muxc:ItemsRepeater Grid.Row="0" Grid.Column="0" ItemsSource="{x:Bind ViewModel.Items}" HorizontalAlignment="Left">
+						<muxc:ItemsRepeater.ItemTemplate>
+							<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
+								<local:ControlRxnSpecies Padding="0" ViewModel="{x:Bind Mode=TwoWay}" />
+							</DataTemplate>
+						</muxc:ItemsRepeater.ItemTemplate>
+					</muxc:ItemsRepeater>
+				</StackPanel>
+			</ScrollViewer>
+		</StackPanel>
 
-		<StackPanel Grid.Row="1" Grid.Column="0">
-			<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output:"/>
+		<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
+				   Height="1" Fill="{StaticResource SystemAccentColor}"/>
+
+		<StackPanel Grid.Row="2" Grid.Column="0" Margin="5">
+			<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output"/>
 			<TextBlock x:Name="DataLabel"/>
 		</StackPanel>
+
+		<oxy:PlotView x:Name="PlotViewKin" Grid.Row="2" Grid.Column="1" Margin="5" Background="Transparent"/>
 
 	</Grid>
 

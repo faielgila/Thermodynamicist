@@ -18,7 +18,7 @@ static class TestElementaryRateLaw
 			new(Chemical.Hydrogen, 2, "vapor", true),
 			new(Chemical.Water, 2, "vapor", false)
 		];
-		var rxnA = new Reaction(speciesListA, new ElementaryRateLawFactory(10, 8e3));
+		var rxnA = new Reaction(speciesListA, new ElementaryRateLawFactory(), 10, 8e3);
 
 		List<RxnSpecies> speciesListB =
 		[
@@ -27,7 +27,7 @@ static class TestElementaryRateLaw
 			new(Chemical.HydrogenChloride, 4, "vapor", false),
 			new(Chemical.Oxygen, 2, "vapor", false)
 		];
-		var rxnB = new Reaction(speciesListB, new ElementaryRateLawFactory(10, 8e3));
+		var rxnB = new Reaction(speciesListB, new ElementaryRateLawFactory(), 10, 8e3);
 
 		double dt = 0.01;
 		double maxtime = 10;

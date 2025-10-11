@@ -18,11 +18,26 @@ public class Reaction
 	/// </summary>
 	public RateLaw rateLaw;
 
-	public Reaction(List<RxnSpecies> _speciesList, IRateLawFactory _rateLawFactory)
+	public Reaction(List<RxnSpecies> _speciesList, IRateLawFactory _rateLawFactory, double _frequencyFactor, GibbsEnergy _activationEnergy)
 	{
 		speciesList = _speciesList;
-		rateLaw = _rateLawFactory.Create(speciesList);
+		rateLaw = _rateLawFactory.Create(speciesList, _frequencyFactor, _activationEnergy);
 	}
+
+
+	#region Utilities
+
+	public List<Chemical> ConvertSpeciesToChemicalList()
+	{
+		List<Chemical> list = [];
+		foreach (var rxnSpecies in speciesList)
+		{
+			list.Add(rxnSpecies.chemical);
+		}
+		return list;
+	}
+
+	#endregion
 
 
 	#region Thermodynamics

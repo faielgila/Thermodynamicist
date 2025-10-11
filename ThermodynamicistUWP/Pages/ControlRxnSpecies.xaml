@@ -71,9 +71,13 @@
 		CommandParameter : ViewModel.DeleteCommand takes in a parameter to decide which ViewModel to remove from the list in PageRxnKin.
 		                   ViewModel contains this ControlRxnSpecies instance, which removes it from the list.
 		-->
-		<Button Content="Remove species"
-				Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
-				Margin="0, 5, 5, 0" Grid.Row="1" Grid.Column="0" Width="135"/>
+		<Button Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
+				Margin="0, 5, 5, 0" Grid.Row="1" Grid.Column="0" Width="Auto">
+			<StackPanel Orientation="Horizontal">
+				<FontIcon Glyph="&#xE949;" Margin="0,0,5,0"/>
+				<TextBlock Text="Remove species"/>
+			</StackPanel>
+		</Button>
 		
 		<!--
 		Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.

@@ -25,32 +25,18 @@ public interface IRateLawFactory
 	string Name { get; }
 
 	/// <summary>
-	/// Stores the frequency factor to pass into the RateLaw.
-	/// </summary>
-	double frequencyFactor { get; }
-
-	/// <summary>
-	/// Stores the frequency factor to pass into the RateLaw.
-	/// </summary>
-	GibbsEnergy activationEnergy { get; }
-
-	/// <summary>
 	/// Generate an instance of the rate law.
 	/// </summary>
 	/// <returns>A <see cref="RateLaw"/> instance.</returns>
-	RateLaw Create(List<RxnSpecies> speciesList);
+	RateLaw Create(List<RxnSpecies> speciesList, double frequencyFactor, GibbsEnergy activationEnergy);
 }
 
 
 /// <inheritdoc cref="IRateLawFactory"/>
-public class ElementaryRateLawFactory(double _frequencyFactor, GibbsEnergy _activationEnergy) : IRateLawFactory
+public class ElementaryRateLawFactory() : IRateLawFactory
 {
 	public string Name => "Elementary";
 
-	public double frequencyFactor => _frequencyFactor;
-
-	public GibbsEnergy activationEnergy => _activationEnergy;
-
-	public RateLaw Create(List<RxnSpecies> speciesList)
+	public RateLaw Create(List<RxnSpecies> speciesList, double frequencyFactor, GibbsEnergy activationEnergy)
 		=> new ElementaryRateLaw(speciesList, frequencyFactor, activationEnergy);
 }
