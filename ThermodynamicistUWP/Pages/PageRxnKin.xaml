@@ -15,45 +15,14 @@
 	NavigationCacheMode="Required">
 
 	<Page.Resources>
-		<!-- DataTemplate for TreeOutputSelection, folder -->
-		<DataTemplate x:Key="TreeOutputSelection_Folder" x:DataType="local:RxnKinOutputItem">
-			<TreeViewItem AutomationProperties.Name="{x:Bind Name}"
-				ItemsSource="{x:Bind Children}" IsExpanded="True">
+		<DataTemplate x:Key="ListOutputSelectionTemplate" x:DataType="vm:RxnKinOutputItem">
+			<ListViewItem AutomationProperties.Name="{x:Bind Name}">
 				<StackPanel Orientation="Horizontal">
-					<TextBlock Margin="0,0,10,0"/>
-					<TextBlock Text="{x:Bind Name}" Padding="0,0,5,0"/>
+					<FontIcon Width="20" Glyph="{x:Bind Glyph}"/>
+					<TextBlock Text="{x:Bind Name}" Margin="5"/>
 				</StackPanel>
-			</TreeViewItem>
+			</ListViewItem>
 		</DataTemplate>
-
-		<!-- DataTemplate for TreeOutputSelection, numerical options -->
-		<DataTemplate x:Key="TreeOutputSelection_Number" x:DataType="local:RxnKinOutputItem">
-			<TreeViewItem AutomationProperties.Name="{x:Bind Name}">
-				<StackPanel Orientation="Horizontal">
-					<SymbolIcon Width="20" Symbol="Calculator"/>
-					<TextBlock Margin="0,0,10,0"/>
-					<TextBlock Text="{x:Bind Name}" Padding="0,0,5,0"/>
-				</StackPanel>
-			</TreeViewItem>
-		</DataTemplate>
-
-		<!-- DataTemplate for TreeOutputSelection, plot options -->
-		<DataTemplate x:Key="TreeOutputSelection_Plot" x:DataType="local:RxnKinOutputItem">
-			<TreeViewItem AutomationProperties.Name="{x:Bind Name}"
-				ItemsSource="{x:Bind Children}" IsExpanded="True">
-				<StackPanel Orientation="Horizontal">
-					<FontIcon Width="20" Glyph="&#xE9D2;"/>
-					<TextBlock Margin="0,0,10,0"/>
-					<TextBlock Text="{x:Bind Name}" Padding="0,0,5,0"/>
-				</StackPanel>
-			</TreeViewItem>
-		</DataTemplate>
-
-		<!-- Template selector for RxnKinOutputItem types -->
-		<local:RxnKinOutputItemTemplateSelector x:Key="RxnKinOutputItemTemplateSelector"
-												FolderTemplate="{StaticResource TreeOutputSelection_Folder}"
-												NumberTemplate="{StaticResource TreeOutputSelection_Number}"
-												PlotTemplate="{StaticResource TreeOutputSelection_Plot}"/>
 	</Page.Resources>
 	
 
@@ -95,18 +64,46 @@
 							Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True" Margin="5" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
 
 			<StackPanel Orientation="Horizontal">
-				<Button Margin="5">
+				<Button Margin="5" Click="ButtonSelectOutputItems_Click">
 					<SymbolIcon Symbol="Setting"/>
-					<Button.Flyout>
-						<Flyout>
-							<ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="350">
-								<TreeView x:Name="TreeOuputSelection" SelectionMode="Multiple" Margin="5"
-											   ItemsSource="{x:Bind RxnKinOutputDataSource}"
-											   ItemTemplateSelector="{StaticResource RxnKinOutputItemTemplateSelector}"/>
-							</ScrollViewer>
-						</Flyout>
-					</Button.Flyout>
 				</Button>
+				<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto">
+					<Popup.ChildTransitions>
+						<TransitionCollection>
+							<PopupThemeTransition/>
+						</TransitionCollection>
+					</Popup.ChildTransitions>
+					<Border Padding="15" CornerRadius="{StaticResource OverlayCornerRadius}"
+							BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+							Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+						<StackPanel Orientation="Horizontal">
+							<StackPanel Orientation="Vertical">
+								<TextBlock Text="Available outputs" Margin="0,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+								<ListView x:Name="ListOutputItems_Left" Width="270" Padding="0" Margin="0"
+										  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
+										  ItemsSource="{x:Bind ViewModel.AvailableOutputOptions}"
+										  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended">
+								</ListView>
+							</StackPanel>
+							<StackPanel VerticalAlignment="Stretch" Spacing="5" Margin="0,0,5,0">
+								<Button x:Name="ButtonAddOutputItem" Click="ButtonAddOutputItem_Click">
+									<FontIcon Glyph="&#xE76C;"/>
+								</Button>
+								<Button x:Name="ButtonRemoveutputItem" Click="ButtonRemoveOutputItem_Click">
+									<FontIcon Glyph="&#xE76B;"/>
+								</Button>
+							</StackPanel>
+							<StackPanel Orientation="Vertical">
+								<TextBlock Text="Selected outputs" Margin="5,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+								<ListView x:Name="ListOutputItems_Right" Width="275"
+										  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
+										  ItemsSource="{x:Bind ViewModel.SelectedOutputOptions}"
+										  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended">
+								</ListView>
+							</StackPanel>
+						</StackPanel>
+					</Border>
+				</Popup>
 				<Button Style="{StaticResource AccentButtonStyle}"  Margin="5" Click="RunCalc">
 					<StackPanel Orientation="Horizontal">
 						<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>

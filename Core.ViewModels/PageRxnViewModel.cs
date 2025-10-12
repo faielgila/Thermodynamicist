@@ -82,6 +82,12 @@ public partial class PageRxnViewModel : ObservableObject
 	[ObservableProperty]
 	private IRelayCommand<ControlRxnSpeciesViewModel> _deleteCommand;
 
+	[ObservableProperty]
+	private ObservableCollection<RxnKinOutputItem> _availableOutputOptions;
+
+	[ObservableProperty]
+	private ObservableCollection<RxnKinOutputItem> _selectedOutputOptions;
+
 	public PageRxnViewModel()
 	{
 		// Pass down the DeleteItem command to each ControlRxnSpeciesViewModel.
@@ -116,4 +122,68 @@ public partial class PageRxnViewModel : ObservableObject
 	{
 		return Items.Select(i => i.ToModel()).ToList();
 	}
+
+	public List<RxnKinOutputItem.ItemName> GetSelectedOutputItems()
+	{
+		return SelectedOutputOptions.Select(x => x.Item).ToList();
+	}
+}
+
+public class RxnKinOutputItem
+{
+	public enum ItemType
+	{
+		Folder,
+		Number,
+		Plot
+	}
+
+	public enum ItemName
+	{
+		MolarEnthalpyOfReaction,
+		MolarEntropyOfReaction,
+		MolarGibbsEnergyOfReaction,
+
+		PlotMolarityTransience
+	}
+	public static readonly Dictionary<ItemName, string> ItemNameToString = new()
+	{
+		[ItemName.MolarEntropyOfReaction] = "Molar entropy of reaction\n[J/K/mol]",
+		[ItemName.MolarEnthalpyOfReaction] = "Molar enthalpy of reaction\n[J/mol]",
+		[ItemName.MolarGibbsEnergyOfReaction] = "Molar Gibbs energy of reaction\n[J/mol]",
+		[ItemName.PlotMolarityTransience] = "Species molarity vs time\n[mol/L vs s]"
+	};
+	public static readonly Dictionary<ItemName, Func<string, string>> ItemNameToOutputString = new()
+	{
+		[ItemName.MolarEntropyOfReaction] = x => $"Molar entropy of reaction: {x}",
+		[ItemName.MolarEnthalpyOfReaction] = x => $"Molar enthalpy of reaction: {x}",
+		[ItemName.MolarGibbsEnergyOfReaction] = x => $"Molar Gibbs energy of reaction {x}"
+	};
+
+	public string Name { get; set; }
+
+	public ItemName Item { get; set; }
+
+	public ItemType Type { get; set; }
+
+	public string Glyph { get; set; }
+
+	public static readonly Dictionary<ItemType, string> ItemTypeToString = new()
+	{
+		[ItemType.Folder] = "\uED41",
+		[ItemType.Number] = "\uE8EF",
+		[ItemType.Plot] = "\uE9D2"
+	};
+
+	public ObservableCollection<RxnKinOutputItem> Children { get; set; } = [];
+
+	public RxnKinOutputItem(ItemName _item, ItemType _type)
+	{
+		Item = _item;
+		Name = ItemNameToString[_item];
+		Type = _type;
+		Glyph = ItemTypeToString[_type];
+	}
+
+	public RxnKinOutputItem() { }
 }
