@@ -28,17 +28,17 @@ namespace ThermodynamicistUWP
 
 		public PageRxnKin()
 		{
+			// Sets input values to defaults
+			ViewModel.T = 298;
+			ViewModel.P = 101325;
+			ViewModel.FrequencyFactor = double.NaN;
+			ViewModel.ActivationEnergy = double.NaN;
+
 			InitializeComponent();
 
 			// Initializes rate law list in RateLaw dropdown.
 			// Note the use of RateLawFactory instead of the RateLaw object directly.
 			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
-
-			// Sets input values to defaults
-			ViewModel.T = 273;
-			ViewModel.P = 101325;
-			ViewModel.FrequencyFactor = 1;
-			ViewModel.ActivationEnergy = 0;
 
 			// Set TreeOutputSelection options.
 			RxnKinOutputDataSource = GetOutputSelectionList();
@@ -128,8 +128,8 @@ namespace ThermodynamicistUWP
 			if (ViewModel.RateLawFactory == null)
 			{
 				//ErrorDialog.ShowErrorDialog("Rate law must be selected.");
-				DropdownRateLaw.BorderThickness = new Thickness(1);
-				DropdownRateLaw.BorderBrush = new SolidColorBrush(Colors.Red);
+				//DropdownRateLaw.BorderThickness = new Thickness(1);
+				//DropdownRateLaw.BorderBrush = new SolidColorBrush(Colors.Red);
 				cancelCalc = true;
 			}
 
