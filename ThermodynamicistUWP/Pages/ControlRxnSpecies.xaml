@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+	xmlns:ctk="using:CommunityToolkit.WinUI"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:core="using:Core"
@@ -11,8 +12,63 @@
 	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d">
 
-	<Grid Padding="5" BorderThickness="2" CornerRadius="{ThemeResource ControlCornerRadius}"
-		  BorderBrush="{ThemeResource AccentFillColorSelectedTextBackgroundBrush}" d:Background="White" Margin="5">
+	<Grid Padding="5" BorderThickness="1" ColumnSpacing="0" RowSpacing="-5"
+		  CornerRadius="{ThemeResource ControlCornerRadius}"
+		  Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+		  BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}">
+
+		<VisualStateManager.VisualStateGroups>
+			<VisualStateGroup x:Name="VisState_DropdownSpecies">
+				<VisualState x:Name="VisState_DropdownSpecies_NotNull"/>
+				<VisualState x:Name="VisState_DropdownSpecies_Empty">
+					<VisualState.StateTriggers>
+						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownSpecies.SelectedItem, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="DropdownSpecies.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeDropdownSpecies.Opacity" Value="1"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+			<VisualStateGroup x:Name="VisState_Stoich">
+				<VisualState x:Name="VisState_Stoich_NotNull"/>
+				<VisualState x:Name="VisState_Stoich_Empty">
+					<VisualState.StateTriggers>
+						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxStoich.Value, Mode=OneWay}"/>
+						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxStoich.Value, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="NumBoxStoich.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeNumBoxStoich.Opacity" Value="1"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+			<VisualStateGroup x:Name="VisState_DropdownPhase">
+				<VisualState x:Name="VisState_DropdownPhase_NotNull"/>
+				<VisualState x:Name="VisState_DropdownPhase_Empty">
+					<VisualState.StateTriggers>
+						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.Phase, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="DropdownPhase.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeDropdownPhase.Opacity" Value="1"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+			<VisualStateGroup x:Name="VisState_DropdownEoS">
+				<VisualState x:Name="VisState_DropdownEoS_NotNull"/>
+				<VisualState x:Name="VisState_DropdownEoS_Empty">
+					<VisualState.StateTriggers>
+						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownEoS.SelectedItem, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="DropdownEoS.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeDropdownEoS.Opacity" Value="1"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+		</VisualStateManager.VisualStateGroups>
+		
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
@@ -20,50 +76,69 @@
 			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="32"/>
-			<RowDefinition Height="37"/>
+			<RowDefinition Height="50"/>
+			<RowDefinition Height="43"/>
 		</Grid.RowDefinitions>
 
-		<!--
-		Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
-		Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
-		Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
-		-->
-		<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
+		<Grid Grid.Row="0" Grid.Column="0">
+			<!--
+			Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
+			Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
+			Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
+			-->
+			<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
 				  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
 				  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
-				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="0" Width="200">
-			<ComboBox.ItemTemplate>
-				<DataTemplate x:DataType="core:ChemicalNamePair">
-					<TextBlock Text="{x:Bind Name}"/>
-				</DataTemplate>
-			</ComboBox.ItemTemplate>
-		</ComboBox>
+				  VerticalAlignment="Top" Margin="5" Width="200">
+				<ComboBox.ItemTemplate>
+					<DataTemplate x:DataType="core:ChemicalNamePair">
+						<TextBlock Text="{x:Bind Name}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+			<muxc:InfoBadge x:Name="InfoBadgeDropdownSpecies" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+							Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+		</Grid>
 
-		<!--
-		Value : Bound to ViewModel.Stoich.
-		-->
-		<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="Stochiometry" AcceptsExpression="False"
-						Value="{x:Bind ViewModel.Stoich, Mode=TwoWay}"
-						Margin="0,0,5,0" Grid.Row="0" Grid.Column="1" Width="120"/>
-		
-		<!--
-		Initialize : Bound to ViewModel.ModeledPhases. This has to be OneWay (instead of OneTime) because the allowable phases
-		             depends on which equation of state is selected.
-		Selection  : Bound to ViewModel.Phase. Phase is already a string, so this is surprisingly easy.
-		-->
-		<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
-				  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.Phase, Mode=TwoWay}"
-				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="2" Width="100"/>
-		
-		<!--
-		Checked : Bound to ViewModel.IsReactant. IsReactant is already a bool and if RadioReactant isn't selected then RadioProduct is.
-		          This is surprisingly easy.
-		-->
-		<RadioButton x:Name="RadioReactant" Content="Reactant" IsChecked="{x:Bind ViewModel.IsReactant, Mode=TwoWay}"
-					 Margin="10, 0, 0, 0" Grid.Row="0" Grid.Column="3"/>
-		<RadioButton x:Name="RadioProduct" Content="Product"
-					 Margin="10, 0, 0, 0" Grid.Row="1" Grid.Column="3"/>
+		<Grid Grid.Row="0" Grid.Column="1">
+			<!--
+			Value : Bound to ViewModel.Stoich.
+			-->
+			<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="Stochiometry" AcceptsExpression="False"
+							Value="{x:Bind ViewModel.Stoich, Mode=TwoWay}"
+							VerticalAlignment="Top" Margin="5" Width="120"/>
+			<muxc:InfoBadge x:Name="InfoBadgeNumBoxStoich" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+							Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+		</Grid>
+
+		<Grid Grid.Row="0" Grid.Column="2">
+			<!--
+			Initialize : Bound to ViewModel.ModeledPhases. This has to be OneWay (instead of OneTime) because the allowable phases
+						 depends on which equation of state is selected.
+			Selection  : Bound to ViewModel.Phase. Phase is already a string, so this is surprisingly easy.
+			-->
+			<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
+					  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.Phase, Mode=TwoWay}"
+					  VerticalAlignment="Top" Margin="5" Width="100"/>
+			<muxc:InfoBadge x:Name="InfoBadgeDropdownPhase" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+							Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+		</Grid>
+
+
+		<Grid Grid.Row="0" Grid.Column="3" Grid.RowSpan="2" Padding="10,0,0,0" Width="110">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<!--
+			Checked : Bound to ViewModel.IsReactant. IsReactant is already a bool and if RadioReactant isn't selected then RadioProduct is.
+						This is surprisingly easy.
+			-->
+			<RadioButton Grid.Row="0" x:Name="RadioReactant" Content="Reactant" IsChecked="{x:Bind ViewModel.IsReactant, Mode=TwoWay}"/>
+			<RadioButton Grid.Row="1" x:Name="RadioProduct" Content="Product"/>
+		</Grid>
+
+
 		
 		<!--
 		Command : Bound to ViewModel.DeleteCommand, which is itself passed down from PageRxnKin to ensure propery deletion from the
@@ -72,27 +147,31 @@
 		                   ViewModel contains this ControlRxnSpecies instance, which removes it from the list.
 		-->
 		<Button Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
-				Margin="0, 5, 5, 0" Grid.Row="1" Grid.Column="0" Width="Auto">
+				Margin="5" Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left">
 			<StackPanel Orientation="Horizontal">
 				<FontIcon Glyph="&#xE949;" Margin="0,0,5,0"/>
 				<TextBlock Text="Remove species"/>
 			</StackPanel>
 		</Button>
-		
-		<!--
-		Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
-		Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
-		TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
-		Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
-		-->
-		<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
-				  Margin="205,5,0,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
-			<ComboBox.ItemTemplate>
-				<DataTemplate x:DataType="eos:IEquationOfStateFactory">
-					<TextBlock Text="{x:Bind Name}"/>
-				</DataTemplate>
-			</ComboBox.ItemTemplate>
-		</ComboBox>
-		
+
+		<Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
+			<!--
+			Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
+			Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
+			TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
+			Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
+			-->
+			<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
+					  VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="5">
+				<ComboBox.ItemTemplate>
+					<DataTemplate x:DataType="eos:IEquationOfStateFactory">
+						<TextBlock Text="{x:Bind Name}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+			<muxc:InfoBadge x:Name="InfoBadgeDropdownEoS" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+							Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+		</Grid>
+
 	</Grid>
 </UserControl>

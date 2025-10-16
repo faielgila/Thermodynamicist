@@ -1,10 +1,8 @@
 ﻿using Core;
-using Core.EquationsOfState;
 using Core.Reactions;
 using Core.Reactions.Kinetics;
 using Core.VariableTypes;
 using Core.ViewModels;
-using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -34,11 +32,11 @@ namespace ThermodynamicistUWP
 
 			InitializeComponent();
 
-			// Initializes rate law list in RateLaw dropdown.
+			// Initializes rate law list.
 			// Note the use of RateLawFactory instead of the RateLaw object directly.
 			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
 
-			// Set TreeOutputSelection options.
+			// Set output selection options.
 			AllOutputOptions = GenerateOutputItems();
 			ViewModel.AvailableOutputOptions = AllOutputOptions;
 			ViewModel.SelectedOutputOptions = new ObservableCollection<OutputItem>();
@@ -214,10 +212,10 @@ namespace ThermodynamicistUWP
 		{
 			ViewModel.AddItem(new ControlRxnSpeciesViewModel
 			{
-				Chemical = Chemical.Acetone,
-				EoSFactory = new PengRobinsonEOSFactory(),
-				Stoich = 1,
-				Phase = "",
+				//Chemical = Chemical.Acetone,
+				//EoSFactory = new PengRobinsonEOSFactory(),
+				//Stoich = 1,
+				//Phase = "",
 				IsReactant = true,
 				DeleteCommand = ViewModel.DeleteCommand
 			});

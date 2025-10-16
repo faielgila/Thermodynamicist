@@ -37,11 +37,6 @@ namespace ThermodynamicistUWP
 		{
 			InitializeComponent();
 
-			// Initialize DropdownSpecies to a value (arbitrarily chosen to be 0).
-			// Not including this init will cause null reference exceptions since Chemical must
-			// be defined in order to instantiate any EoS class.
-			DropdownSpecies.SelectedIndex = 0;
-
 			// Initializes equation of state list in EoS dropdown.
 			// Note the use of EoSFactory instead of the EoS object directly.
 			// Basically like passing around the idea of an EoS instead of passing around a specific EoS instance.

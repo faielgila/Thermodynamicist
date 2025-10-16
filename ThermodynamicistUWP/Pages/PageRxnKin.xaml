@@ -48,6 +48,7 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="DropdownRateLaw.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeDropdownRateLaw.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -60,6 +61,7 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="NumBoxT.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeNumBoxT.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -72,6 +74,7 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="NumBoxP.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeNumBoxP.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -83,6 +86,7 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="NumBoxFrequencyFactor.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeNumBoxFrequencyFactor.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -94,6 +98,7 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="NumBoxActivationEnergy.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeNumBoxActivationEnergy.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -105,8 +110,9 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="InfoBarNoRxnSpecies.IsOpen" Value="True"/>
-						<Setter Target="ButtonAddSpecies.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
+						<!--<Setter Target="ButtonAddSpecies.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>-->
 						<Setter Target="ButtonAddSpecies.BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
+						<Setter Target="InfoBadgeAddSpecies.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -117,107 +123,160 @@
 						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.SelectedOutputOptions, Mode=OneWay}"/>
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
-						<Setter Target="InfoBarNoOutputsSelected.IsOpen" Value="True"/>
-						<Setter Target="ButtonSelectOutputItems.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
+						<Setter Target="TextNoOutputsSelected.Visibility" Value="Visible"/>
+						<!--<Setter Target="ButtonSelectOutputItems.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>-->
 						<Setter Target="ButtonSelectOutputItems.BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
+						<Setter Target="InfoBadgeSelectOutputItems.Visibility" Value="Visible"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+			<VisualStateGroup x:Name="VisState_AvailOutputSelection">
+				<VisualState x:Name="VisState_AvailOutputSelection_NotNull"/>
+				<VisualState x:Name="VisState_AvailOutputSelection_Empty">
+					<VisualState.StateTriggers>
+						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.AvailableOutputOptions, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="TextNoOutputsAvailable.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
 		</VisualStateManager.VisualStateGroups>
 
 		<StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
-			<!--
-			Initialize : See attached .cs file. Rate laws must be added manually using their RateLawFactories.
-			Selection  : Bound to ViewModel.RateLawFactory, notably not a RateLaw directly.
-			TextBlock  : Bound to RateLawFactory.Name which contains the human-readable name for the rate law.
-			Note : Binding to RateLawFactory removes the need to pass around a specific rate law instance and is more like the *concept* of a rate law.
-			-->
-			<ComboBox x:Name="DropdownRateLaw" Header="Rate law:" PlaceholderText="Pick a rate law"
+			<TextBlock Text="Rate law:"/>
+			<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+				<!--
+				Initialize : See attached .cs file. Rate laws must be added manually using their RateLawFactories.
+				Selection  : Bound to ViewModel.RateLawFactory, notably not a RateLaw directly.
+				TextBlock  : Bound to RateLawFactory.Name which contains the human-readable name for the rate law.
+				Note : Binding to RateLawFactory removes the need to pass around a specific rate law instance
+				       and is more like the *concept* of a rate law.
+				-->
+				<ComboBox x:Name="DropdownRateLaw" PlaceholderText="Pick a rate law"
 					SelectedValue="{x:Bind ViewModel.RateLawFactory, Mode=TwoWay}"
-					Margin="5" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
-				<ComboBox.ItemTemplate>
-					<DataTemplate x:DataType="rl:IRateLawFactory">
-						<TextBlock Text="{x:Bind Name}"/>
-					</DataTemplate>
-				</ComboBox.ItemTemplate>
-			</ComboBox>
-				
-			<muxc:NumberBox x:Name="NumBoxT" Header="Temperature:" PlaceholderText="[K]" Margin="5" Width="150" MaxHeight="60"
-							Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-			<muxc:NumberBox x:Name="NumBoxP" Header="Pressure:" PlaceholderText="[Pa]" Margin="5" Width="150" MaxHeight="60"
-							Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-			<muxc:NumberBox x:Name="NumBoxFrequencyFactor" Header="Frequency factor:" PlaceholderText="[1]"
-							Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}" AcceptsExpression="True" Margin="5" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
-			<muxc:NumberBox x:Name="NumBoxActivationEnergy" Header="Activation energy: " PlaceholderText="[J/mol]"
-							Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True" Margin="5" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
+					Margin="0,5,5,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+					<ComboBox.ItemTemplate>
+						<DataTemplate x:DataType="rl:IRateLawFactory">
+							<TextBlock Text="{x:Bind Name}"/>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+				<muxc:InfoBadge x:Name="InfoBadgeDropdownRateLaw" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+								Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+			</Grid>
 
-			<StackPanel Orientation="Horizontal">
-				<Button x:Name="ButtonSelectOutputItems" Margin="5" Click="ButtonSelectOutputItems_Click">
-					<muxc:AnimatedIcon x:Name="AniIconButtonSelectOutputItems" Width="20">
-						<muxc:AnimatedIcon.Source>
-							<animate:AnimatedSettingsVisualSource/>
-						</muxc:AnimatedIcon.Source>
-						<muxc:AnimatedIcon.FallbackIconSource>
-							<muxc:SymbolIconSource Symbol="Setting"/>
-						</muxc:AnimatedIcon.FallbackIconSource>
-					</muxc:AnimatedIcon>
-				</Button>
-				
+
+			<TextBlock Text="Temperature:" Padding="0,10,0,0"/>
+			<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+				<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="[K]" Margin="0,5,5,0" Width="150" MaxHeight="60"
+								Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
+				<muxc:InfoBadge x:Name="InfoBadgeNumBoxT" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+								Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+			</Grid>
+			<TextBlock Text="Pressure:" Padding="0,10,0,0"/>
+			<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+				<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="[Pa]" Margin="0,5,5,0" Width="150" MaxHeight="60"
+								Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
+				<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+								Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+			</Grid>
+			<TextBlock Text="Frequency factor:" Padding="0,10,0,0"/>
+			<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+				<muxc:NumberBox x:Name="NumBoxFrequencyFactor" PlaceholderText="[1]"
+								Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}" AcceptsExpression="True"
+								Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
+				<muxc:InfoBadge x:Name="InfoBadgeNumBoxFrequencyFactor" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+								Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+			</Grid>
+			<TextBlock Text="Activation energy:" Padding="0,10,0,0"/>
+			<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+				<muxc:NumberBox x:Name="NumBoxActivationEnergy" PlaceholderText="[J/mol]"
+								Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True"
+								Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
+				<muxc:InfoBadge x:Name="InfoBadgeNumBoxActivationEnergy" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+								Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+			</Grid>
+
+			<StackPanel Orientation="Horizontal" Margin="0,5" Padding="0,10,0,0">
+				<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Button x:Name="ButtonSelectOutputItems" Margin="0,5,5,0" Click="ButtonSelectOutputItems_Click">
+						<muxc:AnimatedIcon x:Name="AniIconButtonSelectOutputItems" Width="20">
+							<muxc:AnimatedIcon.Source>
+								<animate:AnimatedSettingsVisualSource/>
+							</muxc:AnimatedIcon.Source>
+							<muxc:AnimatedIcon.FallbackIconSource>
+								<muxc:SymbolIconSource Symbol="Setting"/>
+							</muxc:AnimatedIcon.FallbackIconSource>
+						</muxc:AnimatedIcon>
+					</Button>
+					<muxc:InfoBadge x:Name="InfoBadgeSelectOutputItems" Style="{StaticResource CautionIconInfoBadgeStyle}"
+									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+				</Grid>
+
 				<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto">
 					<Popup.ChildTransitions>
 						<TransitionCollection>
 							<PopupThemeTransition/>
 						</TransitionCollection>
 					</Popup.ChildTransitions>
-					<Border Padding="15" CornerRadius="{StaticResource OverlayCornerRadius}"
-							BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-							Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
-						<StackPanel Orientation="Horizontal">
-							<!--
-							Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<OutputItems>.
-							-->
-							<StackPanel Orientation="Vertical">
-								<TextBlock Text="Available outputs" Margin="0,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-								<ListView x:Name="ListOutputItems_Left" Width="270" Padding="0" Margin="0"
+					<Grid Padding="15" CornerRadius="{StaticResource OverlayCornerRadius}"
+						  BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+						  Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+							<ColumnDefinition/>
+						</Grid.ColumnDefinitions>
+
+						<!--
+						Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<OutputItems>.
+						-->
+						<StackPanel Orientation="Vertical" Grid.Column="0">
+							<TextBlock Text="Available outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+							<TextBlock x:Name="TextNoOutputsAvailable" Visibility="Collapsed" Text="There are no other outputs available."/>
+							<ListView x:Name="ListOutputItems_Left" Width="270" Padding="0" Margin="0" HorizontalAlignment="Left"
 										  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 										  ItemsSource="{x:Bind ViewModel.AvailableOutputOptions}"
 										  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended">
-								</ListView>
-							</StackPanel>
-							
-							<StackPanel VerticalAlignment="Stretch" Spacing="5" Margin="0,0,5,0">
-								<!--
-								Click : Runs ButtonAddOutputItem_Click, which moves any selected items to ViewModel.SelectedOutputOptions
-								-->
-								<Button x:Name="ButtonAddOutputItem" Click="ButtonAddOutputItem_Click">
-									<FontIcon Glyph="&#xE76C;"/>
-								</Button>
-								<!--
-								Click : Runs ButtonRemoveOutputItem_Click, which moves any selected items to ViewModel.AvailableOutputOptions
-								-->
-								<Button x:Name="ButtonRemoveutputItem" Click="ButtonRemoveOutputItem_Click">
-									<FontIcon Glyph="&#xE76B;"/>
-								</Button>
-							</StackPanel>
-							
+							</ListView>
+						</StackPanel>
+
+						<Grid Grid.Column="1" Grid.Row="1" RowSpacing="5" Margin="0,0,5,0">
+							<Grid.RowDefinitions>
+								<RowDefinition/>
+								<RowDefinition/>
+							</Grid.RowDefinitions>
+
 							<!--
-							Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<OutputItems>.
+							Click : Runs ButtonAddOutputItem_Click, which moves any selected items to ViewModel.SelectedOutputOptions
 							-->
-							<StackPanel Orientation="Vertical">
-								<TextBlock Text="Selected outputs" Margin="5,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-								<muxc:InfoBar x:Name="InfoBarNoOutputsSelected" IsOpen="False" Severity="Warning" IsClosable="False"
-								  Message="There are no outputs selected."/>
-								<ListView x:Name="ListOutputItems_Right" Width="275"
+							<Button x:Name="ButtonAddOutputItem" Click="ButtonAddOutputItem_Click" Grid.Row="0" VerticalAlignment="Bottom">
+								<FontIcon Glyph="&#xE76C;"/>
+							</Button>
+							<!--
+							Click : Runs ButtonRemoveOutputItem_Click, which moves any selected items to ViewModel.AvailableOutputOptions
+							-->
+							<Button x:Name="ButtonRemoveutputItem" Click="ButtonRemoveOutputItem_Click" Grid.Row="1" VerticalAlignment="Top">
+								<FontIcon Glyph="&#xE76B;"/>
+							</Button>
+						</Grid>
+
+						<!--
+						Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<OutputItems>.
+						-->
+						<StackPanel Orientation="Vertical" Grid.Column="2" Margin="5,0,0,0">
+							<TextBlock Text="Selected outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+							<TextBlock x:Name="TextNoOutputsSelected" Visibility="Collapsed" Text="There are no outputs selected."/>
+							<ListView x:Name="ListOutputItems_Right" Width="275"
 										  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 										  ItemsSource="{x:Bind ViewModel.SelectedOutputOptions}"
-										  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended">
-								</ListView>
-							</StackPanel>
+										  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended"/>
 						</StackPanel>
-					</Border>
+					</Grid>
 				</Popup>
-				
-				<Button Style="{StaticResource AccentButtonStyle}"  Margin="5" Click="RunCalc">
+
+				<Button Background="{StaticResource SystemAccentColor}" Margin="5,5,5,0" Click="RunCalc">
 					<StackPanel Orientation="Horizontal">
 						<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
 						<TextBlock Text="Run calculation"/>
@@ -227,30 +286,35 @@
 		</StackPanel>
 
 		<StackPanel Grid.Row="0" Grid.Column="1">
-			<!--
-			Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
-			-->
-			<Button x:Name="ButtonAddSpecies" Click="ButtonAddSpecies_Click" Margin="5"
-					Grid.Row="1" Grid.Column="0" Width="135"
+			<Grid HorizontalAlignment="Left">
+				<!--
+				Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
+				-->
+				<Button x:Name="ButtonAddSpecies" Click="ButtonAddSpecies_Click"
+					Grid.Row="1" Grid.Column="0" Width="150" Margin="0,5,5,0"
 					HorizontalAlignment="Left" VerticalAlignment="Top">
-				<StackPanel Orientation="Horizontal">
-					<SymbolIcon Symbol="Add" Margin="0,0,5,0"/>
-					<TextBlock Text="Add species"/>
-				</StackPanel>
-			</Button>
+					<StackPanel Orientation="Horizontal">
+						<SymbolIcon Symbol="Add" Margin="0,0,5,0"/>
+						<TextBlock Text="Add species"/>
+					</StackPanel>
+				</Button>
+				<muxc:InfoBadge x:Name="InfoBadgeAddSpecies" Style="{StaticResource CautionIconInfoBadgeStyle}"
+								Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+			</Grid>
 
-			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MaxHeight="355" HorizontalAlignment="Left">
-				<StackPanel Visibility="Visible" HorizontalAlignment="Left" Padding="0,0,0,0">
+			<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MaxHeight="355"
+						  HorizontalAlignment="Left" Padding="0,10,5,10">
+				<StackPanel Visibility="Visible" HorizontalAlignment="Left">
 					<muxc:InfoBar x:Name="InfoBarNoRxnSpecies" IsOpen="False" Severity="Warning" IsClosable="False"
 								  Message="There are no chemical species present in this reaction. Click 'Add species' to create one."/>
-					<ListView Width="625" SelectionMode="None" HorizontalContentAlignment="Center" ItemsSource="{x:Bind ViewModel.Items}">
+					<ListView HorizontalAlignment="Left" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}">
 						<!--
 						Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
 						Selection  : Bound to the ViewModel.
 						-->
 						<ListView.ItemTemplate>
 							<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-								<local:ControlRxnSpecies Padding="0" ViewModel="{x:Bind Mode=TwoWay}"/>
+								<local:ControlRxnSpecies Margin="0,0,0,5" ViewModel="{x:Bind Mode=TwoWay}"/>
 							</DataTemplate>
 						</ListView.ItemTemplate>
 						<ListView.ItemContainerTransitions>
@@ -264,12 +328,12 @@
 			</ScrollViewer>
 		</StackPanel>
 
-		<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5"
-				   Height="1" Fill="{StaticResource SystemAccentColor}"/>
+		<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5,5,5,15"
+				   Height="2" Fill="{StaticResource SystemAccentColor}"/>
 
-		<StackPanel Grid.Row="2" Grid.Column="0" Margin="5">
+		<StackPanel Grid.Row="2" Grid.Column="0">
 			<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output"/>
-			<TextBlock x:Name="DataLabel"/>
+			<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
 		</StackPanel>
 
 		<oxy:PlotView x:Name="PlotViewKin" Grid.Row="2" Grid.Column="1" Margin="5" Background="Transparent"/>
