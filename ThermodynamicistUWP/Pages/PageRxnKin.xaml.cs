@@ -22,13 +22,11 @@ namespace ThermodynamicistUWP
 	{
 		public PageRxnViewModel ViewModel { get; } = new PageRxnViewModel();
 
-		public ObservableCollection<RxnKinOutputItem> RxnKinOutputDataSource { get; set; }
-
-		private ObservableCollection<RxnKinOutputItem> AllOutputOptions { get; set; }
+		private ObservableCollection<OutputItem> AllOutputOptions { get; set; }
 
 		public PageRxnKin()
 		{
-			// Sets input values to defaults
+			// Initialize all numeric inputs.
 			ViewModel.T = 298;
 			ViewModel.P = 101325;
 			ViewModel.FrequencyFactor = double.NaN;
@@ -41,23 +39,9 @@ namespace ThermodynamicistUWP
 			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
 
 			// Set TreeOutputSelection options.
-			RxnKinOutputDataSource = GetOutputSelectionList();
-			SetAllOutputOptions();
+			AllOutputOptions = GenerateOutputItems();
 			ViewModel.AvailableOutputOptions = AllOutputOptions;
-			ViewModel.SelectedOutputOptions = new ObservableCollection<RxnKinOutputItem>();
-		}
-
-		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
-		{
-			ViewModel.AddItem(new ControlRxnSpeciesViewModel
-			{
-				Chemical = Chemical.Acetone,
-				EoSFactory = new PengRobinsonEOSFactory(),
-				Stoich = 1,
-				Phase = "",
-				IsReactant = true,
-				DeleteCommand = ViewModel.DeleteCommand
-			});
+			ViewModel.SelectedOutputOptions = new ObservableCollection<OutputItem>();
 		}
 
 		/// <summary>
@@ -65,7 +49,7 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void RunCalc(object sender, RoutedEventArgs e)
 		{
-			if (ValidatePageInputs()) return;
+			if (CheckInvalidPageInputs()) return;
 
 			// Validate RxnSpecies inputs.
 			var chemicals = new List<Chemical>();
@@ -98,10 +82,13 @@ namespace ThermodynamicistUWP
 			var rxn = new Reaction(ViewModel.GetRxnSpeciesList(), rateLawFactory, frequencyFactor, activationEnergy);
 
 			UpdateData(rxn, T, P);
-			//UpdatePlots(rxn, T, P);
 		}
 
-		private bool ValidatePageInputs()
+		/// <summary>
+		/// Validates all user inputs.
+		/// </summary>
+		/// <returns>true if any inputs are invalid.</returns>
+		private bool CheckInvalidPageInputs()
 		{
 			bool cancelCalc = false;
 
@@ -128,8 +115,6 @@ namespace ThermodynamicistUWP
 			if (ViewModel.RateLawFactory == null)
 			{
 				//ErrorDialog.ShowErrorDialog("Rate law must be selected.");
-				//DropdownRateLaw.BorderThickness = new Thickness(1);
-				//DropdownRateLaw.BorderBrush = new SolidColorBrush(Colors.Red);
 				cancelCalc = true;
 			}
 
@@ -141,36 +126,44 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void UpdateData(Reaction rxn, Temperature T, Pressure P)
 		{
+			// Reset PlotView visibility in case plot output option isn't selected.
+			PlotViewKin.Visibility = Visibility.Collapsed;
+
 			// Get list of all selected output options.
-			var selectedOutputs = ViewModel.GetSelectedOutputItems();
+			var selectedOutputs = ViewModel.SelectedOutputOptions;
 			List<string> outputStrings = new List<string>();
 			try
 			{
-				if (selectedOutputs.Contains(RxnKinOutputItem.ItemName.MolarEntropyOfReaction))
+				foreach (var item in selectedOutputs)
 				{
-					var output = rxn.MolarEntropyOfReaction(T, P).ToEngrNotation(5);
-					outputStrings.Add(RxnKinOutputItem.ItemNameToOutputString[RxnKinOutputItem.ItemName.MolarEntropyOfReaction].Invoke(output));
-				}
-				if (selectedOutputs.Contains(RxnKinOutputItem.ItemName.MolarEnthalpyOfReaction)) {
-					var output = rxn.MolarEnthalpyOfReaction(T, P).ToEngrNotation(5);
-					outputStrings.Add(RxnKinOutputItem.ItemNameToOutputString[RxnKinOutputItem.ItemName.MolarEnthalpyOfReaction].Invoke(output));
-				}
-				if (selectedOutputs.Contains(RxnKinOutputItem.ItemName.MolarGibbsEnergyOfReaction))
-				{
-					var output = rxn.MolarGibbsEnergyOfReaction(T, P).ToEngrNotation(5);
-					outputStrings.Add(RxnKinOutputItem.ItemNameToOutputString[RxnKinOutputItem.ItemName.MolarGibbsEnergyOfReaction].Invoke(output));
-				}
-				if (selectedOutputs.Contains(RxnKinOutputItem.ItemName.PlotMolarityTransience))
-				{
-					// Fills in the plot view with a view model using the new settings
-					PlotViewKin.Model = new RxnKineticsPlotModel(rxn, T, P, 0.01, 10).Model;
-					PlotViewKin.Background = new SolidColorBrush(Colors.White);
-					PlotViewKin.Visibility = Visibility.Visible;
-				} else
-				{
-					PlotViewKin.Visibility = Visibility.Collapsed;
+					if (item.Type == OutputItem.ItemType.Folder) continue;
+
+					switch (item.OutputName)
+					{
+						default:
+							break;
+						case "MolarEntropyOfReaction":
+							var S = rxn.MolarEntropyOfReaction(T, P);
+							outputStrings.Add(item.DisplayFormat(S.ToEngrNotation(5)));
+							break;
+						case "MolarEnthalpyOfReaction":
+							var H = rxn.MolarEnthalpyOfReaction(T, P);
+							outputStrings.Add(item.DisplayFormat(H.ToEngrNotation(5)));
+							break;
+						case "MolarGibbsEnergyOfReaction":
+							var G = rxn.MolarGibbsEnergyOfReaction(T, P);
+							outputStrings.Add(item.DisplayFormat(G.ToEngrNotation(5)));
+							break;
+
+						case "PlotMolarityTranscience":
+							PlotViewKin.Model = new RxnKineticsPlotModel(rxn, T, P, 0.01, 10).Model;
+							PlotViewKin.Background = new SolidColorBrush(Colors.White);
+							PlotViewKin.Visibility = Visibility.Visible;
+							break;
+					}
 				}
 
+				// Combine all output strings into DataLabel.
 				DataLabel.Text = outputStrings.First();
 				outputStrings.Remove(outputStrings.First());
 				foreach (var item in outputStrings)
@@ -185,89 +178,70 @@ namespace ThermodynamicistUWP
 		}
 
 		/// <summary>
-		/// Initialize the data for TreeRxnKinOutputSelection.
+		/// Generates a list of OutputItems for the page.
 		/// </summary>
-		private ObservableCollection<RxnKinOutputItem> GetOutputSelectionList()
+		private ObservableCollection<OutputItem> GenerateOutputItems()
 		{
-			return new ObservableCollection<RxnKinOutputItem>
+			return new ObservableCollection<OutputItem>()
 			{
-				new RxnKinOutputItem
+				new OutputItem(OutputItem.ItemType.Number)
 				{
-					Name = "Thermodynamic properties",
-					Glyph = "&#xED41;",
-					Type = RxnKinOutputItem.ItemType.Folder,
-					Children =
-					{
-						new RxnKinOutputItem
-						{
-							Name = "Molar enthalpy of reaction [J/mol]",
-							Item = RxnKinOutputItem.ItemName.MolarEnthalpyOfReaction,
-							Type = RxnKinOutputItem.ItemType.Number
-						},
-						new RxnKinOutputItem
-						{
-							Name = "Molar entropy of reaction [J/mol]",
-							Item = RxnKinOutputItem.ItemName.MolarEntropyOfReaction,
-							Type = RxnKinOutputItem.ItemType.Number
-						},
-						new RxnKinOutputItem
-						{
-							Name = "Molar Gibbs energy of reaction [J/mol]",
-							Item = RxnKinOutputItem.ItemName.MolarGibbsEnergyOfReaction,
-							Type = RxnKinOutputItem.ItemType.Number
-						},
-					},
+					OutputName = "MolarEntropyOfReaction",
+					DisplayName = "Molar entropy of reaction\n[J/K/mol]",
+					DisplayFormat = x => $"Molar entropy of reaction: {x}"
 				},
-				new RxnKinOutputItem
+				new OutputItem(OutputItem.ItemType.Number)
 				{
-					Name = "Kinetics",
-					Type = RxnKinOutputItem.ItemType.Folder,
-					Children =
-					{
-						new RxnKinOutputItem
-						{
-							Name = "Molarity transience",
-							Item = RxnKinOutputItem.ItemName.PlotMolarityTransience,
-							Type = RxnKinOutputItem.ItemType.Plot
-						},
-					},
+					OutputName = "MolarEnthalpyOfReaction",
+					DisplayName = "Molar enthalpy of reaction\n[J/mol]",
+					DisplayFormat = x => $"Molar enthalpy of reaction: {x}"
 				},
+				new OutputItem(OutputItem.ItemType.Number)
+				{
+					OutputName = "MolarGibbsEnergyOfReaction",
+					DisplayName = "Molar Gibbs energy of reaction\n[J/mol]",
+					DisplayFormat = x => $"Molar Gibbs energy of reaction: {x}"
+				},
+				new OutputItem(OutputItem.ItemType.Plot)
+				{
+					OutputName = "PlotMolarityTranscience",
+					DisplayName = "Species molarity vs reaction time \n[mol/L vs s]"
+				}
 			};
 		}
 
-		private void SetAllOutputOptions()
+		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
 		{
-			var item_rxnS = new RxnKinOutputItem(RxnKinOutputItem.ItemName.MolarEntropyOfReaction, RxnKinOutputItem.ItemType.Number);
-			var item_rxnH = new RxnKinOutputItem(RxnKinOutputItem.ItemName.MolarEnthalpyOfReaction, RxnKinOutputItem.ItemType.Number);
-			var item_rxnG = new RxnKinOutputItem(RxnKinOutputItem.ItemName.MolarGibbsEnergyOfReaction, RxnKinOutputItem.ItemType.Number);
-			var item_transience = new RxnKinOutputItem(RxnKinOutputItem.ItemName.PlotMolarityTransience, RxnKinOutputItem.ItemType.Plot);
-
-			AllOutputOptions = new ObservableCollection<RxnKinOutputItem>()
+			ViewModel.AddItem(new ControlRxnSpeciesViewModel
 			{
-				item_rxnS, item_rxnH, item_rxnG,
-				item_transience
-			};
+				Chemical = Chemical.Acetone,
+				EoSFactory = new PengRobinsonEOSFactory(),
+				Stoich = 1,
+				Phase = "",
+				IsReactant = true,
+				DeleteCommand = ViewModel.DeleteCommand
+			});
 		}
 
 		private void ButtonAddOutputItem_Click(object sender, RoutedEventArgs e)
 		{
 			// Move all selected items from left to right list.
-			var selected = ListOutputItems_Left.SelectedItems.ToList();
+			var selected = ListOutputItems_Left.SelectedItems.Cast<OutputItem>().ToList();
 			foreach (var item in selected)
 			{
-				ViewModel.AvailableOutputOptions.Remove((RxnKinOutputItem)item);
-				ViewModel.SelectedOutputOptions.Add((RxnKinOutputItem)item);
+				ViewModel.AvailableOutputOptions.Remove(item);
+				ViewModel.SelectedOutputOptions.Add(item);
 			}
 		}
 
 		private void ButtonRemoveOutputItem_Click(object sender, RoutedEventArgs e)
 		{
 			// Move all selected items from right to left list.
-			var selected = ListOutputItems_Right.SelectedItems.ToList();
+			var selected = ListOutputItems_Right.SelectedItems.Cast<OutputItem>().ToList();
 			foreach (var item in selected)
 			{
-				ViewModel.SelectedOutputOptions.Remove((RxnKinOutputItem)item);
-				ViewModel.AvailableOutputOptions.Add((RxnKinOutputItem)item);
+				ViewModel.SelectedOutputOptions.Remove(item);
+				ViewModel.AvailableOutputOptions.Add(item);
 			}
 		}
 
@@ -276,5 +250,6 @@ namespace ThermodynamicistUWP
 			// Open the output selection popup if not already open.
 			if (!PopupSelectOutputItems.IsOpen) { PopupSelectOutputItems.IsOpen = true; }
 		}
+
 	}
 }

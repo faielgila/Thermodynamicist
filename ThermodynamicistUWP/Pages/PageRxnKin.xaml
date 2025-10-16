@@ -17,11 +17,11 @@
 	NavigationCacheMode="Required">
 
 	<Page.Resources>
-		<DataTemplate x:Key="ListOutputSelectionTemplate" x:DataType="vm:RxnKinOutputItem">
-			<ListViewItem AutomationProperties.Name="{x:Bind Name}">
+		<DataTemplate x:Key="ListOutputSelectionTemplate" x:DataType="vm:OutputItem">
+			<ListViewItem AutomationProperties.Name="{x:Bind DisplayName}">
 				<StackPanel Orientation="Horizontal">
 					<FontIcon Width="20" Glyph="{x:Bind Glyph}"/>
-					<TextBlock Text="{x:Bind Name}" Margin="5"/>
+					<TextBlock Text="{x:Bind DisplayName}" Margin="5"/>
 				</StackPanel>
 			</ListViewItem>
 		</DataTemplate>
@@ -162,6 +162,7 @@
 						</muxc:AnimatedIcon.FallbackIconSource>
 					</muxc:AnimatedIcon>
 				</Button>
+				
 				<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto">
 					<Popup.ChildTransitions>
 						<TransitionCollection>
@@ -173,7 +174,7 @@
 							Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
 						<StackPanel Orientation="Horizontal">
 							<!--
-							Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<RxnOutputOptions>.
+							Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<OutputItems>.
 							-->
 							<StackPanel Orientation="Vertical">
 								<TextBlock Text="Available outputs" Margin="0,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
@@ -200,7 +201,7 @@
 							</StackPanel>
 							
 							<!--
-							Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<RxnOutputOptions>.
+							Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<OutputItems>.
 							-->
 							<StackPanel Orientation="Vertical">
 								<TextBlock Text="Selected outputs" Margin="5,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"/>
@@ -215,6 +216,7 @@
 						</StackPanel>
 					</Border>
 				</Popup>
+				
 				<Button Style="{StaticResource AccentButtonStyle}"  Margin="5" Click="RunCalc">
 					<StackPanel Orientation="Horizontal">
 						<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
