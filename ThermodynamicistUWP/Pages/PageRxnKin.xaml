@@ -176,7 +176,7 @@
 				</Grid.ColumnDefinitions>
 
 				<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top">
-					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inptus" Margin="0,0,0,5"/>
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inputs" Margin="0,0,0,5"/>
 
 					<TextBlock Text="Temperature:" Padding="0,10,0,0"/>
 					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
