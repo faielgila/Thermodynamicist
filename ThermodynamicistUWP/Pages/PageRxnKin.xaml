@@ -28,13 +28,9 @@
 		</DataTemplate>
 	</Page.Resources>
 
-	<Grid Margin="10" CornerRadius="{StaticResource OverlayCornerRadius}"
-		  BorderBrush="{StaticResource SystemAccentColor}" BorderThickness="2">
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition/>
-		</Grid.ColumnDefinitions>
+	<Grid Margin="10">
 		<Grid.RowDefinitions>
-			<RowDefinition Height="400" MinHeight="400"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
@@ -108,10 +104,11 @@
 						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.Items, Mode=OneWay}"/>
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
-						<Setter Target="InfoBarNoRxnSpecies.IsOpen" Value="True"/>
-						<!--<Setter Target="ButtonAddSpecies.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>-->
+						<Setter Target="ButtonAddSpecies.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
 						<Setter Target="ButtonAddSpecies.BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
+						<Setter Target="ButtonAddSpecies.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
 						<Setter Target="InfoBadgeAddSpecies.Visibility" Value="Visible"/>
+						<Setter Target="TextNoRxnSpecies.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -123,8 +120,10 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="TextNoOutputsSelected.Visibility" Value="Visible"/>
-						<!--<Setter Target="ButtonSelectOutputItems.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>-->
+						<Setter Target="ButtonSelectOutputItems.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
+						<Setter Target="ButtonSelectOutputItems.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
 						<Setter Target="ButtonSelectOutputItems.BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
+						<Setter Target="AniIconButtonSelectOutputItems.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
 						<Setter Target="InfoBadgeSelectOutputItems.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
@@ -140,255 +139,329 @@
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
+			<VisualStateGroup x:Name="VisState_OutputDataLabel">
+				<VisualState x:Name="VisState_OutputDataLabel_NotNull"/>
+				<VisualState x:Name="VisState_OutputDataLabel_Empty">
+					<VisualState.StateTriggers>
+						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DataLabel.Text, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="TextNoOutputDataLabel.Visibility" Value="Visible"/>
+						<Setter Target="DataLabel.Visibility" Value="Collapsed"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
 		</VisualStateManager.VisualStateGroups>
 
-		<Grid Grid.Row="0">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="350" MinWidth="250"/>
-				<ColumnDefinition Width="*" MinWidth="400"/>
-			</Grid.ColumnDefinitions>
+		<StackPanel Padding="0,0,5,5" Orientation="Horizontal">
+			<Border Width="50" VerticalAlignment="Top" Padding="0,8,0,0">
+				<FontIcon Glyph="&#xF196;" FontSize="40"/>
+			</Border>
+			<StackPanel Orientation="Vertical">
+				<TextBlock Text="Reaction kinetics" Style="{StaticResource TitleTextBlockStyle}"/>
+				<TextBlock Text="Models a single simple chemical reaction." Style="{StaticResource BodyTextBlockStyle}"/>
+			</StackPanel>
+		</StackPanel>
+
+		<Grid Grid.Row="1" CornerRadius="8" BorderBrush="Gray" BorderThickness="2">
 			<Grid.RowDefinitions>
-				<RowDefinition/>
+				<RowDefinition Height="430" MinHeight="430"/>
+				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 
-			<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top">
-				<TextBlock Text="Rate law:"/>
-				<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-					<!--
-					Initialize : See attached .cs file. Rate laws must be added manually using their RateLawFactories.
-					Selection  : Bound to ViewModel.RateLawFactory, notably not a RateLaw directly.
-					TextBlock  : Bound to RateLawFactory.Name which contains the human-readable name for the rate law.
-					Note : Binding to RateLawFactory removes the need to pass around a specific rate law instance
-						   and is more like the *concept* of a rate law.
-					-->
-					<ComboBox x:Name="DropdownRateLaw" PlaceholderText="Pick a rate law"
-						SelectedValue="{x:Bind ViewModel.RateLawFactory, Mode=TwoWay}"
-						Margin="0,5,5,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
-						<ComboBox.ItemTemplate>
-							<DataTemplate x:DataType="rl:IRateLawFactory">
-								<TextBlock Text="{x:Bind Name}"/>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
-					<muxc:InfoBadge x:Name="InfoBadgeDropdownRateLaw" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
+			<Grid Grid.Row="0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="350" MinWidth="250"/>
+					<ColumnDefinition Width="*" MinWidth="400"/>
+				</Grid.ColumnDefinitions>
 
+				<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top">
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inptus" Margin="0,0,0,5"/>
 
-				<TextBlock Text="Temperature:" Padding="0,10,0,0"/>
-				<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-					<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="[K]" Margin="0,5,5,0" Width="150" MaxHeight="60"
+					<TextBlock Text="Temperature:" Padding="0,10,0,0"/>
+					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+						<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="[K]" Margin="0,5,5,0" Width="150" MaxHeight="60"
 									Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-					<muxc:InfoBadge x:Name="InfoBadgeNumBoxT" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+						<muxc:InfoBadge x:Name="InfoBadgeNumBoxT" Style="{StaticResource CriticalIconInfoBadgeStyle}"
 									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
-				<TextBlock Text="Pressure:" Padding="0,10,0,0"/>
-				<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-					<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="[Pa]" Margin="0,5,5,0" Width="150" MaxHeight="60"
+					</Grid>
+					<TextBlock Text="Pressure:" Padding="0,10,0,0"/>
+					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+						<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="[Pa]" Margin="0,5,5,0" Width="150" MaxHeight="60"
 									Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-					<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+						<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource CriticalIconInfoBadgeStyle}"
 									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
-				<TextBlock Text="Frequency factor:" Padding="0,10,0,0"/>
-				<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-					<muxc:NumberBox x:Name="NumBoxFrequencyFactor" PlaceholderText="[1]"
-									Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}" AcceptsExpression="True"
-									Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
-					<muxc:InfoBadge x:Name="InfoBadgeNumBoxFrequencyFactor" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
-				<TextBlock Text="Activation energy:" Padding="0,10,0,0"/>
-				<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-					<muxc:NumberBox x:Name="NumBoxActivationEnergy" PlaceholderText="[J/mol]"
-									Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True"
-									Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
-					<muxc:InfoBadge x:Name="InfoBadgeNumBoxActivationEnergy" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
-
-				<StackPanel Orientation="Horizontal" Margin="0,5" Padding="0,10,0,0">
-					<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Button x:Name="ButtonSelectOutputItems" Margin="0,5,5,0" Click="ButtonSelectOutputItems_Click">
-							<muxc:AnimatedIcon x:Name="AniIconButtonSelectOutputItems" Width="20">
-								<muxc:AnimatedIcon.Source>
-									<animate:AnimatedSettingsVisualSource/>
-								</muxc:AnimatedIcon.Source>
-								<muxc:AnimatedIcon.FallbackIconSource>
-									<muxc:SymbolIconSource Symbol="Setting"/>
-								</muxc:AnimatedIcon.FallbackIconSource>
-							</muxc:AnimatedIcon>
-						</Button>
-						<muxc:InfoBadge x:Name="InfoBadgeSelectOutputItems" Style="{StaticResource CautionIconInfoBadgeStyle}"
-										Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
 					</Grid>
 
-					<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto">
-						<Popup.ChildTransitions>
-							<TransitionCollection>
-								<PopupThemeTransition/>
-							</TransitionCollection>
-						</Popup.ChildTransitions>
-						<Grid Padding="15" CornerRadius="{StaticResource OverlayCornerRadius}"
-							  BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-							  Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition/>
-								<ColumnDefinition/>
-								<ColumnDefinition/>
-							</Grid.ColumnDefinitions>
+					<Grid Margin="0,5" Padding="0,10,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="Auto"/>
+						</Grid.ColumnDefinitions>
 
-							<!--
-							Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<OutputItems>.
-							-->
-							<StackPanel Orientation="Vertical" Grid.Column="0">
-								<TextBlock Text="Available outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-								<TextBlock x:Name="TextNoOutputsAvailable" Visibility="Collapsed" Text="There are no other outputs available."/>
-								<ListView x:Name="ListOutputItems_Left" Width="270" Padding="0" Margin="0" HorizontalAlignment="Left"
+						<Button Background="{StaticResource SystemAccentColor}" Margin="0,5,5,0" CornerRadius="0,4,4,0" Grid.Column="1"
+								Click="RunCalc" Height="33">
+							<StackPanel Orientation="Horizontal">
+								<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
+								<TextBlock Text="Run calculation"/>
+							</StackPanel>
+						</Button>
+						
+						<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="0">
+							<Button x:Name="ButtonSelectOutputItems" Margin="0,5,0,0" CornerRadius="4,0,0,4" Height="33"
+									Background="{StaticResource SystemAccentColor}"
+									Click="ButtonSelectOutputItems_Click">
+								<muxc:AnimatedIcon x:Name="AniIconButtonSelectOutputItems"
+												   HorizontalAlignment="Center" VerticalAlignment="Center">
+									<muxc:AnimatedIcon.Source>
+										<animate:AnimatedSettingsVisualSource/>
+									</muxc:AnimatedIcon.Source>
+									<muxc:AnimatedIcon.FallbackIconSource>
+										<muxc:SymbolIconSource Symbol="Setting"/>
+									</muxc:AnimatedIcon.FallbackIconSource>
+								</muxc:AnimatedIcon>
+							</Button>
+							<muxc:InfoBadge x:Name="InfoBadgeSelectOutputItems" Style="{StaticResource CautionIconInfoBadgeStyle}"
+										Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top">
+								<muxc:InfoBadge.RenderTransform>
+									<TranslateTransform X="5"/>
+								</muxc:InfoBadge.RenderTransform>
+							</muxc:InfoBadge>
+						</Grid>
+
+						<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto" Grid.Column="1">
+							<Popup.ChildTransitions>
+								<TransitionCollection>
+									<PopupThemeTransition/>
+								</TransitionCollection>
+							</Popup.ChildTransitions>
+							<Grid Padding="15" CornerRadius="{StaticResource OverlayCornerRadius}"
+								  BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+								  Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition/>
+									<ColumnDefinition/>
+									<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+
+								<!--
+								Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<OutputItems>.
+								-->
+								<StackPanel Orientation="Vertical" Grid.Column="0">
+									<TextBlock Text="Available outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+									<TextBlock x:Name="TextNoOutputsAvailable" Visibility="Collapsed"
+											   Foreground="LightGray"
+											   Style="{ThemeResource CaptionTextBlockStyle}"
+											   Text="There are no other outputs available."/>
+									<ListView x:Name="ListOutputItems_Left" Width="270" Padding="0" Margin="0" HorizontalAlignment="Left"
 											  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 											  ItemsSource="{x:Bind ViewModel.AvailableOutputOptions}"
 											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended">
-								</ListView>
-							</StackPanel>
+									</ListView>
+								</StackPanel>
 
-							<Grid Grid.Column="1" Grid.Row="1" RowSpacing="5" Margin="0,0,5,0">
-								<Grid.RowDefinitions>
-									<RowDefinition/>
-									<RowDefinition/>
-								</Grid.RowDefinitions>
+								<Grid Grid.Column="1" Grid.Row="1" RowSpacing="5" Margin="0,0,5,0">
+									<Grid.RowDefinitions>
+										<RowDefinition/>
+										<RowDefinition/>
+									</Grid.RowDefinitions>
+
+									<!--
+									Click : Runs ButtonAddOutputItem_Click, which moves any selected items to ViewModel.SelectedOutputOptions
+									-->
+									<Button x:Name="ButtonAddOutputItem" Click="ButtonAddOutputItem_Click" Grid.Row="0" VerticalAlignment="Bottom">
+										<FontIcon Glyph="&#xE76C;"/>
+									</Button>
+									<!--
+									Click : Runs ButtonRemoveOutputItem_Click, which moves any selected items to ViewModel.AvailableOutputOptions
+									-->
+									<Button x:Name="ButtonRemoveutputItem" Click="ButtonRemoveOutputItem_Click" Grid.Row="1" VerticalAlignment="Top">
+										<FontIcon Glyph="&#xE76B;"/>
+									</Button>
+								</Grid>
 
 								<!--
-								Click : Runs ButtonAddOutputItem_Click, which moves any selected items to ViewModel.SelectedOutputOptions
+								Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<OutputItems>.
 								-->
-								<Button x:Name="ButtonAddOutputItem" Click="ButtonAddOutputItem_Click" Grid.Row="0" VerticalAlignment="Bottom">
-									<FontIcon Glyph="&#xE76C;"/>
-								</Button>
-								<!--
-								Click : Runs ButtonRemoveOutputItem_Click, which moves any selected items to ViewModel.AvailableOutputOptions
-								-->
-								<Button x:Name="ButtonRemoveutputItem" Click="ButtonRemoveOutputItem_Click" Grid.Row="1" VerticalAlignment="Top">
-									<FontIcon Glyph="&#xE76B;"/>
-								</Button>
-							</Grid>
-
-							<!--
-							Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<OutputItems>.
-							-->
-							<StackPanel Orientation="Vertical" Grid.Column="2" Margin="5,0,0,0">
-								<TextBlock Text="Selected outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-								<TextBlock x:Name="TextNoOutputsSelected" Visibility="Collapsed" Text="There are no outputs selected."/>
-								<ListView x:Name="ListOutputItems_Right" Width="275"
+								<StackPanel Orientation="Vertical" Grid.Column="2" Margin="5,0,0,0">
+									<TextBlock Text="Selected outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+									<TextBlock x:Name="TextNoOutputsSelected" Visibility="Collapsed"
+											   Foreground="LightGray"
+											   Style="{ThemeResource CaptionTextBlockStyle}"
+											   Text="There are no outputs selected.&#x0a;Select one from the list and click '>' to add them."/>
+									<ListView x:Name="ListOutputItems_Right" Width="275"
 											  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 											  ItemsSource="{x:Bind ViewModel.SelectedOutputOptions}"
 											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended"/>
-							</StackPanel>
-						</Grid>
-					</Popup>
-
-					<Button Background="{StaticResource SystemAccentColor}" Margin="5,5,5,0" Click="RunCalc">
-						<StackPanel Orientation="Horizontal">
-							<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
-							<TextBlock Text="Run calculation"/>
-						</StackPanel>
-					</Button>
+								</StackPanel>
+							</Grid>
+						</Popup>
+					</Grid>
 				</StackPanel>
-			</StackPanel>
 
-			<Rectangle Fill="{StaticResource ButtonPointerOverBackgroundThemeBrush}"
+				<Rectangle Fill="{StaticResource ButtonPointerOverBackgroundThemeBrush}"
 					   Width="2" Grid.Column="1" HorizontalAlignment="Left">
-				<Rectangle.RenderTransform>
-					<TranslateTransform X="-1"/>
-				</Rectangle.RenderTransform>
-			</Rectangle>
-			<ctrl:GridSplitter Width="16" Grid.Column="1" HorizontalAlignment="Left" ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto">
-				<ctrl:GridSplitter.RenderTransform>
-					<TranslateTransform X="-8"/>
-				</ctrl:GridSplitter.RenderTransform>
-			</ctrl:GridSplitter>
+					<Rectangle.RenderTransform>
+						<TranslateTransform X="-1"/>
+					</Rectangle.RenderTransform>
+				</Rectangle>
+				<ctrl:GridSplitter Width="16" Grid.Column="1" HorizontalAlignment="Left" ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto">
+					<ctrl:GridSplitter.RenderTransform>
+						<TranslateTransform X="-8"/>
+					</ctrl:GridSplitter.RenderTransform>
+				</ctrl:GridSplitter>
 
-			<StackPanel Grid.Column="1" Padding="10">
-				<Grid HorizontalAlignment="Left">
-					<!--
-					Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
-					-->
-					<Button x:Name="ButtonAddSpecies" Click="ButtonAddSpecies_Click"
-						Grid.Row="1" Grid.Column="0" Width="150" Margin="0,5,5,0"
-						HorizontalAlignment="Left" VerticalAlignment="Top">
-						<StackPanel Orientation="Horizontal">
-							<SymbolIcon Symbol="Add" Margin="0,0,5,0"/>
-							<TextBlock Text="Add species"/>
-						</StackPanel>
-					</Button>
-					<muxc:InfoBadge x:Name="InfoBadgeAddSpecies" Style="{StaticResource CautionIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
+				<Grid Grid.Column="1" Padding="15,10">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
 
-				<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MaxHeight="355"
-							  HorizontalAlignment="Left" Padding="0,10,5,10">
-					<StackPanel Visibility="Visible" HorizontalAlignment="Left">
-						<muxc:InfoBar x:Name="InfoBarNoRxnSpecies" IsOpen="False" Severity="Warning" IsClosable="False"
-									  Message="There are no chemical species present in this reaction. Click 'Add species' to create one."/>
-						<ListView HorizontalAlignment="Left" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}">
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Reaction" Margin="0,0,0,5"/>
+
+					<StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1">
+						<TextBlock Text="Rate law:"/>
+						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
 							<!--
-							Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
-							Selection  : Bound to the ViewModel.
+							Initialize : See attached .cs file. Rate laws must be added manually using their RateLawFactories.
+							Selection  : Bound to ViewModel.RateLawFactory, notably not a RateLaw directly.
+							TextBlock  : Bound to RateLawFactory.Name which contains the human-readable name for the rate law.
+							Note : Binding to RateLawFactory removes the need to pass around a specific rate law instance
+								   and is more like the *concept* of a rate law.
 							-->
-							<ListView.ItemTemplate>
-								<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-									<local:ControlRxnSpecies Margin="0,0,0,5" ViewModel="{x:Bind Mode=TwoWay}"/>
-								</DataTemplate>
-							</ListView.ItemTemplate>
-							<ListView.ItemContainerTransitions>
-								<TransitionCollection>
-									<AddDeleteThemeTransition/>
-								</TransitionCollection>
-							</ListView.ItemContainerTransitions>
-						</ListView>
-
+							<ComboBox x:Name="DropdownRateLaw" PlaceholderText="Pick a rate law"
+										SelectedValue="{x:Bind ViewModel.RateLawFactory, Mode=TwoWay}"
+										Margin="0,5,5,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+								<ComboBox.ItemTemplate>
+									<DataTemplate x:DataType="rl:IRateLawFactory">
+										<TextBlock Text="{x:Bind Name}"/>
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+							<muxc:InfoBadge x:Name="InfoBadgeDropdownRateLaw" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						</Grid>
+						<TextBlock Text="Frequency factor:" Padding="0,10,0,0"/>
+						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+							<muxc:NumberBox x:Name="NumBoxFrequencyFactor" PlaceholderText="[1]"
+											Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}" AcceptsExpression="True"
+											Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
+							<muxc:InfoBadge x:Name="InfoBadgeNumBoxFrequencyFactor" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						</Grid>
+						<TextBlock Text="Activation energy:" Padding="0,10,0,0"/>
+						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+							<muxc:NumberBox x:Name="NumBoxActivationEnergy" PlaceholderText="[J/mol]"
+											Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True"
+											Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
+							<muxc:InfoBadge x:Name="InfoBadgeNumBoxActivationEnergy" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						</Grid>
 					</StackPanel>
-				</ScrollViewer>
-			</StackPanel>
-		</Grid>
 
-		<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top"
-				   Height="2" Fill="{StaticResource SystemAccentColorDark2}">
-			<Rectangle.RenderTransform>
-				<TranslateTransform Y="-1"/>
-			</Rectangle.RenderTransform>
-		</Rectangle>
-		<ctrl:GridSplitter Height="16" Grid.Row="1"	VerticalAlignment="Top"	ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto"
-						   Foreground="{StaticResource SystemAccentColor}">
-			<ctrl:GridSplitter.RenderTransform>
-				<TranslateTransform Y="-8"/>
-			</ctrl:GridSplitter.RenderTransform>
-		</ctrl:GridSplitter>
+					<StackPanel Grid.Column="1" Grid.Row="1" Margin="20,0">
+						<Grid HorizontalAlignment="Left">
+							<!--
+							Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
+							-->
+							<Button x:Name="ButtonAddSpecies" Click="ButtonAddSpecies_Click"
+									Grid.Row="1" Grid.Column="0" Width="150" Margin="0,5,5,0"
+									HorizontalAlignment="Left" VerticalAlignment="Top">
+								<StackPanel Orientation="Horizontal">
+									<SymbolIcon Symbol="Add" Margin="0,0,5,0"/>
+									<TextBlock Text="Add species"/>
+								</StackPanel>
+							</Button>
+							<muxc:InfoBadge x:Name="InfoBadgeAddSpecies" Style="{StaticResource CautionIconInfoBadgeStyle}"
+											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						</Grid>
 
-		<Grid Grid.Row="2">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="350" MinWidth="350"/>
-				<ColumnDefinition Width="*" MinWidth="500"/>
-			</Grid.ColumnDefinitions>
-			<Grid.RowDefinitions>
-				<RowDefinition/>
-			</Grid.RowDefinitions>
+						<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MaxHeight="355"
+										HorizontalAlignment="Left" Padding="0,10,5,10">
+							<StackPanel Visibility="Visible" HorizontalAlignment="Left">
+								<muxc:InfoBar x:Name="InfoBarNoRxnSpecies" IsOpen="False" Severity="Warning" IsClosable="False"
+											  Message="There are no chemical species present in this reaction. Click 'Add species' to create one."/>
+								<TextBlock x:Name="TextNoRxnSpecies" Text="You haven't defined any species for this reaction."
+											Visibility="Collapsed" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
+								<ListView HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}">
+									<!--
+									Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
+									Selection  : Bound to the ViewModel.
+									-->
+									<ListView.ItemTemplate>
+										<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
+											<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}" Margin="-15,0,0,5"/>
+										</DataTemplate>
+									</ListView.ItemTemplate>
+									<ListView.ItemContainerTransitions>
+										<TransitionCollection>
+											<AddDeleteThemeTransition/>
+										</TransitionCollection>
+									</ListView.ItemContainerTransitions>
+								</ListView>
 
-			<StackPanel Grid.Column="0" Padding="10">
-				<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output"/>
-				<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
-			</StackPanel>
+							</StackPanel>
+						</ScrollViewer>
+					</StackPanel>
+				</Grid>
+			</Grid>
 
-			<Rectangle Fill="{StaticResource ButtonPointerOverBackgroundThemeBrush}"
-					   Width="2" Grid.Column="1" HorizontalAlignment="Left">
+			<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top"
+				   Height="2" Fill="Gray">
 				<Rectangle.RenderTransform>
-					<TranslateTransform X="-1"/>
+					<TranslateTransform Y="-1"/>
 				</Rectangle.RenderTransform>
 			</Rectangle>
-			<ctrl:GridSplitter Width="16" Grid.Column="1" HorizontalAlignment="Left" ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto">
+			<ctrl:GridSplitter Height="16" Grid.Row="1"	VerticalAlignment="Top"	ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto"
+						   Foreground="White">
 				<ctrl:GridSplitter.RenderTransform>
-					<TranslateTransform X="-8"/>
+					<TranslateTransform Y="-8"/>
 				</ctrl:GridSplitter.RenderTransform>
 			</ctrl:GridSplitter>
 
-			<oxy:PlotView x:Name="PlotViewKin" Grid.Column="1" Margin="10" Background="Transparent"/>
+			<Grid Grid.Row="2">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="375" MinWidth="375"/>
+					<ColumnDefinition Width="*" MinWidth="500"/>
+				</Grid.ColumnDefinitions>
+
+				<StackPanel Grid.Column="0" Padding="10">
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output" Margin="0,0,0,5"/>
+					<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
+					<TextBlock x:Name="TextNoOutputDataLabel" Text="There is no numeric output data to display here.&#x0a;Select one for output and run the calculation to add one."
+							   Visibility="Collapsed" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
+				</StackPanel>
+
+				<Rectangle Fill="{StaticResource ButtonPointerOverBackgroundThemeBrush}"
+					   Width="2" Grid.Column="1" HorizontalAlignment="Left">
+					<Rectangle.RenderTransform>
+						<TranslateTransform X="-1"/>
+					</Rectangle.RenderTransform>
+				</Rectangle>
+				<ctrl:GridSplitter Width="16" Grid.Column="1" HorizontalAlignment="Left" ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto">
+					<ctrl:GridSplitter.RenderTransform>
+						<TranslateTransform X="-8"/>
+					</ctrl:GridSplitter.RenderTransform>
+				</ctrl:GridSplitter>
+
+				<Grid Grid.Column="1" Margin="15,10">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+					</Grid.RowDefinitions>
+
+					<TextBlock Grid.Row="0" Style="{StaticResource SubtitleTextBlockStyle}" Text="Plots" Margin="0,0,0,5"/>
+					<oxy:PlotView x:Name="PlotViewKin" Grid.Row="1" Background="Transparent" Visibility="Visible"/>
+					<TextBlock x:Name="TextNoPlots" Grid.Row="1" VerticalAlignment="Top" Style="{StaticResource CaptionTextBlockStyle}"
+							   Text="There is no visual output data to display here.&#x0a;Select a plot for output and run the calculation to add one."
+							   Visibility="Visible" Foreground="LightGray"/>
+				</Grid>
+			</Grid>
+
 		</Grid>
 
 	</Grid>

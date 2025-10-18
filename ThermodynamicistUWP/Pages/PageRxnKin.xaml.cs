@@ -126,6 +126,7 @@ namespace ThermodynamicistUWP
 		{
 			// Reset PlotView visibility in case plot output option isn't selected.
 			PlotViewKin.Visibility = Visibility.Collapsed;
+			TextNoPlots.Visibility = Visibility.Visible;
 
 			// Get list of all selected output options.
 			var selectedOutputs = ViewModel.SelectedOutputOptions;
@@ -157,11 +158,13 @@ namespace ThermodynamicistUWP
 							PlotViewKin.Model = new RxnKineticsPlotModel(rxn, T, P, 0.01, 10).Model;
 							PlotViewKin.Background = new SolidColorBrush(Colors.White);
 							PlotViewKin.Visibility = Visibility.Visible;
+							TextNoPlots.Visibility = Visibility.Collapsed;
 							break;
 					}
 				}
 
 				// Combine all output strings into DataLabel.
+				if (outputStrings.Count == 0) { return; }
 				DataLabel.Text = outputStrings.First();
 				outputStrings.Remove(outputStrings.First());
 				foreach (var item in outputStrings)
