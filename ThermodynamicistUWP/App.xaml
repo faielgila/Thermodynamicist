@@ -1,20 +1,23 @@
 ﻿<Application
-    x:Class="ThermodynamicistUWP.App"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ThermodynamicistUWP" xmlns:converters="using:ThermodynamicistUWP.Converters">
+	x:Class="ThermodynamicistUWP.App"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:ThermodynamicistUWP" xmlns:converters="using:ThermodynamicistUWP.Converters">
 
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
 
-                <ResourceDictionary>
-                    <converters:ChemicalNamePairConverter x:Key="ChemicalNamePairConverter"/>
-                </ResourceDictionary>
-                
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>
+				<ResourceDictionary>
+					<converters:ChemicalNamePairConverter x:Key="ChemicalNamePairConverter"/>
+				</ResourceDictionary>
+				<ResourceDictionary>
+					<converters:ErrorSeverityConverter x:Key="ErrorSeverityConverter"/>
+				</ResourceDictionary>
+
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Application.Resources>
 
 </Application>

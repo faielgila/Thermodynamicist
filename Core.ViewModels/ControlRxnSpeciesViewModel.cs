@@ -144,23 +144,29 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 	/// <summary>
 	/// Validates all input properties.
 	/// </summary>
-	/// <returns>true if all inputs are valid.</returns>
-	public bool CheckValidInput()
+	/// <returns>null if all inputs are valid, combined string of each invalid input.</returns>
+	public string? CheckValidInput()
 	{
-		if (EoSFactory is null ||
-			Phase is null ||
-			Chemical == null ||
-			Stoich == null ||
-			DeleteCommand is null)
-		{
-			return false;
-		}
+		var missingInputs = new List<string>();
+		if (EoSFactory is null) missingInputs.Add("Equation of state");
+		if (Phase is null) missingInputs.Add("Phase");
+		if (Chemical == null) missingInputs.Add("Chemical");
+		if (Stoich == null) missingInputs.Add("Stoichiometry");
+		if (DeleteCommand is null) missingInputs.Add("Delete");
 
-		if (_EoS is null)
-		{
-			UpdateEoS(); return false;
-		}
+		if (_EoS is null) UpdateEoS();
 
-		return true;
+		// Combine missingInputs string.
+		if (missingInputs.Count != 0)
+		{
+			string missingInputsString = missingInputs.First();
+			missingInputs.Remove(missingInputs.First());
+			foreach (var item in missingInputs)
+			{
+				missingInputsString += "; " + item;
+			}
+			return missingInputsString;
+		}
+		return null;
 	}
 }

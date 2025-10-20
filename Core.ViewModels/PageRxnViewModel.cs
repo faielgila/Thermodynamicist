@@ -88,6 +88,9 @@ public partial class PageRxnViewModel : ObservableObject
 	[ObservableProperty]
 	private ObservableCollection<OutputItem> _selectedOutputOptions;
 
+	[ObservableProperty]
+	private ObservableCollection<ErrorInfoViewModel> _errors = [];
+
 	public PageRxnViewModel()
 	{
 		// Pass down the DeleteItem command to each ControlRxnSpeciesViewModel.

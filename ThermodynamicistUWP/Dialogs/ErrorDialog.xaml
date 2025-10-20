@@ -8,12 +8,16 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
 	Title="Calculation Error"
-	CloseButtonText="Cancel calculation">
+	CloseButtonText="Cancel calculation"
+	CornerRadius="{StaticResource OverlayCornerRadius}"
+	BorderBrush="{StaticResource SystemFillColorCriticalBrush}"
+	Background="{StaticResource SystemFillColorCriticalBackgroundBrush}">
 
 	<StackPanel>
 		<TextBlock x:Name="TextBlockErrorText" Text="{x:Bind ErrorText}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
 		<TextBlock x:Name="TextBlockTitleStacktrace" Text="Stack trace: "/>
-		<ScrollViewer Padding="0, 0, 20, 20"
+		<ScrollViewer x:Name="ScrollViewerStacktrace"
+					  Padding="0, 0, 20, 20"
 					  VerticalScrollBarVisibility="Auto"
 					  VerticalScrollMode="Enabled"
 					  HorizontalScrollMode="Enabled"

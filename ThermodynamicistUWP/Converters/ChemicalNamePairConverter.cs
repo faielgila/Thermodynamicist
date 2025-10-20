@@ -29,7 +29,7 @@ namespace ThermodynamicistUWP.Converters
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			if (!(value is ChemicalNamePair pair))
-				return Chemical.CarbonDioxide;
+				return Chemical.Acetone;
 
 			return pair.Chem;
 		}

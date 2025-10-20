@@ -47,27 +47,10 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void RunCalc(object sender, RoutedEventArgs e)
 		{
-			if (CheckInvalidPageInputs()) return;
-
-			// Validate RxnSpecies inputs.
-			var chemicals = new List<Chemical>();
-			foreach (var viewModel in ViewModel.Items)
+			if (CheckInvalidPageInputs())
 			{
-				if (!viewModel.CheckValidInput())
-				{
-					ErrorDialog.ShowErrorDialog("Reaction species contains invalid inputs.");
-					return;
-				}
-				if (chemicals.Contains(viewModel.Chemical))
-				{
-					ErrorDialog.ShowErrorDialog($"Chemical '{Constants.ChemicalNames[viewModel.Chemical]}' has multiple entries." +
-						$"\nBalance the reaction equation and try again.");
-					return;
-				}
-				else
-				{
-					chemicals.Add(viewModel.Chemical);
-				}
+				ErrorDialog.ShowErrorDialog("An error was detected in the model inputs. Review the errors listed and try again.");
+				return;
 			}
 
 			Temperature T = ViewModel.T;
@@ -88,31 +71,72 @@ namespace ThermodynamicistUWP
 		/// <returns>true if any inputs are invalid.</returns>
 		private bool CheckInvalidPageInputs()
 		{
+			ViewModel.Errors.Clear();
 			bool cancelCalc = false;
+			List<string> missingInputs = new List<string>();
 
-			// If no outputs are selected, warn user.
+			// Warning: No outputs are selected.
 			if (ViewModel.SelectedOutputOptions.Count == 0)
 			{
-				ErrorDialog.ShowErrorDialog("No outputs are selected. Click the 'settings' icon and then 'Run calculation'.");
-				return true;
+				ViewModel.Errors.Add(new ErrorInfoViewModel( false,
+					"No outputs were selected. Click the 'settings' icon to pick which outputs to calculate."
+				));
 			}
 
-			// If any inputs are not set, do not attempt to run calculations!
-			if (
-				ViewModel.RateLawFactory == null ||
-				double.IsNaN(ViewModel.T) || ViewModel.T == 0 ||
-				double.IsNaN(ViewModel.P) || ViewModel.P == 0 ||
-				double.IsNaN(ViewModel.FrequencyFactor) ||
-				double.IsNaN(ViewModel.ActivationEnergy)
-				)
+			// Warning: No rxnSpecies have been defined.
+			if (ViewModel.Items.Count == 0)
 			{
-				//ErrorDialog.ShowErrorDialog("Not all required inputs are set.");
-				cancelCalc = true;
+				ViewModel.Errors.Add(new ErrorInfoViewModel( false,
+					"No reaction species were defined. Click the '+' icon in the Reaction panel to add one."
+				));
 			}
 
-			if (ViewModel.RateLawFactory == null)
+			// Error: Missing model-wide inputs.
+			if (ViewModel.T == null || ViewModel.T == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Temperature");
+			if (ViewModel.P == null || ViewModel.P == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Pressure");
+
+			// Error: Missing reaction inputs.
+			if (ViewModel.RateLawFactory == null) missingInputs.Add("Rate law");
+			if (double.IsNaN(ViewModel.FrequencyFactor)) missingInputs.Add("Frequency factor");
+			if (double.IsNaN(ViewModel.ActivationEnergy)) missingInputs.Add("Activation energy");
+
+			// Validate RxnSpecies inputs.
+			var chemicals = new List<Chemical>();
+			foreach (var viewModel in ViewModel.Items)
 			{
-				//ErrorDialog.ShowErrorDialog("Rate law must be selected.");
+				var text = viewModel.CheckValidInput();
+				if (!(text is null))
+				{
+					ViewModel.Errors.Add(new ErrorInfoViewModel(true,
+						$"Reaction species no. {ViewModel.Items.IndexOf(viewModel)+1} has the following invalid inputs: {text}." +
+						"\nSet them to valid inputs and try again."));
+					cancelCalc = true;
+				}
+				if (chemicals.Contains(viewModel.Chemical))
+				{
+					ViewModel.Errors.Add(new ErrorInfoViewModel(true,
+						$"Chemical '{Constants.ChemicalNames[viewModel.Chemical]}' has multiple entries." +
+						"\nRemove or combine any duplicates in the reaction equation and try again."));
+					cancelCalc = true;
+					break;
+				}
+				else
+				{
+					chemicals.Add(viewModel.Chemical);
+				}
+			}
+
+			// Combine missingInputs string.
+			if (missingInputs.Count != 0)
+			{
+				string text = missingInputs.First();
+				missingInputs.Remove(missingInputs.First());
+				foreach (var item in missingInputs)
+				{
+					text += "; " + item;
+				}
+				text = $"The following model-wide inptus are invalid: {text}.\nSet them to valid inputs and try again.";
+				ViewModel.Errors.Add(new ErrorInfoViewModel(true, text));
 				cancelCalc = true;
 			}
 
@@ -124,6 +148,8 @@ namespace ThermodynamicistUWP
 		/// </summary>
 		private void UpdateData(Reaction rxn, Temperature T, Pressure P)
 		{
+			// Reset DataLabel in case numeric output options aren't selected.
+			DataLabel.Text = "";
 			// Reset PlotView visibility in case plot output option isn't selected.
 			PlotViewKin.Visibility = Visibility.Collapsed;
 			TextNoPlots.Visibility = Visibility.Visible;

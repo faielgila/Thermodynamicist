@@ -26,6 +26,12 @@
 				</StackPanel>
 			</ListViewItem>
 		</DataTemplate>
+
+		<DataTemplate x:Key="ErrorInfoBarTemplate" x:DataType="vm:ErrorInfoViewModel">
+			<muxc:InfoBar
+				Severity="{x:Bind Severity, Mode=OneWay, Converter={StaticResource ErrorSeverityConverter}}"
+				Message="{x:Bind Message}" IsOpen="True" IsClosable="False"/>
+		</DataTemplate>
 	</Page.Resources>
 
 	<Grid Margin="10">
@@ -169,12 +175,14 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 
+			<!--Inputs panel-->
 			<Grid Grid.Row="0">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="350" MinWidth="250"/>
 					<ColumnDefinition Width="*" MinWidth="400"/>
 				</Grid.ColumnDefinitions>
 
+				<!--Model-wide inputs panel-->
 				<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top">
 					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inputs" Margin="0,0,0,5"/>
 
@@ -193,6 +201,7 @@
 									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
 					</Grid>
 
+					<!--Calculation settings & run-->
 					<Grid Margin="0,5" Padding="0,10,0,0">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="Auto"/>
@@ -229,6 +238,7 @@
 							</muxc:InfoBadge>
 						</Grid>
 
+						<!--Popup: Select output items-->
 						<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto" Grid.Column="1">
 							<Popup.ChildTransitions>
 								<TransitionCollection>
@@ -239,9 +249,9 @@
 								  BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
 								  Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
 								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="300"/>
 									<ColumnDefinition/>
-									<ColumnDefinition/>
-									<ColumnDefinition/>
+									<ColumnDefinition Width="300"/>
 								</Grid.ColumnDefinitions>
 
 								<!--
@@ -253,10 +263,10 @@
 											   Foreground="LightGray"
 											   Style="{ThemeResource CaptionTextBlockStyle}"
 											   Text="There are no other outputs available."/>
-									<ListView x:Name="ListOutputItems_Left" Width="270" Padding="0" Margin="0" HorizontalAlignment="Left"
+									<ListView x:Name="ListOutputItems_Left" Margin="-5,0,0,0" HorizontalAlignment="Left"
 											  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 											  ItemsSource="{x:Bind ViewModel.AvailableOutputOptions}"
-											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended">
+											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple">
 									</ListView>
 								</StackPanel>
 
@@ -289,16 +299,17 @@
 											   Foreground="LightGray"
 											   Style="{ThemeResource CaptionTextBlockStyle}"
 											   Text="There are no outputs selected.&#x0a;Select one from the list and click '>' to add them."/>
-									<ListView x:Name="ListOutputItems_Right" Width="275"
+									<ListView x:Name="ListOutputItems_Right" Margin="-5,0,0,0"
 											  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 											  ItemsSource="{x:Bind ViewModel.SelectedOutputOptions}"
-											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Extended"/>
+											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple"/>
 								</StackPanel>
 							</Grid>
 						</Popup>
 					</Grid>
 				</StackPanel>
 
+				<!--inputs divider-->
 				<Rectangle Fill="{StaticResource ButtonPointerOverBackgroundThemeBrush}"
 					   Width="2" Grid.Column="1" HorizontalAlignment="Left">
 					<Rectangle.RenderTransform>
@@ -311,6 +322,7 @@
 					</ctrl:GridSplitter.RenderTransform>
 				</ctrl:GridSplitter>
 
+				<!--Reaction inputs panel-->
 				<Grid Grid.Column="1" Padding="15,10">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
@@ -323,6 +335,7 @@
 
 					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Reaction" Margin="0,0,0,5"/>
 
+					<!--Reaction-wide inputs-->
 					<StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1">
 						<TextBlock Text="Rate law:"/>
 						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -363,6 +376,7 @@
 						</Grid>
 					</StackPanel>
 
+					<!--Species inputs-->
 					<StackPanel Grid.Column="1" Grid.Row="1" Margin="20,0">
 						<Grid HorizontalAlignment="Left">
 							<!--
@@ -410,6 +424,7 @@
 				</Grid>
 			</Grid>
 
+			<!--page divider-->
 			<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top"
 				   Height="2" Fill="Gray">
 				<Rectangle.RenderTransform>
@@ -423,12 +438,14 @@
 				</ctrl:GridSplitter.RenderTransform>
 			</ctrl:GridSplitter>
 
+			<!--Outputs panel-->
 			<Grid Grid.Row="2">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="375" MinWidth="375"/>
 					<ColumnDefinition Width="*" MinWidth="500"/>
 				</Grid.ColumnDefinitions>
 
+				<!--Numeric outputs panel-->
 				<StackPanel Grid.Column="0" Padding="10">
 					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output" Margin="0,0,0,5"/>
 					<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
@@ -436,6 +453,7 @@
 							   Visibility="Collapsed" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
 				</StackPanel>
 
+				<!--outputs divider-->
 				<Rectangle Fill="{StaticResource ButtonPointerOverBackgroundThemeBrush}"
 					   Width="2" Grid.Column="1" HorizontalAlignment="Left">
 					<Rectangle.RenderTransform>
@@ -448,6 +466,7 @@
 					</ctrl:GridSplitter.RenderTransform>
 				</ctrl:GridSplitter>
 
+				<!--Visual outputs panel-->
 				<Grid Grid.Column="1" Margin="15,10">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
@@ -462,6 +481,11 @@
 				</Grid>
 			</Grid>
 
+			<!--Error panel-->
+			<StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
+				<muxc:ItemsRepeater ItemsSource="{x:Bind ViewModel.Errors}" ItemTemplate="{StaticResource ErrorInfoBarTemplate}"/>
+			</StackPanel>
+			
 		</Grid>
 
 	</Grid>
