@@ -27,6 +27,7 @@ namespace ThermodynamicistUWP
 			// Initialize all numeric inputs.
 			ViewModel.T = 298;
 			ViewModel.P = 101325;
+			ViewModel.Time = double.NaN;
 			ViewModel.FrequencyFactor = double.NaN;
 			ViewModel.ActivationEnergy = double.NaN;
 
@@ -55,6 +56,7 @@ namespace ThermodynamicistUWP
 
 			Temperature T = ViewModel.T;
 			Pressure P = ViewModel.P;
+			Time time = ViewModel.Time;
 			double frequencyFactor = ViewModel.FrequencyFactor;
 			GibbsEnergy activationEnergy = ViewModel.ActivationEnergy;
 			var rateLawFactory = ViewModel.RateLawFactory;
@@ -62,7 +64,7 @@ namespace ThermodynamicistUWP
 			// Get species list from ControlRxnSpecies
 			var rxn = new Reaction(ViewModel.GetRxnSpeciesList(), rateLawFactory, frequencyFactor, activationEnergy);
 
-			UpdateData(rxn, T, P);
+			UpdateData(rxn, T, P, time);
 		}
 
 		/// <summary>
@@ -94,6 +96,10 @@ namespace ThermodynamicistUWP
 			// Error: Missing model-wide inputs.
 			if (ViewModel.T == null || ViewModel.T == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Temperature");
 			if (ViewModel.P == null || ViewModel.P == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Pressure");
+			if (ViewModel.SelectedOutputOptions.Select(item => item.OutputName).Contains("PlotMolarityTranscience"))
+			{
+				if (ViewModel.Time == null || ViewModel.Time == 0 || double.IsNaN(ViewModel.Time)) missingInputs.Add("Time");
+			}
 
 			// Error: Missing reaction inputs.
 			if (ViewModel.RateLawFactory == null) missingInputs.Add("Rate law");
@@ -104,25 +110,26 @@ namespace ThermodynamicistUWP
 			var chemicals = new List<Chemical>();
 			foreach (var viewModel in ViewModel.Items)
 			{
+				var chem = viewModel.Chemical;
 				var text = viewModel.CheckValidInput();
 				if (!(text is null))
 				{
 					ViewModel.Errors.Add(new ErrorInfoViewModel(true,
-						$"Reaction species no. {ViewModel.Items.IndexOf(viewModel)+1} has the following invalid inputs: {text}." +
+						$"Reaction species {Constants.ChemicalNames[chem]} has the following invalid inputs: {text}." +
 						"\nSet them to valid inputs and try again."));
 					cancelCalc = true;
 				}
-				if (chemicals.Contains(viewModel.Chemical))
+				if (chemicals.Contains(chem))
 				{
 					ViewModel.Errors.Add(new ErrorInfoViewModel(true,
-						$"Chemical '{Constants.ChemicalNames[viewModel.Chemical]}' has multiple entries." +
+						$"Chemical '{Constants.ChemicalNames[chem]}' has multiple entries." +
 						"\nRemove or combine any duplicates in the reaction equation and try again."));
 					cancelCalc = true;
 					break;
 				}
 				else
 				{
-					chemicals.Add(viewModel.Chemical);
+					chemicals.Add(chem);
 				}
 			}
 
@@ -146,7 +153,7 @@ namespace ThermodynamicistUWP
 		/// <summary>
 		/// Runs calculations, updates DataLabel with outputs.
 		/// </summary>
-		private void UpdateData(Reaction rxn, Temperature T, Pressure P)
+		private void UpdateData(Reaction rxn, Temperature T, Pressure P, Time time)
 		{
 			// Reset DataLabel in case numeric output options aren't selected.
 			DataLabel.Text = "";
@@ -181,7 +188,12 @@ namespace ThermodynamicistUWP
 							break;
 
 						case "PlotMolarityTranscience":
-							PlotViewKin.Model = new RxnKineticsPlotModel(rxn, T, P, 0.01, 10).Model;
+							var compVec = new MolarityVector();
+							foreach (var rxnSpecies in ViewModel.Items)
+							{
+								compVec.Add(rxnSpecies.Chemical, rxnSpecies.Concentration);
+							}
+							PlotViewKin.Model = new RxnKineticsPlotModel(rxn, T, P, 0.01, time, compVec).Model;
 							PlotViewKin.Background = new SolidColorBrush(Colors.White);
 							PlotViewKin.Visibility = Visibility.Visible;
 							TextNoPlots.Visibility = Visibility.Collapsed;
@@ -241,10 +253,11 @@ namespace ThermodynamicistUWP
 		{
 			ViewModel.AddItem(new ControlRxnSpeciesViewModel
 			{
-				//Chemical = Chemical.Acetone,
+				Chemical = Chemical.Water,
 				//EoSFactory = new PengRobinsonEOSFactory(),
-				//Stoich = 1,
+				Stoich = 1,
 				//Phase = "",
+				Concentration = double.NaN,
 				IsReactant = true,
 				DeleteCommand = ViewModel.DeleteCommand
 			});

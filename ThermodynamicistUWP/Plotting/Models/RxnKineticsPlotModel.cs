@@ -22,17 +22,20 @@ namespace ThermodynamicistUWP
 
 		private Pressure P;
 
-		private double dt;
+		private Time dt;
 
-		private double maxtime;
+		private Time maxtime;
 
-		public RxnKineticsPlotModel(Reaction _rxn, Temperature _T, Pressure _P, double _dt, double _maxtime)
+		private MolarityVector initialCompsition;
+
+		public RxnKineticsPlotModel(Reaction _rxn, Temperature _T, Pressure _P, Time _dt, Time _maxtime, MolarityVector _initialCompsition)
 		{
 			rxn = _rxn;
 			T = _T;
 			P = _P;
 			dt = _dt;
 			maxtime = _maxtime;
+			initialCompsition = _initialCompsition;
 			Update();
 		}
 
@@ -46,7 +49,7 @@ namespace ThermodynamicistUWP
 			var rng = new Random();
 			foreach (var chemical in speciesList)
 			{
-				cVec.Add(chemical, 1);
+				cVec.Add(chemical, initialCompsition[chemical]);
 				var series = new LineSeries()
 				{
 					LineStyle = (LineStyle)rng.Next(1, 6),
@@ -55,7 +58,7 @@ namespace ThermodynamicistUWP
 					LineJoin = LineJoin.Round,
 					Title = Constants.ChemicalNames[chemical]
 				};
-				series.Points.Add(new DataPoint(0, 1));
+				series.Points.Add(new DataPoint(0, initialCompsition[chemical]));
 				seriesList.Add(chemical, series);
 			}
 

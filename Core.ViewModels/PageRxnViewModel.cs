@@ -30,6 +30,12 @@ public partial class PageRxnViewModel : ObservableObject
 	private Pressure _P;
 
 	/// <summary>
+	/// Stores the time to run the reaction for.
+	/// </summary>
+	[ObservableProperty]
+	private Time _time;
+
+	/// <summary>
 	/// Stores the frequency factor for the reaction rate law.
 	/// </summary>
 	/// No need to explicitly define a public property for this field since

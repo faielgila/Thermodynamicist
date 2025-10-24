@@ -3,6 +3,7 @@ using Core;
 using Core.EquationsOfState;
 using Core.ViewModels;
 using Microsoft.UI.Xaml.Controls;
+using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 

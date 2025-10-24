@@ -79,6 +79,19 @@
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
+			<VisualStateGroup x:Name="VisState_Time">
+				<VisualState x:Name="VisState_Time_NotNull"/>
+				<VisualState x:Name="VisState_Time_Empty">
+					<VisualState.StateTriggers>
+						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxTime.Value, Mode=OneWay}"/>
+						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxTime.Value, Mode=OneWay}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="NumBoxTime.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+						<Setter Target="InfoBadgeNumBoxTime.Visibility" Value="Visible"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
 			<VisualStateGroup x:Name="VisState_FrequencyFactor">
 				<VisualState x:Name="VisState_FrequencyFactor_NotNull"/>
 				<VisualState x:Name="VisState_FrequencyFactor_Empty">
@@ -171,14 +184,14 @@
 
 		<Grid Grid.Row="1" CornerRadius="8" BorderBrush="Gray" BorderThickness="2">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="430" MinHeight="430"/>
+				<RowDefinition Height="400" MinHeight="400"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 
 			<!--Inputs panel-->
 			<Grid Grid.Row="0">
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="350" MinWidth="250"/>
+					<ColumnDefinition Width="375" MinWidth="250"/>
 					<ColumnDefinition Width="*" MinWidth="400"/>
 				</Grid.ColumnDefinitions>
 
@@ -198,6 +211,13 @@
 						<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="[Pa]" Margin="0,5,5,0" Width="150" MaxHeight="60"
 									Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
 						<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource CriticalIconInfoBadgeStyle}"
+									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+					</Grid>
+					<TextBlock Text="Duration:" Padding="0,10,0,0"/>
+					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+						<muxc:NumberBox x:Name="NumBoxTime" PlaceholderText="[s]" Margin="0,5,5,0" Width="150" MaxHeight="60"
+									Value="{x:Bind ViewModel.Time, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
+						<muxc:InfoBadge x:Name="InfoBadgeNumBoxTime" Style="{StaticResource CriticalIconInfoBadgeStyle}"
 									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
 					</Grid>
 
@@ -401,14 +421,15 @@
 											  Message="There are no chemical species present in this reaction. Click 'Add species' to create one."/>
 								<TextBlock x:Name="TextNoRxnSpecies" Text="You haven't defined any species for this reaction."
 											Visibility="Collapsed" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
-								<ListView HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}">
+								<ListView HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}"
+										  MaxHeight="300" Margin="0,0,0,0">
 									<!--
 									Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
 									Selection  : Bound to the ViewModel.
 									-->
 									<ListView.ItemTemplate>
 										<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-											<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}" Margin="-15,0,0,5"/>
+											<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}" Grid.Row="1" Margin="0,5"/>
 										</DataTemplate>
 									</ListView.ItemTemplate>
 									<ListView.ItemContainerTransitions>

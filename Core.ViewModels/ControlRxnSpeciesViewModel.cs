@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Core.EquationsOfState;
 using Core.Reactions;
+using Core.VariableTypes;
 
 namespace Core.ViewModels;
 
@@ -87,6 +88,14 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 	private int _stoich;
 
 	/// <summary>
+	/// Stores the initial concentration for this species in the reaction.
+	/// </summary>
+	/// No need to explicitly define a public property for this field since
+	/// no special logic is needed to change the ViewModel when this value is changed.
+	[ObservableProperty]
+	private Molarity _concentration;
+
+	/// <summary>
 	/// Stores the list of modeled phases for the selected EoS.
 	/// </summary>
 	/// No need to explicitly define a public property for this field since
@@ -150,8 +159,9 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 		var missingInputs = new List<string>();
 		if (EoSFactory is null) missingInputs.Add("Equation of state");
 		if (Phase is null) missingInputs.Add("Phase");
-		if (Chemical == null) missingInputs.Add("Chemical");
-		if (Stoich == null) missingInputs.Add("Stoichiometry");
+		//if (_chemical is null) missingInputs.Add("Chemical");
+		if (double.IsNaN(Stoich)) missingInputs.Add("Stoichiometry");
+		if (double.IsNaN(Concentration)) missingInputs.Add("Initial concentration");
 		if (DeleteCommand is null) missingInputs.Add("Delete");
 
 		if (_EoS is null) UpdateEoS();
