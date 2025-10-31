@@ -9,6 +9,7 @@
 	xmlns:vm="using:Core.ViewModels"
 	xmlns:rl="using:Core.Reactions.Kinetics"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+	xmlns:ui="using:CommunityToolkit.WinUI"
 	xmlns:oxy="using:OxyPlot.Windows"
 	
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -40,7 +41,7 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
-		<VisualStateManager.VisualStateGroups>
+		<!--<VisualStateManager.VisualStateGroups>
 			<VisualStateGroup x:Name="VisState_RateLaw">
 				<VisualState x:Name="VisState_RateLaw_NotNull"/>
 				<VisualState x:Name="VisState_RateLaw_Empty">
@@ -53,9 +54,8 @@
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_T">
-				<VisualState x:Name="VisState_T_NotNull"/>
-				<VisualState x:Name="VisState_T_Empty">
+			--><!--<VisualStateGroup x:Name="VisState_T">
+				<VisualState>
 					<VisualState.StateTriggers>
 						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxT.Value, Mode=OneWay}"/>
 						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxT.Value, Mode=OneWay}"/>
@@ -65,7 +65,7 @@
 						<Setter Target="InfoBadgeNumBoxT.Visibility" Value="Visible"/>
 					</VisualState.Setters>
 				</VisualState>
-			</VisualStateGroup>
+			</VisualStateGroup>--><!--
 			<VisualStateGroup x:Name="VisState_P">
 				<VisualState x:Name="VisState_P_NotNull"/>
 				<VisualState x:Name="VisState_P_Empty">
@@ -139,11 +139,9 @@
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="TextNoOutputsSelected.Visibility" Value="Visible"/>
-						<Setter Target="ButtonSelectOutputItems.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
-						<Setter Target="ButtonSelectOutputItems.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
-						<Setter Target="ButtonSelectOutputItems.BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
+						<Setter Target="ButtonSelectOutputItems.Style" Value="{ThemeResource OutputOptionsButtonWarningStyle}"/>
 						<Setter Target="AniIconButtonSelectOutputItems.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
-						<Setter Target="InfoBadgeSelectOutputItems.Visibility" Value="Visible"/>
+						<Setter Target="InfoBadgeSelectOutputItems.Visibility" Value="Collapsed"/>
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -170,7 +168,7 @@
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>
+		</VisualStateManager.VisualStateGroups>-->
 
 		<StackPanel Padding="0,0,5,5" Orientation="Horizontal">
 			<Border Width="50" VerticalAlignment="Top" Padding="0,8,0,0">
@@ -202,29 +200,27 @@
 					<TextBlock Text="Temperature:" Padding="0,10,0,0"/>
 					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
 						<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="[K]" Margin="0,5,5,0" Width="150" MaxHeight="60"
-									Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-						<muxc:InfoBadge x:Name="InfoBadgeNumBoxT" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+										Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"
+										ValueChanged="NumBox_ValueChanged"/>
+						<muxc:InfoBadge x:Name="InfoBadgeNumBoxT" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 					</Grid>
 					<TextBlock Text="Pressure:" Padding="0,10,0,0"/>
 					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
 						<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="[Pa]" Margin="0,5,5,0" Width="150" MaxHeight="60"
 									Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-						<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 					</Grid>
 					<TextBlock Text="Duration:" Padding="0,10,0,0"/>
 					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-						<muxc:NumberBox x:Name="NumBoxTime" PlaceholderText="[s]" Margin="0,5,5,0" Width="150" MaxHeight="60"
+						<muxc:NumberBox x:Name="NumBoxTime" PlaceholderText="[s]" Width="150" MaxHeight="60"
 									Value="{x:Bind ViewModel.Time, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-						<muxc:InfoBadge x:Name="InfoBadgeNumBoxTime" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						<muxc:InfoBadge x:Name="InfoBadgeNumBoxTime" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 					</Grid>
 
 					<!--Calculation settings & run-->
 					<Grid Margin="0,5" Padding="0,10,0,0">
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="44"/>
 							<ColumnDefinition Width="Auto"/>
 						</Grid.ColumnDefinitions>
 
@@ -235,97 +231,9 @@
 								<TextBlock Text="Run calculation"/>
 							</StackPanel>
 						</Button>
-						
-						<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="0">
-							<Button x:Name="ButtonSelectOutputItems" Margin="0,5,0,0" CornerRadius="4,0,0,4" Height="33"
-									Background="{StaticResource SystemAccentColor}"
-									Click="ButtonSelectOutputItems_Click">
-								<muxc:AnimatedIcon x:Name="AniIconButtonSelectOutputItems"
-												   HorizontalAlignment="Center" VerticalAlignment="Center">
-									<muxc:AnimatedIcon.Source>
-										<animate:AnimatedSettingsVisualSource/>
-									</muxc:AnimatedIcon.Source>
-									<muxc:AnimatedIcon.FallbackIconSource>
-										<muxc:SymbolIconSource Symbol="Setting"/>
-									</muxc:AnimatedIcon.FallbackIconSource>
-								</muxc:AnimatedIcon>
-							</Button>
-							<muxc:InfoBadge x:Name="InfoBadgeSelectOutputItems" Style="{StaticResource CautionIconInfoBadgeStyle}"
-										Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top">
-								<muxc:InfoBadge.RenderTransform>
-									<TranslateTransform X="5"/>
-								</muxc:InfoBadge.RenderTransform>
-							</muxc:InfoBadge>
-						</Grid>
 
-						<!--Popup: Select output items-->
-						<Popup x:Name="PopupSelectOutputItems" IsLightDismissEnabled="True" Width="Auto" Grid.Column="1">
-							<Popup.ChildTransitions>
-								<TransitionCollection>
-									<PopupThemeTransition/>
-								</TransitionCollection>
-							</Popup.ChildTransitions>
-							<Grid Padding="15" CornerRadius="{StaticResource OverlayCornerRadius}"
-								  BorderThickness="1" BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-								  Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="300"/>
-									<ColumnDefinition/>
-									<ColumnDefinition Width="300"/>
-								</Grid.ColumnDefinitions>
-
-								<!--
-								Source : Bound to ViewModel.AvailableOutputOptions, which is of type List<OutputItems>.
-								-->
-								<StackPanel Orientation="Vertical" Grid.Column="0">
-									<TextBlock Text="Available outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-									<TextBlock x:Name="TextNoOutputsAvailable" Visibility="Collapsed"
-											   Foreground="LightGray"
-											   Style="{ThemeResource CaptionTextBlockStyle}"
-											   Text="There are no other outputs available."/>
-									<ListView x:Name="ListOutputItems_Left" Margin="-5,0,0,0" HorizontalAlignment="Left"
-											  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
-											  ItemsSource="{x:Bind ViewModel.AvailableOutputOptions}"
-											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple">
-									</ListView>
-								</StackPanel>
-
-								<Grid Grid.Column="1" Grid.Row="1" RowSpacing="5" Margin="0,0,5,0">
-									<Grid.RowDefinitions>
-										<RowDefinition/>
-										<RowDefinition/>
-									</Grid.RowDefinitions>
-
-									<!--
-									Click : Runs ButtonAddOutputItem_Click, which moves any selected items to ViewModel.SelectedOutputOptions
-									-->
-									<Button x:Name="ButtonAddOutputItem" Click="ButtonAddOutputItem_Click" Grid.Row="0" VerticalAlignment="Bottom">
-										<FontIcon Glyph="&#xE76C;"/>
-									</Button>
-									<!--
-									Click : Runs ButtonRemoveOutputItem_Click, which moves any selected items to ViewModel.AvailableOutputOptions
-									-->
-									<Button x:Name="ButtonRemoveutputItem" Click="ButtonRemoveOutputItem_Click" Grid.Row="1" VerticalAlignment="Top">
-										<FontIcon Glyph="&#xE76B;"/>
-									</Button>
-								</Grid>
-
-								<!--
-								Source : Bound to ViewModel.SelectedOutputOptions, which is of type List<OutputItems>.
-								-->
-								<StackPanel Orientation="Vertical" Grid.Column="2" Margin="5,0,0,0">
-									<TextBlock Text="Selected outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
-									<TextBlock x:Name="TextNoOutputsSelected" Visibility="Collapsed"
-											   Foreground="LightGray"
-											   Style="{ThemeResource CaptionTextBlockStyle}"
-											   Text="There are no outputs selected.&#x0a;Select one from the list and click '>' to add them."/>
-									<ListView x:Name="ListOutputItems_Right" Margin="-5,0,0,0"
-											  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
-											  ItemsSource="{x:Bind ViewModel.SelectedOutputOptions}"
-											  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple"/>
-								</StackPanel>
-							</Grid>
-						</Popup>
+						<local:OutputOptionsButton x:Name="ButtonSelectOutputItems" Click="ButtonSelectOutputItems_Click"
+												   AllOutputOptions="{x:Bind AllOutputOptions}"/>
 					</Grid>
 				</StackPanel>
 
@@ -403,24 +311,21 @@
 							Click : Runs ButtonAddSpecies_Click, which initializes a ControlRxnSpeciesViewModel and adds it to the ViewModel.
 							-->
 							<Button x:Name="ButtonAddSpecies" Click="ButtonAddSpecies_Click"
-									Grid.Row="1" Grid.Column="0" Width="150" Margin="0,5,5,0"
+									Grid.Row="1" Grid.Column="0" Width="150"
 									HorizontalAlignment="Left" VerticalAlignment="Top">
 								<StackPanel Orientation="Horizontal">
 									<SymbolIcon Symbol="Add" Margin="0,0,5,0"/>
 									<TextBlock Text="Add species"/>
 								</StackPanel>
 							</Button>
-							<muxc:InfoBadge x:Name="InfoBadgeAddSpecies" Style="{StaticResource CautionIconInfoBadgeStyle}"
-											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+							<muxc:InfoBadge x:Name="InfoBadgeAddSpecies" Style="{ThemeResource ControlWarningInfoBadgeStyle}"/>
 						</Grid>
 
 						<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MaxHeight="355"
 										HorizontalAlignment="Left" Padding="0,10,5,10">
 							<StackPanel Visibility="Visible" HorizontalAlignment="Left">
-								<muxc:InfoBar x:Name="InfoBarNoRxnSpecies" IsOpen="False" Severity="Warning" IsClosable="False"
-											  Message="There are no chemical species present in this reaction. Click 'Add species' to create one."/>
 								<TextBlock x:Name="TextNoRxnSpecies" Text="You haven't defined any species for this reaction."
-											Visibility="Collapsed" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
+										   Style="{StaticResource WarningCaptionTextBlockStyle}"/>
 								<ListView HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}"
 										  MaxHeight="300" Margin="0,0,0,0">
 									<!--
@@ -446,18 +351,8 @@
 			</Grid>
 
 			<!--page divider-->
-			<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Top"
-				   Height="2" Fill="Gray">
-				<Rectangle.RenderTransform>
-					<TranslateTransform Y="-1"/>
-				</Rectangle.RenderTransform>
-			</Rectangle>
-			<ctrl:GridSplitter Height="16" Grid.Row="1"	VerticalAlignment="Top"	ResizeBehavior="BasedOnAlignment" ResizeDirection="Auto"
-						   Foreground="White">
-				<ctrl:GridSplitter.RenderTransform>
-					<TranslateTransform Y="-8"/>
-				</ctrl:GridSplitter.RenderTransform>
-			</ctrl:GridSplitter>
+			<Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource MajorHorizontalRectangleStyle}"/>
+			<ctrl:GridSplitter Grid.Row="1"	Style="{StaticResource MajorHorizontalSplitterStyle}"/>
 
 			<!--Outputs panel-->
 			<Grid Grid.Row="2">

@@ -89,12 +89,6 @@ public partial class PageRxnViewModel : ObservableObject
 	private IRelayCommand<ControlRxnSpeciesViewModel> _deleteCommand;
 
 	[ObservableProperty]
-	private ObservableCollection<OutputItem> _availableOutputOptions;
-
-	[ObservableProperty]
-	private ObservableCollection<OutputItem> _selectedOutputOptions;
-
-	[ObservableProperty]
 	private ObservableCollection<ErrorInfoViewModel> _errors = [];
 
 	public PageRxnViewModel()

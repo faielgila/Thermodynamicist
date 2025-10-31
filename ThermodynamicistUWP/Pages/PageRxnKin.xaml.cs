@@ -31,16 +31,16 @@ namespace ThermodynamicistUWP
 			ViewModel.FrequencyFactor = double.NaN;
 			ViewModel.ActivationEnergy = double.NaN;
 
+			// Set output selection options.
+			AllOutputOptions = GenerateOutputItems();
+
 			InitializeComponent();
 
 			// Initializes rate law list.
 			// Note the use of RateLawFactory instead of the RateLaw object directly.
 			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
 
-			// Set output selection options.
-			AllOutputOptions = GenerateOutputItems();
-			ViewModel.AvailableOutputOptions = AllOutputOptions;
-			ViewModel.SelectedOutputOptions = new ObservableCollection<OutputItem>();
+			UpdateValidationStyles(null, null);
 		}
 
 		/// <summary>
@@ -78,7 +78,7 @@ namespace ThermodynamicistUWP
 			List<string> missingInputs = new List<string>();
 
 			// Warning: No outputs are selected.
-			if (ViewModel.SelectedOutputOptions.Count == 0)
+			if (ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.Count == 0)
 			{
 				ViewModel.Errors.Add(new ErrorInfoViewModel( false,
 					"No outputs were selected. Click the 'settings' icon to pick which outputs to calculate."
@@ -96,7 +96,7 @@ namespace ThermodynamicistUWP
 			// Error: Missing model-wide inputs.
 			if (ViewModel.T == null || ViewModel.T == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Temperature");
 			if (ViewModel.P == null || ViewModel.P == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Pressure");
-			if (ViewModel.SelectedOutputOptions.Select(item => item.OutputName).Contains("PlotMolarityTranscience"))
+			if (ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.Select(item => item.OutputName).Contains("PlotMolarityTranscience"))
 			{
 				if (ViewModel.Time == null || ViewModel.Time == 0 || double.IsNaN(ViewModel.Time)) missingInputs.Add("Time");
 			}
@@ -162,7 +162,7 @@ namespace ThermodynamicistUWP
 			TextNoPlots.Visibility = Visibility.Visible;
 
 			// Get list of all selected output options.
-			var selectedOutputs = ViewModel.SelectedOutputOptions;
+			var selectedOutputs = ButtonSelectOutputItems.ViewModel.SelectedOutputOptions;
 			List<string> outputStrings = new List<string>();
 			try
 			{
@@ -263,33 +263,20 @@ namespace ThermodynamicistUWP
 			});
 		}
 
-		private void ButtonAddOutputItem_Click(object sender, RoutedEventArgs e)
+		private void UpdateValidationStyles(object sender, RoutedEventArgs e)
 		{
-			// Move all selected items from left to right list.
-			var selected = ListOutputItems_Left.SelectedItems.Cast<OutputItem>().ToList();
-			foreach (var item in selected)
+			if (ButtonSelectOutputItems.ViewModel.SelectedOutputOptions is null || ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.Count == 0)
 			{
-				ViewModel.AvailableOutputOptions.Remove(item);
-				ViewModel.SelectedOutputOptions.Add(item);
+				ButtonSelectOutputItems.MarkWithWarning();
+			} else
+			{
+				ButtonSelectOutputItems.ClearMarks();
 			}
 		}
 
-		private void ButtonRemoveOutputItem_Click(object sender, RoutedEventArgs e)
+		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
 		{
-			// Move all selected items from right to left list.
-			var selected = ListOutputItems_Right.SelectedItems.Cast<OutputItem>().ToList();
-			foreach (var item in selected)
-			{
-				ViewModel.SelectedOutputOptions.Remove(item);
-				ViewModel.AvailableOutputOptions.Add(item);
-			}
+			UpdateValidationStyles(sender, null);
 		}
-
-		private void ButtonSelectOutputItems_Click(object sender, RoutedEventArgs e)
-		{
-			// Open the output selection popup if not already open.
-			if (!PopupSelectOutputItems.IsOpen) { PopupSelectOutputItems.IsOpen = true; }
-		}
-
 	}
 }

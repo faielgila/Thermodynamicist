@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -50,13 +51,22 @@ namespace Core.ViewModels
 	}
 
 
-	public class OutputSelectionPopupViewModel
+	public partial class OutputSelectionPopupViewModel : ObservableObject
 	{
-		public ObservableCollection<OutputItem> allOutputOptions;
+		[ObservableProperty]
+		private ObservableCollection<OutputItem> _allOutputOptions = [];
+
+		[ObservableProperty]
+		private ObservableCollection<OutputItem> _availableOutputOptions = [];
+
+		[ObservableProperty]
+		private ObservableCollection<OutputItem> _selectedOutputOptions = [];
+
+		public OutputSelectionPopupViewModel() { }
 
 		public OutputSelectionPopupViewModel(ObservableCollection<OutputItem> _options)
 		{
-			allOutputOptions = _options;
+			_allOutputOptions = _options;
 		}
 	}
 }
