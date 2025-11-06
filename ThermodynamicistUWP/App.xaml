@@ -24,23 +24,10 @@
 			</ResourceDictionary.MergedDictionaries>
 			<!--#endregion-->
 			
-			<!--#region Button styles -->
-			<Style x:Key="OutputOptionsButtonStyle" TargetType="local:OutputOptionsButton" BasedOn="{StaticResource DefaultButtonStyle}">
-				<Setter Property="Background" Value="{StaticResource SystemAccentColor}"/>
-				<Setter Property="Foreground" Value="{StaticResource TextFillColorPrimaryBrush}"/>
-				<Setter Property="Margin" Value="0,5,0,0"/>
-				<Setter Property="CornerRadius" Value="4,0,0,4"/>
-				<Setter Property="Height" Value="33"/>
-			</Style>
-			<Style x:Key="OutputOptionsButtonWarningStyle" TargetType="local:OutputOptionsButton" BasedOn="{StaticResource OutputOptionsButtonStyle}">
-				<Setter Property="Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
-				<Setter Property="Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
-				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
-				<Setter Property="BorderThickness" Value="1"/>
-			</Style>
-			<!--#endregion-->
-			
 			<!--#region NumberBox styles-->
+			<!--<Style x:Key="NumberBoxDefaultStyle" TargetType="muxc:NumberBox">
+				<Setter Property="BorderBrush" Value="{StaticResource ControlStrokeColorDefaultBrush}"/>
+			</Style>
 			<Style x:Key="NumberBoxWarningStyle" TargetType="muxc:NumberBox">
 				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
 				<Setter Property="BorderThickness" Value="1"/>
@@ -48,7 +35,7 @@
 			<Style x:Key="NumberBoxErrorStyle" TargetType="muxc:NumberBox">
 				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorErrorBrush}"/>
 				<Setter Property="BorderThickness" Value="1"/>
-			</Style>
+			</Style>-->
 			<!--#endregion-->
 
 			<!--#region Splitter styles -->

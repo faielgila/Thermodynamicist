@@ -11,7 +11,7 @@ namespace ThermodynamicistUWP
 {
 	public sealed partial class OutputOptionsButton : UserControl
 	{
-		public OutputSelectionPopupViewModel ViewModel { get; } = new OutputSelectionPopupViewModel();
+		public OutputSelectionPopupViewModel ViewModel { get; set; }
 
 
 		/// <summary>
@@ -22,23 +22,20 @@ namespace ThermodynamicistUWP
 			get { return (string)GetValue(ClickProperty); }
 			set { SetValue(ClickProperty, value); }
 		}
-
-		// Using a DependencyProperty as the backing store for Click.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty ClickProperty =
-			DependencyProperty.Register("Click", typeof(string), typeof(OutputOptionsButton), new PropertyMetadata(0));
+			DependencyProperty.Register("Click", typeof(string), typeof(OutputOptionsButton), new PropertyMetadata(null));
+
 		public ObservableCollection<OutputItem> AllOutputOptions
 		{
 			get { return (ObservableCollection<OutputItem>)GetValue(AllOutputOptionsProperty); }
 			set { SetValue(AllOutputOptionsProperty, value); }
 		}
-
-		// Using a DependencyProperty as the backing store for AllOutputOptions. This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty AllOutputOptionsProperty =
 			DependencyProperty.Register(
 				"AllOutputOptions",
 				typeof(ObservableCollection<OutputItem>),
 				typeof(OutputOptionsButton),
-				new PropertyMetadata(0));
+				new PropertyMetadata(null));
 
 
 		public OutputOptionsButton()
@@ -123,5 +120,10 @@ namespace ThermodynamicistUWP
 				TextNoOutputsAvailable.Visibility = Visibility.Collapsed;
 			}
 		}
+
+		/// <summary>
+		/// Returns the list of selected output options.
+		/// </summary>
+		public ObservableCollection<OutputItem> GetSelectedOutputs() => ViewModel.SelectedOutputOptions;
 	}
 }

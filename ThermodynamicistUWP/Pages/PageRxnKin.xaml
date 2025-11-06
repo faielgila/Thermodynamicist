@@ -194,31 +194,26 @@
 				</Grid.ColumnDefinitions>
 
 				<!--Model-wide inputs panel-->
-				<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top">
+				<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top" Spacing="10">
 					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inputs" Margin="0,0,0,5"/>
-
-					<TextBlock Text="Temperature:" Padding="0,10,0,0"/>
-					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-						<muxc:NumberBox x:Name="NumBoxT" PlaceholderText="[K]" Margin="0,5,5,0" Width="150" MaxHeight="60"
-										Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"
-										ValueChanged="NumBox_ValueChanged"/>
-						<muxc:InfoBadge x:Name="InfoBadgeNumBoxT" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
-					</Grid>
-					<TextBlock Text="Pressure:" Padding="0,10,0,0"/>
-					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-						<muxc:NumberBox x:Name="NumBoxP" PlaceholderText="[Pa]" Margin="0,5,5,0" Width="150" MaxHeight="60"
-									Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-						<muxc:InfoBadge x:Name="InfoBadgeNumBoxP" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
-					</Grid>
-					<TextBlock Text="Duration:" Padding="0,10,0,0"/>
-					<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-						<muxc:NumberBox x:Name="NumBoxTime" PlaceholderText="[s]" Width="150" MaxHeight="60"
-									Value="{x:Bind ViewModel.Time, Mode=TwoWay}" AcceptsExpression="True" HorizontalAlignment="Left"/>
-						<muxc:InfoBadge x:Name="InfoBadgeNumBoxTime" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
-					</Grid>
+					<local:ValidatedNumberBox x:Name="NumBoxT" Header="Temperature:"
+											  PlaceholderText="[K]" AcceptsExpression="True" CanBeZero="False"
+											  HorizontalAlignment="Left"
+											  Value="{x:Bind ViewModel.T, Mode=TwoWay}"
+											  ValueChanged="NumBox_ValueChanged"/>
+					<local:ValidatedNumberBox x:Name="NumBoxP" Header="Pressure:"
+											  PlaceholderText="[Pa]" AcceptsExpression="True" CanBeZero="False"
+											  HorizontalAlignment="Left"
+											  Value="{x:Bind ViewModel.P, Mode=TwoWay}"
+											  ValueChanged="NumBox_ValueChanged"/>
+					<local:ValidatedNumberBox x:Name="NumBoxTime" Header="Duration:"
+											  PlaceholderText="[s]" AcceptsExpression="True" CanBeZero="False"
+											  HorizontalAlignment="Left"
+											  Value="{x:Bind ViewModel.Time, Mode=TwoWay}"
+											  ValueChanged="NumBox_ValueChanged"/>
 
 					<!--Calculation settings & run-->
-					<Grid Margin="0,5" Padding="0,10,0,0">
+					<Grid Margin="0,5">
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="44"/>
 							<ColumnDefinition Width="Auto"/>
@@ -286,22 +281,17 @@
 							<muxc:InfoBadge x:Name="InfoBadgeDropdownRateLaw" Style="{StaticResource CriticalIconInfoBadgeStyle}"
 											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
 						</Grid>
-						<TextBlock Text="Frequency factor:" Padding="0,10,0,0"/>
-						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-							<muxc:NumberBox x:Name="NumBoxFrequencyFactor" PlaceholderText="[1]"
-											Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}" AcceptsExpression="True"
-											Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
-							<muxc:InfoBadge x:Name="InfoBadgeNumBoxFrequencyFactor" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-						</Grid>
-						<TextBlock Text="Activation energy:" Padding="0,10,0,0"/>
-						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
-							<muxc:NumberBox x:Name="NumBoxActivationEnergy" PlaceholderText="[J/mol]"
-											Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}" AcceptsExpression="True"
-											Margin="0,5,5,0" Width="150" MaxHeight="60" HorizontalAlignment="Left"/>
-							<muxc:InfoBadge x:Name="InfoBadgeNumBoxActivationEnergy" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-						</Grid>
+
+						<local:ValidatedNumberBox x:Name="NumBoxFrequencyFactor" Header="Frequency factor:"
+												  PlaceholderText="[1]" AcceptsExpression="True" CanBeZero="True"
+												  HorizontalAlignment="Left" Margin="0,5,0,0"
+												  Value="{x:Bind ViewModel.FrequencyFactor, Mode=TwoWay}"
+												  ValueChanged="NumBox_ValueChanged"/>
+						<local:ValidatedNumberBox x:Name="NumBoxActivationEnergy" Header="Activation energy:"
+												  PlaceholderText="[J/mol]" AcceptsExpression="True" CanBeZero="True"
+												  HorizontalAlignment="Left" Margin="0,5,0,0"
+												  Value="{x:Bind ViewModel.ActivationEnergy, Mode=TwoWay}"
+												  ValueChanged="NumBox_ValueChanged"/>
 					</StackPanel>
 
 					<!--Species inputs-->

@@ -24,23 +24,44 @@ namespace ThermodynamicistUWP
 
 		public PageRxnKin()
 		{
+			// Set output selection options.
+			AllOutputOptions = GenerateOutputItems();
+
+			InitializeComponent();
+
+			// Pass down all output options to output selection button and register a listener for when selected outputs change.
+			ButtonSelectOutputItems.ViewModel = new OutputSelectionPopupViewModel(AllOutputOptions);
+
+			// Register OnChanged events for all inputs.
+			ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.CollectionChanged += SelectedOutputOptions_CollectionChanged;
+			//NumBoxT.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			//NumBoxP.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			//NumBoxTime.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			//NumBoxFrequencyFactor.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			//NumBoxActivationEnergy.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+
+			// Initializes rate law list.
+			// Note the use of RateLawFactory instead of the RateLaw object directly.
+			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
+
 			// Initialize all numeric inputs.
+			//NumBoxT.ViewModel.Value = 298;
+			//NumBoxP.ViewModel.Value = 101325;
+			//NumBoxTime.ViewModel.Value = double.NaN;
+			//NumBoxFrequencyFactor.ViewModel.Value = double.NaN;
+			//NumBoxActivationEnergy.ViewModel.Value = double.NaN;
 			ViewModel.T = 298;
 			ViewModel.P = 101325;
 			ViewModel.Time = double.NaN;
 			ViewModel.FrequencyFactor = double.NaN;
 			ViewModel.ActivationEnergy = double.NaN;
 
-			// Set output selection options.
-			AllOutputOptions = GenerateOutputItems();
+			UpdateValidationStyles();
+		}
 
-			InitializeComponent();
-
-			// Initializes rate law list.
-			// Note the use of RateLawFactory instead of the RateLaw object directly.
-			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
-
-			UpdateValidationStyles(null, null);
+		private void ValNumBox_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			UpdateValidationStyles();
 		}
 
 		/// <summary>
@@ -54,6 +75,11 @@ namespace ThermodynamicistUWP
 				return;
 			}
 
+			//Temperature T = NumBoxT.GetValue();
+			//Pressure P = NumBoxP.GetValue();
+			//Time time = NumBoxTime.GetValue();
+			//double frequencyFactor = NumBoxFrequencyFactor.GetValue();
+			//GibbsEnergy activationEnergy = NumBoxActivationEnergy.GetValue();
 			Temperature T = ViewModel.T;
 			Pressure P = ViewModel.P;
 			Time time = ViewModel.Time;
@@ -73,6 +99,18 @@ namespace ThermodynamicistUWP
 		/// <returns>true if any inputs are invalid.</returns>
 		private bool CheckInvalidPageInputs()
 		{
+			//Temperature T = NumBoxT.GetValue();
+			//Pressure P = NumBoxP.GetValue();
+			//Time time = NumBoxTime.GetValue();
+			//double frequencyFactor = NumBoxFrequencyFactor.GetValue();
+			//GibbsEnergy activationEnergy = NumBoxActivationEnergy.GetValue();
+			Temperature T = ViewModel.T;
+			Pressure P = ViewModel.P;
+			Time time = ViewModel.Time;
+			double frequencyFactor = ViewModel.FrequencyFactor;
+			GibbsEnergy activationEnergy = ViewModel.ActivationEnergy;
+			var rateLawFactory = ViewModel.RateLawFactory;
+
 			ViewModel.Errors.Clear();
 			bool cancelCalc = false;
 			List<string> missingInputs = new List<string>();
@@ -94,17 +132,17 @@ namespace ThermodynamicistUWP
 			}
 
 			// Error: Missing model-wide inputs.
-			if (ViewModel.T == null || ViewModel.T == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Temperature");
-			if (ViewModel.P == null || ViewModel.P == 0 || double.IsNaN(ViewModel.T)) missingInputs.Add("Pressure");
-			if (ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.Select(item => item.OutputName).Contains("PlotMolarityTranscience"))
+			if (T <= 0 || double.IsNaN(T)) missingInputs.Add("Temperature");
+			if (P <= 0 || double.IsNaN(P)) missingInputs.Add("Pressure");
+			if (ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.Select(item => item.OutputName).Contains("PlotMolarityTransience"))
 			{
-				if (ViewModel.Time == null || ViewModel.Time == 0 || double.IsNaN(ViewModel.Time)) missingInputs.Add("Time");
+				if (time <= 0 || double.IsNaN(time)) missingInputs.Add("Time");
 			}
 
 			// Error: Missing reaction inputs.
-			if (ViewModel.RateLawFactory == null) missingInputs.Add("Rate law");
-			if (double.IsNaN(ViewModel.FrequencyFactor)) missingInputs.Add("Frequency factor");
-			if (double.IsNaN(ViewModel.ActivationEnergy)) missingInputs.Add("Activation energy");
+			if (rateLawFactory == null) missingInputs.Add("Rate law");
+			if (frequencyFactor < 0 || double.IsNaN(frequencyFactor)) missingInputs.Add("Frequency factor");
+			if (activationEnergy < 0 || double.IsNaN(activationEnergy)) missingInputs.Add("Activation energy");
 
 			// Validate RxnSpecies inputs.
 			var chemicals = new List<Chemical>();
@@ -187,7 +225,7 @@ namespace ThermodynamicistUWP
 							outputStrings.Add(item.DisplayFormat(G.ToEngrNotation(5)));
 							break;
 
-						case "PlotMolarityTranscience":
+						case "PlotMolarityTransience":
 							var compVec = new MolarityVector();
 							foreach (var rxnSpecies in ViewModel.Items)
 							{
@@ -243,7 +281,7 @@ namespace ThermodynamicistUWP
 				},
 				new OutputItem(OutputItem.ItemType.Plot)
 				{
-					OutputName = "PlotMolarityTranscience",
+					OutputName = "PlotMolarityTransience",
 					DisplayName = "Species molarity vs reaction time \n[mol/L vs s]"
 				}
 			};
@@ -263,20 +301,87 @@ namespace ThermodynamicistUWP
 			});
 		}
 
-		private void UpdateValidationStyles(object sender, RoutedEventArgs e)
+		private void UpdateValidationStyles()
 		{
-			if (ButtonSelectOutputItems.ViewModel.SelectedOutputOptions is null || ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.Count == 0)
+			var SelectedOutputs = ButtonSelectOutputItems.GetSelectedOutputs();
+			bool flagMolarityTransienceSelected = SelectedOutputs.Select(item => item.OutputName).Contains("PlotMolarityTransience");
+
+			//Temperature T = NumBoxT.GetValue();
+			//Pressure P = NumBoxP.GetValue();
+			//Time time = NumBoxTime.GetValue();
+			//double freqFactor = NumBoxFrequencyFactor.GetValue();
+			//GibbsEnergy actEnergy = NumBoxActivationEnergy.GetValue();
+			Temperature T = ViewModel.T;
+			Pressure P = ViewModel.P;
+			Time time = ViewModel.Time;
+			double freqFactor = ViewModel.FrequencyFactor;
+			GibbsEnergy actEnergy = ViewModel.ActivationEnergy;
+
+			if (SelectedOutputs is null || SelectedOutputs.Count == 0)
 			{
 				ButtonSelectOutputItems.MarkWithWarning();
-			} else
-			{
+			} else {
 				ButtonSelectOutputItems.ClearMarks();
 			}
+
+			if (double.IsNaN(T) || T <= 0)
+			{
+				NumBoxT.MarkWithError();
+			}
+			else
+			{
+				NumBoxT.ClearMarks();
+			}
+
+			if (double.IsNaN(P) || P <= 0)
+			{
+				NumBoxP.MarkWithError();
+			}
+			else
+			{
+				NumBoxP.ClearMarks();
+			}
+
+			if (flagMolarityTransienceSelected && (double.IsNaN(time) || time <= 0))
+			{
+				NumBoxTime.MarkWithError();
+			}
+			else
+			{
+				NumBoxTime.ClearMarks();
+			}
+
+			if (double.IsNaN(freqFactor) || freqFactor < 0)
+			{
+				NumBoxFrequencyFactor.MarkWithError();
+			}
+			else
+			{
+				NumBoxFrequencyFactor.ClearMarks();
+			}
+
+			if (double.IsNaN(actEnergy))
+			{
+				NumBoxActivationEnergy.MarkWithError();
+			}
+			else
+			{
+				NumBoxActivationEnergy.ClearMarks();
+			}
+		}
+
+		private void SelectedOutputOptions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			UpdateValidationStyles();
 		}
 
 		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
 		{
-			UpdateValidationStyles(sender, null);
+			ViewModel.T = NumBoxT.Value;
+			ViewModel.P = NumBoxP.Value;
+			ViewModel.Time = NumBoxTime.Value;
+			ViewModel.FrequencyFactor = NumBoxFrequencyFactor.Value;
+			ViewModel.ActivationEnergy = NumBoxActivationEnergy.Value;
 		}
 	}
 }

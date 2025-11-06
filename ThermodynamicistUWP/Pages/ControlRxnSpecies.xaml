@@ -155,17 +155,19 @@
 					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
 
-				<TextBlock Text="Stoichiometry:" Grid.Column="0"/>
+				<local:ValidatedNumberBox x:Name="NumBoxStoich" Header="Stochiometry:"
+										  PlaceholderText="[1]" AcceptsExpression="False"
+										  CanBeZero="False" CanBeNegative="False"
+										  HorizontalAlignment="Left"
+										  Value="{x:Bind ViewModel.Stoich}"/>
+				<!--<TextBlock Text="Stoichiometry:" Grid.Column="0"/>
 				<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left">
-					<!--
-					Value : Bound to ViewModel.Stoich.
-					-->
 					<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="[1]" AcceptsExpression="False"
 									Value="{x:Bind ViewModel.Stoich, Mode=TwoWay}"
 									VerticalAlignment="Top" Margin="0,5,5,0" Width="100"/>
 					<muxc:InfoBadge x:Name="InfoBadgeNumBoxStoich" Style="{StaticResource CriticalIconInfoBadgeStyle}"
 									Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>
+				</Grid>-->
 
 				<TextBlock Text="Initial concentration:" Grid.Column="1"/>
 				<Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Width="150">

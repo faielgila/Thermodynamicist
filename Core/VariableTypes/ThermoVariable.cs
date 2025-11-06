@@ -39,5 +39,16 @@
 		public string ToEngrNotation(int sigfigs) { return Value.ToEngrNotation(sigfigs) + " " + Units; }
 
 		public double RoundToSigfigs(int sigfigs) { return Value.RoundToSigfigs(sigfigs); }
+
+		public override bool Equals(object? obj)
+		{
+			if (obj is double d) return double.IsNaN(d) == double.IsNaN(Value) && d == Value;
+
+			return obj is ThermoVariable variable &&
+				(double.IsNaN(Value) == double.IsNaN(variable.Value) ||
+				Value == variable.Value) &&
+				Relation == variable.Relation &&
+				Units == variable.Units;
+		}
 	}
 }
