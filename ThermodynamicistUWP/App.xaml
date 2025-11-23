@@ -25,17 +25,32 @@
 			<!--#endregion-->
 			
 			<!--#region NumberBox styles-->
-			<!--<Style x:Key="NumberBoxDefaultStyle" TargetType="muxc:NumberBox">
-				<Setter Property="BorderBrush" Value="{StaticResource ControlStrokeColorDefaultBrush}"/>
+			<Style x:Key="NumberBoxDefaultStyle" TargetType="muxc:NumberBox">
+				<Setter Property="BorderBrush" Value="{StaticResource TextControlBorderBrush}"/>
 			</Style>
 			<Style x:Key="NumberBoxWarningStyle" TargetType="muxc:NumberBox">
 				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
 				<Setter Property="BorderThickness" Value="1"/>
 			</Style>
 			<Style x:Key="NumberBoxErrorStyle" TargetType="muxc:NumberBox">
-				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorErrorBrush}"/>
+				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
 				<Setter Property="BorderThickness" Value="1"/>
-			</Style>-->
+			</Style>
+			<!--#endregion-->
+			
+			<!--#region ComboBox styles -->
+			<Style x:Key="ComboBoxDefaultStyle" TargetType="ComboBox">
+				<Setter Property="BorderBrush" Value="{StaticResource TextControlBorderBrush}"/>
+				<Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}"/>
+			</Style>
+			<Style x:Key="ComboBoxWarningStyle" TargetType="ComboBox" BasedOn="{StaticResource ComboBoxDefaultStyle}">
+				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
+				<Setter Property="BorderThickness" Value="1"/>
+			</Style>
+			<Style x:Key="ComboBoxErrorStyle" TargetType="ComboBox" BasedOn="{StaticResource ComboBoxDefaultStyle}">
+				<Setter Property="BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
+				<Setter Property="BorderThickness" Value="1"/>
+			</Style>
 			<!--#endregion-->
 
 			<!--#region Splitter styles -->

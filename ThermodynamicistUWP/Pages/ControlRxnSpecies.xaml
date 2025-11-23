@@ -13,7 +13,7 @@
 	mc:Ignorable="d">
 
 	<Border x:Name="BorderControl" CornerRadius="{ThemeResource OverlayCornerRadius}" BorderThickness="1">
-		<VisualStateManager.VisualStateGroups>
+		<!--<VisualStateManager.VisualStateGroups>
 			<VisualStateGroup x:Name="VisState_AnyInputEmpty">
 				<VisualState x:Name="VisState_AnyInputEmpty_True">
 					<VisualState.StateTriggers>
@@ -30,11 +30,11 @@
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>
+		</VisualStateManager.VisualStateGroups>-->
 
 		<muxc:Expander x:Name="ExpanderRxnSpecies" IsExpanded="True" Width="615" BorderThickness="0">
 			<VisualStateManager.VisualStateGroups>
-				<VisualStateGroup x:Name="VisState_DropdownSpecies">
+				<!--<VisualStateGroup x:Name="VisState_DropdownSpecies">
 					<VisualState x:Name="VisState_DropdownSpecies_NotNull"/>
 					<VisualState x:Name="VisState_DropdownSpecies_Empty">
 						<VisualState.StateTriggers>
@@ -45,8 +45,8 @@
 							<Setter Target="InfoBadgeDropdownSpecies.Opacity" Value="1"/>
 						</VisualState.Setters>
 					</VisualState>
-				</VisualStateGroup>
-				<VisualStateGroup x:Name="VisState_Stoich">
+				</VisualStateGroup>-->
+				<!--<VisualStateGroup x:Name="VisState_Stoich">
 					<VisualState x:Name="VisState_Stoich_NotNull"/>
 					<VisualState x:Name="VisState_Stoich_Empty">
 						<VisualState.StateTriggers>
@@ -94,7 +94,7 @@
 							<Setter Target="InfoBadgeDropdownEoS.Opacity" Value="1"/>
 						</VisualState.Setters>
 					</VisualState>
-				</VisualStateGroup>
+				</VisualStateGroup>-->
 			</VisualStateManager.VisualStateGroups>
 
 			<muxc:Expander.Header>
@@ -106,7 +106,7 @@
 					</Grid.ColumnDefinitions>
 
 					<TextBlock Text="Chemical:" VerticalAlignment="Center" Grid.Column="0"/>
-					<Grid VerticalAlignment="Center" Grid.Column="1">
+					<Grid VerticalAlignment="Center" Grid.Column="1" Margin="5">
 						<!--
 						Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
 						Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
@@ -115,15 +115,15 @@
 						<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
 								  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
 								  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
-								  VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" Margin="5">
+								  SelectionChanged="Dropdown_SelectionChanged"
+								  VerticalAlignment="Top" HorizontalAlignment="Left" Width="200">
 							<ComboBox.ItemTemplate>
 								<DataTemplate x:DataType="core:ChemicalNamePair">
 									<TextBlock Text="{x:Bind Name}"/>
 								</DataTemplate>
 							</ComboBox.ItemTemplate>
 						</ComboBox>
-						<muxc:InfoBadge x:Name="InfoBadgeDropdownSpecies" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-										Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+						<muxc:InfoBadge x:Name="InfoBadgeDropdownSpecies" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 					</Grid>
 
 					<!--
@@ -155,44 +155,40 @@
 					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
 
-				<local:ValidatedNumberBox x:Name="NumBoxStoich" Header="Stochiometry:"
-										  PlaceholderText="[1]" AcceptsExpression="False"
-										  CanBeZero="False" CanBeNegative="False"
-										  HorizontalAlignment="Left"
-										  Value="{x:Bind ViewModel.Stoich}"/>
-				<!--<TextBlock Text="Stoichiometry:" Grid.Column="0"/>
-				<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left">
+				<TextBlock Text="Stoichiometry:" Grid.Column="0"/>
+				<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Margin="0,5,5,0">
 					<muxc:NumberBox x:Name="NumBoxStoich" PlaceholderText="[1]" AcceptsExpression="False"
 									Value="{x:Bind ViewModel.Stoich, Mode=TwoWay}"
-									VerticalAlignment="Top" Margin="0,5,5,0" Width="100"/>
-					<muxc:InfoBadge x:Name="InfoBadgeNumBoxStoich" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-				</Grid>-->
+									ValueChanged="NumBox_ValueChanged"
+									VerticalAlignment="Top" Width="100"/>
+					<muxc:InfoBadge x:Name="InfoBadgeNumBoxStoich" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+				</Grid>
 
 				<TextBlock Text="Initial concentration:" Grid.Column="1"/>
-				<Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Width="150">
+				<Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Margin="0,5,5,0">
 					<!--
 					Value : Bound to ViewModel.Concentration.
 					-->
 					<muxc:NumberBox x:Name="NumBoxConc" PlaceholderText="[mol/L]" AcceptsExpression="True"
 									Value="{x:Bind ViewModel.Concentration, Mode=TwoWay}"
-									VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,5,5,0" Width="120"/>
-					<muxc:InfoBadge x:Name="InfoBadgeNumBoxConc" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+									ValueChanged="NumBox_ValueChanged"
+									VerticalAlignment="Top" HorizontalAlignment="Left" Width="120"/>
+					<muxc:InfoBadge x:Name="InfoBadgeNumBoxConc" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 				</Grid>
 
 				<TextBlock Text="Phase:" Grid.Row="2" Grid.Column="1" Margin="0,10,0,0"/>
-				<Grid Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left">
+				<Grid Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" Margin="0,5,5,0">
 					<!--
 					Initialize : Bound to ViewModel.ModeledPhases. This has to be OneWay (instead of OneTime) because the allowable phases
 								 depends on which equation of state is selected.
 					Selection  : Bound to ViewModel.Phase. Phase is already a string, so this is surprisingly easy.
 					-->
 					<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
-							  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.Phase, Mode=TwoWay}"
-							  VerticalAlignment="Top" Margin="0,5,5,0" Width="150"/>
-					<muxc:InfoBadge x:Name="InfoBadgeDropdownPhase" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+							  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}"
+							  SelectedValue="{x:Bind ViewModel.Phase, Mode=TwoWay}"
+							  SelectionChanged="Dropdown_SelectionChanged"
+							  VerticalAlignment="Top" Width="150"/>
+					<muxc:InfoBadge x:Name="InfoBadgeDropdownPhase" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 				</Grid>
 
 				<!--<TextBlock Text="Reactant or product?" Grid.Row="2" Grid.Column="2" Margin="0,10,0,0"/>-->
@@ -206,23 +202,24 @@
 				</StackPanel>
 
 				<TextBlock Text="Equation of state:" Grid.Row="2" Grid.Column="0" Margin="0,10,0,0"/>
-				<Grid Grid.Row="3" Grid.Column="0">
+				<Grid Grid.Row="3" Grid.Column="0" Margin="0,5,5,0">
 					<!--
 					Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
 					Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
 					TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
 					Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
 					-->
-					<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
-							  VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,5,5,0">
+					<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state"
+							  SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
+							  SelectionChanged="Dropdown_SelectionChanged"
+							  VerticalAlignment="Top" HorizontalAlignment="Stretch">
 						<ComboBox.ItemTemplate>
 							<DataTemplate x:DataType="eos:IEquationOfStateFactory">
 								<TextBlock Text="{x:Bind Name}"/>
 							</DataTemplate>
 						</ComboBox.ItemTemplate>
 					</ComboBox>
-					<muxc:InfoBadge x:Name="InfoBadgeDropdownEoS" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-									Opacity="0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+					<muxc:InfoBadge x:Name="InfoBadgeDropdownEoS" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
 				</Grid>
 
 			</Grid>

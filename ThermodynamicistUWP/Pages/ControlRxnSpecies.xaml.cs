@@ -1,11 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using Core;
 using Core.EquationsOfState;
 using Core.ViewModels;
 using Microsoft.UI.Xaml.Controls;
+using System.Data.SqlClient;
 using System.Linq;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 
 namespace ThermodynamicistUWP
@@ -32,7 +35,23 @@ namespace ThermodynamicistUWP
 		/// Allows ViewModel to be bound in the XAML specification of this control.
 		/// </summary>
 		public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
-			nameof(ViewModel), typeof(ControlRxnSpeciesViewModel), typeof(ControlRxnSpecies), new PropertyMetadata(null));
+			nameof(ViewModel), typeof(ControlRxnSpeciesViewModel),
+			typeof(ControlRxnSpecies),
+			new PropertyMetadata(null));
+
+
+		//public bool IsConcentrationRequired
+		//{
+		//	get { return (bool)GetValue(IsConcentrationRequiredProperty); }
+		//	set { SetValue(IsConcentrationRequiredProperty, value); }
+		//}
+		//public static readonly DependencyProperty IsConcentrationRequiredProperty =
+		//	DependencyProperty.Register(
+		//		nameof(IsConcentrationRequired), typeof(bool),
+		//		typeof(ControlRxnSpecies),
+		//		new PropertyMetadata(false));
+
+
 
 		public ControlRxnSpecies()
 		{
@@ -44,6 +63,189 @@ namespace ThermodynamicistUWP
 			DropdownEoS.Items.Add(new VanDerWaalsEOSFactory());
 			DropdownEoS.Items.Add(new PengRobinsonEOSFactory());
 			DropdownEoS.Items.Add(new ModSolidLiquidVaporEOSFactory());
+
+			ViewModel = new ControlRxnSpeciesViewModel
+			{
+				//Chemical = Chemical.Water,
+				//EoSFactory = new PengRobinsonEOSFactory(),
+				Stoich = 1,
+				//Phase = "",
+				Concentration = double.NaN,
+				IsReactant = true,
+				//DeleteCommand = ViewModel.DeleteCommand
+			};
+			ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+
+			UpdateValidationStyles();
+		}
+
+		private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			UpdateValidationStyles();
+		}
+
+		public void UpdateValidationStyles()
+		{
+			if (ViewModel is null)
+			{
+				MarkWithError_Expander();
+				MarkWithError_DropdownSpecies();
+				MarkWithError_Concentration();
+				MarkWithError_Stoichiometry();
+				MarkWithError_Phase();
+				MarkWithError_EoS();
+				return;
+			}
+			var chemical = DropdownSpecies.SelectedValue;
+			var stoich = ViewModel.Stoich;
+			var conc = ViewModel.Concentration;
+			var phase = ViewModel.Phase;
+			var EoS = ViewModel.EoSFactory;
+
+			var anyError = false;
+
+
+			if (chemical is null)
+			{
+				MarkWithError_DropdownSpecies();
+				anyError = true;
+			} else
+			{
+				ClearMarks_DropdownSpecies();
+			}
+
+			if (stoich < 0)
+			{
+				MarkWithError_Stoichiometry();
+				anyError = true;
+			} else
+			{
+				ClearMarks_Stoichiometry();
+			}
+
+			if (ViewModel.IsConcentrationRequired &&
+				(conc is null || conc == double.NaN || conc < 0))
+			{
+				MarkWithError_Concentration();
+				anyError = true;
+			} else
+			{
+				ClearMarks_Concentration();
+			}
+
+			if (phase is null || phase == "")
+			{
+				MarkWithError_Phase();
+				anyError = true;
+			} else
+			{
+				ClearMarks_Phase();
+			}
+
+			if (EoS is null)
+			{
+				MarkWithError_EoS();
+				anyError = true;
+			}
+			else
+			{
+				ClearMarks_EoS();
+			}
+
+			if (anyError)
+			{
+				MarkWithError_Expander();
+			} else
+			{
+				ClearMarks_Expander();
+			}
+		}
+
+		private void MarkWithError_Expander()
+		{
+			BorderControl.BorderBrush = this.FindResource("SystemFillColorCriticalBrush") as Brush;
+			BorderControl.BorderThickness = new Thickness(1);
+		}
+
+		private void ClearMarks_Expander()
+		{
+			BorderControl.BorderThickness = new Thickness(0);
+		}
+
+		private void MarkWithError_DropdownSpecies()
+		{
+			DropdownSpecies.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+			InfoBadgeDropdownSpecies.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeDropdownSpecies.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_DropdownSpecies()
+		{
+			DropdownSpecies.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+			InfoBadgeDropdownSpecies.Visibility = Visibility.Collapsed;
+		}
+
+
+		private void MarkWithError_Stoichiometry()
+		{
+			NumBoxStoich.Style = this.FindResource("NumberBoxErrorStyle") as Style;
+			InfoBadgeNumBoxStoich.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeNumBoxStoich.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_Stoichiometry()
+		{
+			NumBoxStoich.Style = this.FindResource("NumberBoxDefaultStyle") as Style;
+			InfoBadgeNumBoxStoich.Visibility = Visibility.Collapsed;
+		}
+
+		private void MarkWithError_Concentration()
+		{
+			NumBoxConc.Style = this.FindResource("NumberBoxErrorStyle") as Style;
+			InfoBadgeNumBoxConc.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeNumBoxConc.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_Concentration()
+		{
+			NumBoxConc.Style = this.FindResource("NumberBoxDefaultStyle") as Style;
+			InfoBadgeNumBoxConc.Visibility = Visibility.Collapsed;
+		}
+
+		private void MarkWithError_Phase()
+		{
+			DropdownPhase.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+			InfoBadgeDropdownPhase.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeDropdownPhase.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_Phase()
+		{
+			DropdownPhase.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+			InfoBadgeDropdownPhase.Visibility = Visibility.Collapsed;
+		}
+
+		private void MarkWithError_EoS()
+		{
+			DropdownEoS.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+			InfoBadgeDropdownEoS.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeDropdownEoS.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_EoS()
+		{
+			DropdownEoS.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+			InfoBadgeDropdownEoS.Visibility = Visibility.Collapsed;
+		}
+
+		private void Dropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			UpdateValidationStyles();
+		}
+
+		private void NumBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+		{
+			UpdateValidationStyles();
 		}
 	}
 }

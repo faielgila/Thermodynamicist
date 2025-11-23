@@ -119,6 +119,9 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 	[ObservableProperty]
 	private bool _isReactant;
 
+	[ObservableProperty]
+	private bool _isConcentrationRequired;
+
 	/// <summary>
 	/// Stores a relay command for which method to use when the "Delete species" button is clicked.
 	/// </summary>
@@ -161,7 +164,7 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 		if (Phase is null) missingInputs.Add("Phase");
 		//if (_chemical is null) missingInputs.Add("Chemical");
 		if (double.IsNaN(Stoich)) missingInputs.Add("Stoichiometry");
-		if (double.IsNaN(Concentration)) missingInputs.Add("Initial concentration");
+		if (double.IsNaN(Concentration) && IsConcentrationRequired) missingInputs.Add("Initial concentration");
 		if (DeleteCommand is null) missingInputs.Add("Delete");
 
 		if (_EoS is null) UpdateEoS();

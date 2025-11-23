@@ -316,7 +316,8 @@
 							<StackPanel Visibility="Visible" HorizontalAlignment="Left">
 								<TextBlock x:Name="TextNoRxnSpecies" Text="You haven't defined any species for this reaction."
 										   Style="{StaticResource WarningCaptionTextBlockStyle}"/>
-								<ListView HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}"
+								<ListView x:Name="ListViewRxnSpecies"
+										  HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}"
 										  MaxHeight="300" Margin="0,0,0,0">
 									<!--
 									Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.

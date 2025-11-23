@@ -289,22 +289,37 @@ namespace ThermodynamicistUWP
 
 		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
 		{
-			ViewModel.AddItem(new ControlRxnSpeciesViewModel
+			var vm = new ControlRxnSpeciesViewModel
 			{
-				Chemical = Chemical.Water,
+				//Chemical = Chemical.Water,
 				//EoSFactory = new PengRobinsonEOSFactory(),
 				Stoich = 1,
 				//Phase = "",
 				Concentration = double.NaN,
 				IsReactant = true,
 				DeleteCommand = ViewModel.DeleteCommand
-			});
+			};
+			ViewModel.AddItem(vm);
 		}
 
 		private void UpdateValidationStyles()
 		{
 			var SelectedOutputs = ButtonSelectOutputItems.GetSelectedOutputs();
 			bool flagMolarityTransienceSelected = SelectedOutputs.Select(item => item.OutputName).Contains("PlotMolarityTransience");
+			if (flagMolarityTransienceSelected)
+			{
+				var _ = ListViewRxnSpecies.Items;
+				foreach (var item in ViewModel.Items)
+				{
+					item.IsConcentrationRequired = true;
+				}
+			} else
+			{
+				foreach (var item in ViewModel.Items)
+				{
+					item.IsConcentrationRequired = false;
+				}
+			}
 
 			//Temperature T = NumBoxT.GetValue();
 			//Pressure P = NumBoxP.GetValue();
@@ -382,6 +397,8 @@ namespace ThermodynamicistUWP
 			ViewModel.Time = NumBoxTime.Value;
 			ViewModel.FrequencyFactor = NumBoxFrequencyFactor.Value;
 			ViewModel.ActivationEnergy = NumBoxActivationEnergy.Value;
+
+			UpdateValidationStyles();
 		}
 	}
 }
