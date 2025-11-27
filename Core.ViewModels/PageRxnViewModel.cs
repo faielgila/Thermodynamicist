@@ -19,7 +19,7 @@ public partial class PageRxnViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private Temperature _T;
+	private double _T;
 
 	/// <summary>
 	/// Stores the pressure to calculate the reaction at.
@@ -27,13 +27,13 @@ public partial class PageRxnViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private Pressure _P;
+	private double _P;
 
 	/// <summary>
 	/// Stores the time to run the reaction for.
 	/// </summary>
 	[ObservableProperty]
-	private Time _time;
+	private double _time;
 
 	/// <summary>
 	/// Stores the frequency factor for the reaction rate law.
@@ -49,7 +49,7 @@ public partial class PageRxnViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private GibbsEnergy _activationEnergy;
+	private double _activationEnergy;
 
 	/// <summary>
 	/// Stores a list of <see cref="ControlRxnSpeciesViewModel"/>s as an Observable

@@ -41,135 +41,6 @@
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
-		<!--<VisualStateManager.VisualStateGroups>
-			<VisualStateGroup x:Name="VisState_RateLaw">
-				<VisualState x:Name="VisState_RateLaw_NotNull"/>
-				<VisualState x:Name="VisState_RateLaw_Empty">
-					<VisualState.StateTriggers>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.RateLawFactory, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="DropdownRateLaw.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="InfoBadgeDropdownRateLaw.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			--><!--<VisualStateGroup x:Name="VisState_T">
-				<VisualState>
-					<VisualState.StateTriggers>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxT.Value, Mode=OneWay}"/>
-						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxT.Value, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="NumBoxT.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="InfoBadgeNumBoxT.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>--><!--
-			<VisualStateGroup x:Name="VisState_P">
-				<VisualState x:Name="VisState_P_NotNull"/>
-				<VisualState x:Name="VisState_P_Empty">
-					<VisualState.StateTriggers>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxP.Value, Mode=OneWay}"/>
-						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxP.Value, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="NumBoxP.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="InfoBadgeNumBoxP.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_Time">
-				<VisualState x:Name="VisState_Time_NotNull"/>
-				<VisualState x:Name="VisState_Time_Empty">
-					<VisualState.StateTriggers>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxTime.Value, Mode=OneWay}"/>
-						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxTime.Value, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="NumBoxTime.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="InfoBadgeNumBoxTime.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_FrequencyFactor">
-				<VisualState x:Name="VisState_FrequencyFactor_NotNull"/>
-				<VisualState x:Name="VisState_FrequencyFactor_Empty">
-					<VisualState.StateTriggers>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxFrequencyFactor.Value, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="NumBoxFrequencyFactor.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="InfoBadgeNumBoxFrequencyFactor.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_ActivationEnergy">
-				<VisualState x:Name="VisState_ActivationEnergy_NotNull"/>
-				<VisualState x:Name="VisState_ActivationEnergy_Empty">
-					<VisualState.StateTriggers>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxActivationEnergy.Value, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="NumBoxActivationEnergy.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="InfoBadgeNumBoxActivationEnergy.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_SpeciesList">
-				<VisualState x:Name="VisState_SpeciesList_NotNull"/>
-				<VisualState x:Name="VisState_SpeciesList_Empty">
-					<VisualState.StateTriggers>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.Items, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="ButtonAddSpecies.Background" Value="{StaticResource SystemFillColorCautionBackgroundBrush}"/>
-						<Setter Target="ButtonAddSpecies.BorderBrush" Value="{StaticResource SystemFillColorCautionBrush}"/>
-						<Setter Target="ButtonAddSpecies.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
-						<Setter Target="InfoBadgeAddSpecies.Visibility" Value="Visible"/>
-						<Setter Target="TextNoRxnSpecies.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_OutputSelection">
-				<VisualState x:Name="VisState_OutputSelection_NotNull"/>
-				<VisualState x:Name="VisState_OutputSelection_Empty">
-					<VisualState.StateTriggers>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.SelectedOutputOptions, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="TextNoOutputsSelected.Visibility" Value="Visible"/>
-						<Setter Target="ButtonSelectOutputItems.Style" Value="{ThemeResource OutputOptionsButtonWarningStyle}"/>
-						<Setter Target="AniIconButtonSelectOutputItems.Foreground" Value="{StaticResource SystemFillColorCautionBrush}"/>
-						<Setter Target="InfoBadgeSelectOutputItems.Visibility" Value="Collapsed"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_AvailOutputSelection">
-				<VisualState x:Name="VisState_AvailOutputSelection_NotNull"/>
-				<VisualState x:Name="VisState_AvailOutputSelection_Empty">
-					<VisualState.StateTriggers>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.AvailableOutputOptions, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="TextNoOutputsAvailable.Visibility" Value="Visible"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-			<VisualStateGroup x:Name="VisState_OutputDataLabel">
-				<VisualState x:Name="VisState_OutputDataLabel_NotNull"/>
-				<VisualState x:Name="VisState_OutputDataLabel_Empty">
-					<VisualState.StateTriggers>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DataLabel.Text, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="TextNoOutputDataLabel.Visibility" Value="Visible"/>
-						<Setter Target="DataLabel.Visibility" Value="Collapsed"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>-->
-
 		<StackPanel Padding="0,0,5,5" Orientation="Horizontal">
 			<Border Width="50" VerticalAlignment="Top" Padding="0,8,0,0">
 				<FontIcon Glyph="&#xF196;" FontSize="40"/>
@@ -261,7 +132,7 @@
 					<!--Reaction-wide inputs-->
 					<StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1">
 						<TextBlock Text="Rate law:"/>
-						<Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+						<Grid HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,5,0">
 							<!--
 							Initialize : See attached .cs file. Rate laws must be added manually using their RateLawFactories.
 							Selection  : Bound to ViewModel.RateLawFactory, notably not a RateLaw directly.
@@ -270,16 +141,17 @@
 								   and is more like the *concept* of a rate law.
 							-->
 							<ComboBox x:Name="DropdownRateLaw" PlaceholderText="Pick a rate law"
-										SelectedValue="{x:Bind ViewModel.RateLawFactory, Mode=TwoWay}"
-										Margin="0,5,5,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
+									  SelectedValue="{x:Bind ViewModel.RateLawFactory, Mode=TwoWay}"
+									  SelectionChanged="Dropdown_SelectionChanged"
+									  Grid.Row="1" Grid.ColumnSpan="3" Width="225">
 								<ComboBox.ItemTemplate>
 									<DataTemplate x:DataType="rl:IRateLawFactory">
 										<TextBlock Text="{x:Bind Name}"/>
 									</DataTemplate>
 								</ComboBox.ItemTemplate>
 							</ComboBox>
-							<muxc:InfoBadge x:Name="InfoBadgeDropdownRateLaw" Style="{StaticResource CriticalIconInfoBadgeStyle}"
-											Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+							<muxc:InfoBadge x:Name="InfoBadgeDropdownRateLaw" Style="{StaticResource ControlErrorInfoBadgeStyle}"
+											Visibility="Collapsed"/>
 						</Grid>
 
 						<local:ValidatedNumberBox x:Name="NumBoxFrequencyFactor" Header="Frequency factor:"
@@ -325,7 +197,9 @@
 									-->
 									<ListView.ItemTemplate>
 										<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
-											<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}" Grid.Row="1" Margin="0,5"/>
+											<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}"
+																	 IsConcentrationRequired="{x:Bind IsConcentrationRequired, Mode=TwoWay}"
+																	 Grid.Row="1" Margin="0,5"/>
 										</DataTemplate>
 									</ListView.ItemTemplate>
 									<ListView.ItemContainerTransitions>
@@ -355,9 +229,9 @@
 				<!--Numeric outputs panel-->
 				<StackPanel Grid.Column="0" Padding="10">
 					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output" Margin="0,0,0,5"/>
-					<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
 					<TextBlock x:Name="TextNoOutputDataLabel" Text="There is no numeric output data to display here.&#x0a;Select one for output and run the calculation to add one."
-							   Visibility="Collapsed" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
+							   Visibility="Visible" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
+					<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
 				</StackPanel>
 
 				<!--outputs divider-->

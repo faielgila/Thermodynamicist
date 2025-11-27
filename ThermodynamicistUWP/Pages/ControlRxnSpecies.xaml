@@ -13,90 +13,7 @@
 	mc:Ignorable="d">
 
 	<Border x:Name="BorderControl" CornerRadius="{ThemeResource OverlayCornerRadius}" BorderThickness="1">
-		<!--<VisualStateManager.VisualStateGroups>
-			<VisualStateGroup x:Name="VisState_AnyInputEmpty">
-				<VisualState x:Name="VisState_AnyInputEmpty_True">
-					<VisualState.StateTriggers>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownSpecies.SelectedItem, Mode=OneWay}"/>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownPhase.SelectedItem, Mode=OneWay}"/>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxStoich.Value, Mode=OneWay}"/>
-						<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxStoich.Value, Mode=OneWay}"/>
-						<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxConc.Value, Mode=OneWay}"/>
-						<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownEoS.SelectedItem, Mode=OneWay}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="BorderControl.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-						<Setter Target="BorderControl.BorderThickness" Value="1"/>
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>-->
-
 		<muxc:Expander x:Name="ExpanderRxnSpecies" IsExpanded="True" Width="615" BorderThickness="0">
-			<VisualStateManager.VisualStateGroups>
-				<!--<VisualStateGroup x:Name="VisState_DropdownSpecies">
-					<VisualState x:Name="VisState_DropdownSpecies_NotNull"/>
-					<VisualState x:Name="VisState_DropdownSpecies_Empty">
-						<VisualState.StateTriggers>
-							<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownSpecies.SelectedItem, Mode=OneWay}"/>
-						</VisualState.StateTriggers>
-						<VisualState.Setters>
-							<Setter Target="DropdownSpecies.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-							<Setter Target="InfoBadgeDropdownSpecies.Opacity" Value="1"/>
-						</VisualState.Setters>
-					</VisualState>
-				</VisualStateGroup>-->
-				<!--<VisualStateGroup x:Name="VisState_Stoich">
-					<VisualState x:Name="VisState_Stoich_NotNull"/>
-					<VisualState x:Name="VisState_Stoich_Empty">
-						<VisualState.StateTriggers>
-							<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxStoich.Value, Mode=OneWay}"/>
-							<ctk:CompareStateTrigger Comparison="Equal" To="0" Value="{x:Bind NumBoxStoich.Value, Mode=OneWay}"/>
-						</VisualState.StateTriggers>
-						<VisualState.Setters>
-							<Setter Target="NumBoxStoich.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-							<Setter Target="InfoBadgeNumBoxStoich.Opacity" Value="1"/>
-						</VisualState.Setters>
-					</VisualState>
-				</VisualStateGroup>
-				<VisualStateGroup x:Name="VisState_Conc">
-					<VisualState x:Name="VisState_Conc_NotNull"/>
-					<VisualState x:Name="VisState_Conc_Empty">
-						<VisualState.StateTriggers>
-							<ctk:CompareStateTrigger Comparison="Equal" To="NaN" Value="{x:Bind NumBoxConc.Value, Mode=OneWay}"/>
-						</VisualState.StateTriggers>
-						<VisualState.Setters>
-							<Setter Target="NumBoxConc.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-							<Setter Target="InfoBadgeNumBoxConc.Opacity" Value="1"/>
-						</VisualState.Setters>
-					</VisualState>
-				</VisualStateGroup>
-				<VisualStateGroup x:Name="VisState_DropdownPhase">
-					<VisualState x:Name="VisState_DropdownPhase_NotNull"/>
-					<VisualState x:Name="VisState_DropdownPhase_Empty">
-						<VisualState.StateTriggers>
-							<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind ViewModel.Phase, Mode=OneWay}"/>
-						</VisualState.StateTriggers>
-						<VisualState.Setters>
-							<Setter Target="DropdownPhase.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-							<Setter Target="InfoBadgeDropdownPhase.Opacity" Value="1"/>
-						</VisualState.Setters>
-					</VisualState>
-				</VisualStateGroup>
-				<VisualStateGroup x:Name="VisState_DropdownEoS">
-					<VisualState x:Name="VisState_DropdownEoS_NotNull"/>
-					<VisualState x:Name="VisState_DropdownEoS_Empty">
-						<VisualState.StateTriggers>
-							<ctk:IsNullOrEmptyStateTrigger Value="{x:Bind DropdownEoS.SelectedItem, Mode=OneWay}"/>
-						</VisualState.StateTriggers>
-						<VisualState.Setters>
-							<Setter Target="DropdownEoS.BorderBrush" Value="{StaticResource SystemFillColorCriticalBrush}"/>
-							<Setter Target="InfoBadgeDropdownEoS.Opacity" Value="1"/>
-						</VisualState.Setters>
-					</VisualState>
-				</VisualStateGroup>-->
-			</VisualStateManager.VisualStateGroups>
-
 			<muxc:Expander.Header>
 				<Grid>
 					<Grid.ColumnDefinitions>
@@ -192,7 +109,7 @@
 				</Grid>
 
 				<!--<TextBlock Text="Reactant or product?" Grid.Row="2" Grid.Column="2" Margin="0,10,0,0"/>-->
-				<StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="2" Padding="0,0,0,0" Spacing="-15">
+				<StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="2" Spacing="-15">
 					<!--
 					Checked : Bound to ViewModel.IsReactant. IsReactant is already a bool and if RadioReactant isn't selected then RadioProduct is.
 							  This is surprisingly easy.

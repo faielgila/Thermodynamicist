@@ -93,7 +93,7 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private Molarity _concentration;
+	private double _concentration;
 
 	/// <summary>
 	/// Stores the list of modeled phases for the selected EoS.
@@ -119,6 +119,9 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 	[ObservableProperty]
 	private bool _isReactant;
 
+	/// <summary>
+	/// Stores where the initial concentration for this species is required for the calculation.
+	/// </summary>
 	[ObservableProperty]
 	private bool _isConcentrationRequired;
 

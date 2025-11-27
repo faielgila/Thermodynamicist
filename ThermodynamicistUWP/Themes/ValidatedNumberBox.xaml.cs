@@ -169,7 +169,7 @@ namespace ThermodynamicistUWP
 
 		public double GetValue()
 		{
-			return ViewModel.Value;
+			return NumBox.Value;
 		}
 
 		public void MarkWithError()

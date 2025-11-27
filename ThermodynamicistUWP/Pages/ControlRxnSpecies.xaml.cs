@@ -4,8 +4,7 @@ using Core;
 using Core.EquationsOfState;
 using Core.ViewModels;
 using Microsoft.UI.Xaml.Controls;
-using System.Data.SqlClient;
-using System.Linq;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -30,28 +29,22 @@ namespace ThermodynamicistUWP
 			// Sets the ViewModelProperty to the new ViewModel.
 			set => SetValue(ViewModelProperty, value);
 		}
-
-		/// <summary>
-		/// Allows ViewModel to be bound in the XAML specification of this control.
-		/// </summary>
 		public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
 			nameof(ViewModel), typeof(ControlRxnSpeciesViewModel),
 			typeof(ControlRxnSpecies),
 			new PropertyMetadata(null));
 
-
-		//public bool IsConcentrationRequired
-		//{
-		//	get { return (bool)GetValue(IsConcentrationRequiredProperty); }
-		//	set { SetValue(IsConcentrationRequiredProperty, value); }
-		//}
-		//public static readonly DependencyProperty IsConcentrationRequiredProperty =
-		//	DependencyProperty.Register(
-		//		nameof(IsConcentrationRequired), typeof(bool),
-		//		typeof(ControlRxnSpecies),
-		//		new PropertyMetadata(false));
-
-
+		public bool IsConcentrationRequired
+		{
+			get { return (bool)GetValue(IsConcentrationRequiredProperty); }
+			set { SetValue(IsConcentrationRequiredProperty, value); }
+		}
+		public static readonly DependencyProperty IsConcentrationRequiredProperty =
+			DependencyProperty.Register(
+				nameof(IsConcentrationRequired), typeof(bool),
+				typeof(ControlRxnSpecies),
+				new PropertyMetadata(false,
+					new PropertyChangedCallback(IsConcentrationRequiredPropertyChanged)));
 
 		public ControlRxnSpecies()
 		{
@@ -64,23 +57,6 @@ namespace ThermodynamicistUWP
 			DropdownEoS.Items.Add(new PengRobinsonEOSFactory());
 			DropdownEoS.Items.Add(new ModSolidLiquidVaporEOSFactory());
 
-			ViewModel = new ControlRxnSpeciesViewModel
-			{
-				//Chemical = Chemical.Water,
-				//EoSFactory = new PengRobinsonEOSFactory(),
-				Stoich = 1,
-				//Phase = "",
-				Concentration = double.NaN,
-				IsReactant = true,
-				//DeleteCommand = ViewModel.DeleteCommand
-			};
-			ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-
-			UpdateValidationStyles();
-		}
-
-		private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
 			UpdateValidationStyles();
 		}
 
@@ -97,10 +73,10 @@ namespace ThermodynamicistUWP
 				return;
 			}
 			var chemical = DropdownSpecies.SelectedValue;
-			var stoich = ViewModel.Stoich;
-			var conc = ViewModel.Concentration;
-			var phase = ViewModel.Phase;
-			var EoS = ViewModel.EoSFactory;
+			var stoich = NumBoxStoich.Value;
+			var conc = NumBoxConc.Value;
+			var phase = DropdownPhase.SelectedValue;
+			var EoS = DropdownEoS.SelectedValue;
 
 			var anyError = false;
 
@@ -114,7 +90,7 @@ namespace ThermodynamicistUWP
 				ClearMarks_DropdownSpecies();
 			}
 
-			if (stoich < 0)
+			if (double.IsNaN(stoich) && stoich <= 0)
 			{
 				MarkWithError_Stoichiometry();
 				anyError = true;
@@ -124,7 +100,7 @@ namespace ThermodynamicistUWP
 			}
 
 			if (ViewModel.IsConcentrationRequired &&
-				(conc is null || conc == double.NaN || conc < 0))
+				(double.IsNaN(conc) || conc < 0))
 			{
 				MarkWithError_Concentration();
 				anyError = true;
@@ -133,7 +109,7 @@ namespace ThermodynamicistUWP
 				ClearMarks_Concentration();
 			}
 
-			if (phase is null || phase == "")
+			if (phase is null || phase.Equals(""))
 			{
 				MarkWithError_Phase();
 				anyError = true;
@@ -161,15 +137,16 @@ namespace ThermodynamicistUWP
 			}
 		}
 
+		#region Mark and Clear Errors functions
 		private void MarkWithError_Expander()
 		{
 			BorderControl.BorderBrush = this.FindResource("SystemFillColorCriticalBrush") as Brush;
-			BorderControl.BorderThickness = new Thickness(1);
 		}
 
 		private void ClearMarks_Expander()
 		{
-			BorderControl.BorderThickness = new Thickness(0);
+			//#FFFF99A4
+			BorderControl.BorderBrush = new SolidColorBrush(new Color() { R = 0xFF, G = 0x99, B = 0xA4 });
 		}
 
 		private void MarkWithError_DropdownSpecies()
@@ -237,6 +214,7 @@ namespace ThermodynamicistUWP
 			DropdownEoS.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
 			InfoBadgeDropdownEoS.Visibility = Visibility.Collapsed;
 		}
+		#endregion
 
 		private void Dropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
@@ -245,7 +223,14 @@ namespace ThermodynamicistUWP
 
 		private void NumBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
 		{
+			
 			UpdateValidationStyles();
+		}
+
+		private static void IsConcentrationRequiredPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs args)
+		{
+			ControlRxnSpecies control = (ControlRxnSpecies)d;
+			control.UpdateValidationStyles();
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using Core;
+﻿using CommunityToolkit.WinUI;
+using Core;
 using Core.Reactions;
 using Core.Reactions.Kinetics;
 using Core.VariableTypes;
@@ -34,22 +35,17 @@ namespace ThermodynamicistUWP
 
 			// Register OnChanged events for all inputs.
 			ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.CollectionChanged += SelectedOutputOptions_CollectionChanged;
-			//NumBoxT.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			//NumBoxP.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			//NumBoxTime.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			//NumBoxFrequencyFactor.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			//NumBoxActivationEnergy.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			NumBoxT.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			NumBoxP.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			NumBoxTime.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			NumBoxFrequencyFactor.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
+			NumBoxActivationEnergy.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
 
 			// Initializes rate law list.
 			// Note the use of RateLawFactory instead of the RateLaw object directly.
 			DropdownRateLaw.Items.Add(new ElementaryRateLawFactory());
 
 			// Initialize all numeric inputs.
-			//NumBoxT.ViewModel.Value = 298;
-			//NumBoxP.ViewModel.Value = 101325;
-			//NumBoxTime.ViewModel.Value = double.NaN;
-			//NumBoxFrequencyFactor.ViewModel.Value = double.NaN;
-			//NumBoxActivationEnergy.ViewModel.Value = double.NaN;
 			ViewModel.T = 298;
 			ViewModel.P = 101325;
 			ViewModel.Time = double.NaN;
@@ -75,11 +71,6 @@ namespace ThermodynamicistUWP
 				return;
 			}
 
-			//Temperature T = NumBoxT.GetValue();
-			//Pressure P = NumBoxP.GetValue();
-			//Time time = NumBoxTime.GetValue();
-			//double frequencyFactor = NumBoxFrequencyFactor.GetValue();
-			//GibbsEnergy activationEnergy = NumBoxActivationEnergy.GetValue();
 			Temperature T = ViewModel.T;
 			Pressure P = ViewModel.P;
 			Time time = ViewModel.Time;
@@ -99,11 +90,6 @@ namespace ThermodynamicistUWP
 		/// <returns>true if any inputs are invalid.</returns>
 		private bool CheckInvalidPageInputs()
 		{
-			//Temperature T = NumBoxT.GetValue();
-			//Pressure P = NumBoxP.GetValue();
-			//Time time = NumBoxTime.GetValue();
-			//double frequencyFactor = NumBoxFrequencyFactor.GetValue();
-			//GibbsEnergy activationEnergy = NumBoxActivationEnergy.GetValue();
 			Temperature T = ViewModel.T;
 			Pressure P = ViewModel.P;
 			Time time = ViewModel.Time;
@@ -241,6 +227,7 @@ namespace ThermodynamicistUWP
 
 				// Combine all output strings into DataLabel.
 				if (outputStrings.Count == 0) { return; }
+				TextNoOutputDataLabel.Visibility = Visibility.Collapsed;
 				DataLabel.Text = outputStrings.First();
 				outputStrings.Remove(outputStrings.First());
 				foreach (var item in outputStrings)
@@ -289,6 +276,8 @@ namespace ThermodynamicistUWP
 
 		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
 		{
+			var SelectedOutputs = ButtonSelectOutputItems.GetSelectedOutputs();
+			bool flagMolarityTransienceSelected = SelectedOutputs.Select(item => item.OutputName).Contains("PlotMolarityTransience");
 			var vm = new ControlRxnSpeciesViewModel
 			{
 				//Chemical = Chemical.Water,
@@ -297,7 +286,8 @@ namespace ThermodynamicistUWP
 				//Phase = "",
 				Concentration = double.NaN,
 				IsReactant = true,
-				DeleteCommand = ViewModel.DeleteCommand
+				DeleteCommand = ViewModel.DeleteCommand,
+				IsConcentrationRequired = flagMolarityTransienceSelected
 			};
 			ViewModel.AddItem(vm);
 		}
@@ -308,12 +298,12 @@ namespace ThermodynamicistUWP
 			bool flagMolarityTransienceSelected = SelectedOutputs.Select(item => item.OutputName).Contains("PlotMolarityTransience");
 			if (flagMolarityTransienceSelected)
 			{
-				var _ = ListViewRxnSpecies.Items;
 				foreach (var item in ViewModel.Items)
 				{
 					item.IsConcentrationRequired = true;
 				}
-			} else
+			}
+			else
 			{
 				foreach (var item in ViewModel.Items)
 				{
@@ -321,21 +311,18 @@ namespace ThermodynamicistUWP
 				}
 			}
 
-			//Temperature T = NumBoxT.GetValue();
-			//Pressure P = NumBoxP.GetValue();
-			//Time time = NumBoxTime.GetValue();
-			//double freqFactor = NumBoxFrequencyFactor.GetValue();
-			//GibbsEnergy actEnergy = NumBoxActivationEnergy.GetValue();
-			Temperature T = ViewModel.T;
-			Pressure P = ViewModel.P;
-			Time time = ViewModel.Time;
-			double freqFactor = ViewModel.FrequencyFactor;
-			GibbsEnergy actEnergy = ViewModel.ActivationEnergy;
+			Temperature T = NumBoxT.GetValue();
+			Pressure P = NumBoxP.GetValue();
+			Time time = NumBoxTime.GetValue();
+			double freqFactor = NumBoxFrequencyFactor.GetValue();
+			GibbsEnergy actEnergy = NumBoxActivationEnergy.GetValue();
 
 			if (SelectedOutputs is null || SelectedOutputs.Count == 0)
 			{
 				ButtonSelectOutputItems.MarkWithWarning();
-			} else {
+			}
+			else
+			{
 				ButtonSelectOutputItems.ClearMarks();
 			}
 
@@ -366,6 +353,18 @@ namespace ThermodynamicistUWP
 				NumBoxTime.ClearMarks();
 			}
 
+			if (DropdownRateLaw.SelectedValue is null)
+			{
+				DropdownRateLaw.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+				InfoBadgeDropdownRateLaw.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+				InfoBadgeDropdownRateLaw.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				DropdownRateLaw.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+				InfoBadgeDropdownRateLaw.Visibility = Visibility.Collapsed;
+			}
+
 			if (double.IsNaN(freqFactor) || freqFactor < 0)
 			{
 				NumBoxFrequencyFactor.MarkWithError();
@@ -392,12 +391,17 @@ namespace ThermodynamicistUWP
 
 		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
 		{
-			ViewModel.T = NumBoxT.Value;
-			ViewModel.P = NumBoxP.Value;
-			ViewModel.Time = NumBoxTime.Value;
-			ViewModel.FrequencyFactor = NumBoxFrequencyFactor.Value;
-			ViewModel.ActivationEnergy = NumBoxActivationEnergy.Value;
+			//ViewModel.T = NumBoxT.Value;
+			//ViewModel.P = NumBoxP.Value;
+			//ViewModel.Time = NumBoxTime.Value;
+			//ViewModel.FrequencyFactor = NumBoxFrequencyFactor.Value;
+			//ViewModel.ActivationEnergy = NumBoxActivationEnergy.Value;
 
+			UpdateValidationStyles();
+		}
+
+		private void Dropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
 			UpdateValidationStyles();
 		}
 	}

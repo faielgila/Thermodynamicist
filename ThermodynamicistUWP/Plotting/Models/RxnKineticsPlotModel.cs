@@ -8,6 +8,7 @@ using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.UI.Xaml.Documents;
 
 namespace ThermodynamicistUWP
@@ -68,6 +69,15 @@ namespace ThermodynamicistUWP
 
 				foreach (var chemical in speciesList)
 				{
+					if (double.IsNaN(changes[chemical]))
+					{
+						throw new Exception($"Concentration of {Constants.ChemicalNames[chemical]} evaluated to NaN at t={dt*i}s.");
+					}
+					if (double.IsInfinity(changes[chemical]))
+					{
+						throw new Exception($"Concentration of {Constants.ChemicalNames[chemical]} evaluated to infinity at t={dt * i}s.");
+					}
+
 					if (!changes.ContainsKey(chemical))
 					{
 						seriesList[chemical].Points.Add(new DataPoint(dt * i, cVec[chemical]));
