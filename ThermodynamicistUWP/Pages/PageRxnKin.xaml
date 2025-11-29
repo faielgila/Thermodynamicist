@@ -127,7 +127,7 @@
 						<ColumnDefinition/>
 					</Grid.ColumnDefinitions>
 
-					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Reaction" Margin="0,0,0,5"/>
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Reaction definition" Margin="0,0,0,5"/>
 
 					<!--Reaction-wide inputs-->
 					<StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1">
@@ -190,7 +190,7 @@
 										   Style="{StaticResource WarningCaptionTextBlockStyle}"/>
 								<ListView x:Name="ListViewRxnSpecies"
 										  HorizontalAlignment="Stretch" SelectionMode="None" ItemsSource="{x:Bind ViewModel.Items}"
-										  MaxHeight="300" Margin="0,0,0,0">
+										  MaxHeight="300" Margin="-15,0,0,0">
 									<!--
 									Initialize : Bound to ViewModel (type ControlRxnViewModel) which stores a list of ControlRxnSpeciesViewModels.
 									Selection  : Bound to the ViewModel.
@@ -199,7 +199,7 @@
 										<DataTemplate x:DataType="vm:ControlRxnSpeciesViewModel">
 											<local:ControlRxnSpecies ViewModel="{x:Bind Mode=TwoWay}"
 																	 IsConcentrationRequired="{x:Bind IsConcentrationRequired, Mode=TwoWay}"
-																	 Grid.Row="1" Margin="0,5"/>
+																	 Grid.Row="1" Margin="0,0,5,0"/>
 										</DataTemplate>
 									</ListView.ItemTemplate>
 									<ListView.ItemContainerTransitions>
@@ -228,7 +228,7 @@
 
 				<!--Numeric outputs panel-->
 				<StackPanel Grid.Column="0" Padding="10">
-					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Output" Margin="0,0,0,5"/>
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Numeric outputs" Margin="0,0,0,5"/>
 					<TextBlock x:Name="TextNoOutputDataLabel" Text="There is no numeric output data to display here.&#x0a;Select one for output and run the calculation to add one."
 							   Visibility="Visible" Foreground="LightGray" Style="{StaticResource CaptionTextBlockStyle}"/>
 					<TextBlock x:Name="DataLabel" IsTextSelectionEnabled="True"/>
@@ -254,7 +254,7 @@
 						<RowDefinition Height="*"/>
 					</Grid.RowDefinitions>
 
-					<TextBlock Grid.Row="0" Style="{StaticResource SubtitleTextBlockStyle}" Text="Plots" Margin="0,0,0,5"/>
+					<TextBlock Grid.Row="0" Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual outputs" Margin="0,0,0,5"/>
 					<oxy:PlotView x:Name="PlotViewKin" Grid.Row="1" Background="Transparent" Visibility="Visible"/>
 					<TextBlock x:Name="TextNoPlots" Grid.Row="1" VerticalAlignment="Top" Style="{StaticResource CaptionTextBlockStyle}"
 							   Text="There is no visual output data to display here.&#x0a;Select a plot for output and run the calculation to add one."
