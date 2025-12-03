@@ -2,6 +2,8 @@
 	x:Class="ThermodynamicistUWP.PagePCSF"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ctk="using:CommunityToolkit.WinUI"
+	xmlns:ctrl="using:CommunityToolkit.WinUI.Controls"
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
 	xmlns:oxy="using:OxyPlot.Windows"
@@ -9,79 +11,217 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:core="using:Core"
+	xmlns:vm="using:Core.ViewModels"
 	xmlns:eos="using:Core.EquationsOfState"
 	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	NavigationCacheMode="Required">
 
+	<Page.Resources>
+		<DataTemplate x:Key="ListOutputSelectionTemplate" x:DataType="vm:OutputItem">
+			<ListViewItem AutomationProperties.Name="{x:Bind DisplayName}">
+				<StackPanel Orientation="Horizontal">
+					<FontIcon Width="20" Glyph="{x:Bind Glyph}"/>
+					<TextBlock Text="{x:Bind DisplayName}" Margin="5"/>
+				</StackPanel>
+			</ListViewItem>
+		</DataTemplate>
+
+		<DataTemplate x:Key="ErrorInfoBarTemplate" x:DataType="vm:ErrorInfoViewModel">
+			<muxc:InfoBar
+				Severity="{x:Bind Severity, Mode=OneWay, Converter={StaticResource ErrorSeverityConverter}}"
+				Message="{x:Bind Message}" IsOpen="True" IsClosable="False"/>
+		</DataTemplate>
+	</Page.Resources>
+
 	<Grid Margin="10">
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="140*"/>
-			<ColumnDefinition Width="140*"/>
-		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		<StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
 
-			<muxc:NumberBox x:Name="NumBoxT" Header="Temperature:" PlaceholderText="[K]" Margin="5" MinWidth="120" MaxHeight="60"
-							Value="{x:Bind ViewModel.T, Mode=TwoWay}" AcceptsExpression="True"/>
-			<muxc:NumberBox x:Name="NumBoxP" Header="Pressure:" PlaceholderText="[Pa]" Margin="5" MinWidth="120" MaxHeight="60"
-							Value="{x:Bind ViewModel.P, Mode=TwoWay}" AcceptsExpression="True"/>
-
-			<!--
-			Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
-			Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
-			Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
-			-->
-			<ComboBox x:Name="DropdownSpecies" Header="Chemical:" PlaceholderText="Pick a species"
-				  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
-				  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
-				  Margin="5" Grid.Row="0" Grid.Column="0" Width="200">
-				<ComboBox.ItemTemplate>
-					<DataTemplate x:DataType="core:ChemicalNamePair">
-						<TextBlock Text="{x:Bind Name}"/>
-					</DataTemplate>
-				</ComboBox.ItemTemplate>
-			</ComboBox>
-
-			<!--
-			Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
-			Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
-			TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
-			Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
-			-->
-			<ComboBox x:Name="DropdownEoS" Header="Equation of State:" PlaceholderText="Pick an EoS" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
-				  Margin="5" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
-				<ComboBox.ItemTemplate>
-					<DataTemplate x:DataType="eos:IEquationOfStateFactory">
-						<TextBlock Text="{x:Bind Name}"/>
-					</DataTemplate>
-				</ComboBox.ItemTemplate>
-			</ComboBox>
-
-			<ToggleSwitch x:Name="TogglePlots" Header="Show plots?" Toggled="TogglePlots_Toggled"  Margin="5"/>
-			<ToggleSwitch x:Name="ToggleSCurve" Header="Show s-curves?" Toggled="ToggleSCurve_Toggled" Margin="5"/>
-
-			<Button Style="{StaticResource AccentButtonStyle}" Content="Run Calculation" Margin="5" Click="RunCalc">
-				<Button.KeyboardAccelerators>
-					<KeyboardAccelerator Key="Enter"/>
-				</Button.KeyboardAccelerators>
-			</Button>
+		<StackPanel Padding="0,0,5,5" Orientation="Horizontal">
+			<Border Width="50" VerticalAlignment="Top" Padding="0,8,0,0">
+				<FontIcon Glyph="&#xE9CA;" FontSize="40"/>
+			</Border>
+			<StackPanel Orientation="Vertical">
+				<TextBlock Text="Pure-component state functions" Style="{StaticResource TitleTextBlockStyle}"/>
+				<TextBlock Text="Models a pure-component mixture of multiple phases." Style="{StaticResource BodyTextBlockStyle}"/>
+			</StackPanel>
 		</StackPanel>
-		
-		<TextBlock x:Name="DataLabel" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"/>
-		<StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-			<TextBlock x:Name="GroupBoxVapor" Margin="0, 0, 20, 0"/>
-			<TextBlock x:Name="GroupBoxLiquid" Margin="0, 0, 20, 0"/>
-			<TextBlock x:Name="GroupBoxSolid" Margin="0, 0, 20, 0"/>
-		</StackPanel>
-		
-		<oxy:PlotView x:Name="PlotViewLeft" Grid.Row="3" Grid.Column="0"/>
-		<oxy:PlotView x:Name="PlotViewRight" Grid.Row="3" Grid.Column="1"/>
+
+		<Grid Grid.Row="1" CornerRadius="8" BorderBrush="Gray" BorderThickness="2">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" MinWidth="300"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			
+			<!--Inputs panel-->
+			<StackPanel Grid.Column="0" Orientation="Vertical" Padding="10" VerticalAlignment="Top" Spacing="10">
+				<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inputs"/>
+				
+				<local:ValidatedNumberBox x:Name="NumBoxT" Header="Temperature:" Margin="0,-5,0,0"
+											  PlaceholderText="[K]" AcceptsExpression="True" CanBeZero="False"
+											  HorizontalAlignment="Left"
+											  Value="{x:Bind ViewModel.T, Mode=TwoWay}"
+											  ValueChanged="NumBox_ValueChanged"/>
+				
+				<local:ValidatedNumberBox x:Name="NumBoxP" Header="Pressure:"
+											  PlaceholderText="[Pa]" AcceptsExpression="True" CanBeZero="False"
+											  HorizontalAlignment="Left"
+											  Value="{x:Bind ViewModel.P, Mode=TwoWay}"
+											  ValueChanged="NumBox_ValueChanged"/>
+
+				<TextBlock Text="Chemical:"/>
+				<Grid>
+					<!--
+					Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
+					Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
+					Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
+					-->
+					<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
+								  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
+								  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
+								  SelectionChanged="Dropdown_SelectionChanged"
+								  VerticalAlignment="Top" HorizontalAlignment="Left" Width="200">
+						<ComboBox.ItemTemplate>
+							<DataTemplate x:DataType="core:ChemicalNamePair">
+								<TextBlock Text="{x:Bind Name}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<muxc:InfoBadge x:Name="InfoBadgeDropdownSpecies" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+				</Grid>
+
+				<TextBlock Text="Equation of state:"/>
+				<Grid HorizontalAlignment="Left">
+					<!--
+					Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
+					Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
+					TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
+					Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
+					-->
+					<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state"
+							  SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
+							  SelectionChanged="Dropdown_SelectionChanged"
+							  VerticalAlignment="Top" HorizontalAlignment="Left" Width="250">
+						<ComboBox.ItemTemplate>
+							<DataTemplate x:DataType="eos:IEquationOfStateFactory">
+								<TextBlock Text="{x:Bind Name}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<muxc:InfoBadge x:Name="InfoBadgeDropdownEoS" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+				</Grid>
+
+				<!--Calculation settings & run-->
+				<Grid Margin="0,5">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="44"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+					<Button Style="{StaticResource ButtonRunCalculationStyle}" Grid.Column="1" Click="RunCalc">
+						<StackPanel Orientation="Horizontal">
+							<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
+							<TextBlock Text="Run calculation"/>
+						</StackPanel>
+					</Button>
+					<local:OutputOptionsButton x:Name="ButtonSelectOutputItems" Click="ButtonSelectOutputItems_Click"
+												   AllOutputOptions="{x:Bind AllOutputOptions}"/>
+				</Grid>
+			</StackPanel>
+
+			<!--page divider-->
+			<Rectangle Grid.Column="1" Style="{StaticResource MajorVerticalRectangleStyle}"/>
+			<ctrl:GridSplitter Grid.Column="1" Style="{StaticResource MajorVerticalSplitterStyle}"/>
+
+			<!--Outputs panel-->
+			<Grid Grid.Column="1">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="320"/>
+					<RowDefinition Height="600"/>
+				</Grid.RowDefinitions>
+
+				<StackPanel Grid.Row="0" Padding="10" x:Name="StackNumOutputs">
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Numeric outputs" Margin="0,0,0,5"/>
+
+					<!--Model-wide outputs-->
+					<TextBlock x:Name="TextNoOutputDataLabel" Text="There is no numeric output data to display here.&#x0a;Select one for output and run the calculation to add one."
+							   Visibility="Visible" Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
+					<TextBlock x:Name="DataLabel" Margin="0,0,0,5"/>
+
+					<!--Phases outputs-->
+					<ScrollViewer Visibility="Visible"
+								  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="0,0,0,15">
+						<muxc:ItemsRepeater x:Name="ItemsRepeaterPhaseResults"
+										ItemsSource="{x:Bind PhasesOutputList}">
+							<muxc:ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="local:PhaseOutputData">
+									<StackPanel>
+										<TextBlock x:Name="PhaseLabel" Text="{x:Bind phaseText}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+										<TextBlock Padding="5,0,0,0"  x:Name="ResultsLabel" Text="{x:Bind outputData}"/>
+									</StackPanel>
+								</DataTemplate>
+							</muxc:ItemsRepeater.ItemTemplate>
+							<muxc:ItemsRepeater.Layout>
+								<muxc:StackLayout Orientation="Horizontal" Spacing="10"/>
+							</muxc:ItemsRepeater.Layout>
+						</muxc:ItemsRepeater>
+					</ScrollViewer>
+				</StackPanel>
+
+				<!--outputs divider-->
+				<Rectangle Grid.Row="1" Style="{StaticResource MinorHorizontalRectangleStyle}"/>
+				<ctrl:GridSplitter Grid.Row="1" Style="{StaticResource MinorHorizontalSplitterStyle}"/>
+
+				<!--Visual outputs-->
+				<StackPanel Grid.Row="1" Padding="10">
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual outputs" Margin="0,0,0,5"/>
+					<ctrl:Segmented x:Name="PlotSegControl" Grid.Row="1" VerticalAlignment="Top" Margin="0,0,0,10">
+						<ctrl:SegmentedItem x:Name="PlotSeg1" Content="Plot 1 (empty)" Tag="Plot1"/>
+						<ctrl:SegmentedItem x:Name="PlotSeg2" Content="Plot 2 (empty)" Tag="Plot2"/>
+						<ctrl:SegmentedItem x:Name="PlotSeg3" Content="Plot 3 (empty)" Tag="Plot3"/>
+						<ctrl:SegmentedItem x:Name="PlotSeg4" Content="Plot 4 (empty)" Tag="Plot4"/>
+					</ctrl:Segmented>
+					<ctrl:SwitchPresenter Value="{Binding SelectedItem.Tag, ElementName=PlotSegControl}">
+						<ctrl:Case Value="Plot1">
+							<Grid>
+								<TextBlock x:Name="TextNoPlot1" Text="There is no visual output data to display here.&#x0a;Select a plot for output and run the calculation to add one."
+										   Visibility="Visible" Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
+								<oxy:PlotView x:Name="PlotView1" Visibility="Collapsed" Height="500"/>
+							</Grid>
+						</ctrl:Case>
+						<ctrl:Case Value="Plot2">
+							<Grid>
+								<TextBlock x:Name="TextNoPlot2" Text="There is no visual output data to display here.&#x0a;Select a second plot for output and run the calculation to add one."
+										   Visibility="Visible" Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
+								<oxy:PlotView x:Name="PlotView2" Visibility="Collapsed" Height="500"/>
+							</Grid>
+						</ctrl:Case>
+						<ctrl:Case Value="Plot3">
+							<Grid>
+								<TextBlock x:Name="TextNoPlot3" Text="There is no visual output data to display here.&#x0a;Select a third plot for output and run the calculation to add one."
+										   Visibility="Visible" Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
+								<oxy:PlotView x:Name="PlotView3" Visibility="Collapsed" Height="500"/>
+							</Grid>
+						</ctrl:Case>
+						<ctrl:Case Value="Plot4">
+							<Grid>
+								<TextBlock x:Name="TextNoPlot4" Text="There is no visual output data to display here.&#x0a;Select a fourth plot for output and run the calculation to add one."
+										   Visibility="Visible" Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
+								<oxy:PlotView x:Name="PlotView4" Visibility="Collapsed" Height="500"/>
+							</Grid>
+						</ctrl:Case>
+					</ctrl:SwitchPresenter>
+				</StackPanel>
+
+			</Grid>
+
+			<!--Error panel-->
+			<StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
+				<muxc:ItemsRepeater ItemsSource="{x:Bind ViewModel.Errors}" ItemTemplate="{StaticResource ErrorInfoBarTemplate}"/>
+			</StackPanel>
+		</Grid>
 	</Grid>
 </Page>

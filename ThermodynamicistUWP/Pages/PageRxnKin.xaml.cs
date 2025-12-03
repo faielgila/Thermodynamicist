@@ -33,13 +33,8 @@ namespace ThermodynamicistUWP
 			// Pass down all output options to output selection button and register a listener for when selected outputs change.
 			ButtonSelectOutputItems.ViewModel = new OutputSelectionPopupViewModel(AllOutputOptions);
 
-			// Register OnChanged events for all inputs.
+			// Register OnChanged event for selected output options.
 			ButtonSelectOutputItems.ViewModel.SelectedOutputOptions.CollectionChanged += SelectedOutputOptions_CollectionChanged;
-			NumBoxT.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			NumBoxP.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			NumBoxTime.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			NumBoxFrequencyFactor.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
-			NumBoxActivationEnergy.ViewModel.PropertyChanged += ValNumBox_PropertyChanged;
 
 			// Initializes rate law list.
 			// Note the use of RateLawFactory instead of the RateLaw object directly.
@@ -52,11 +47,6 @@ namespace ThermodynamicistUWP
 			ViewModel.FrequencyFactor = double.NaN;
 			ViewModel.ActivationEnergy = double.NaN;
 
-			UpdateValidationStyles();
-		}
-
-		private void ValNumBox_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
 			UpdateValidationStyles();
 		}
 
@@ -181,6 +171,7 @@ namespace ThermodynamicistUWP
 		{
 			// Reset DataLabel in case numeric output options aren't selected.
 			DataLabel.Text = "";
+			TextNoOutputDataLabel.Visibility = Visibility.Visible;
 			// Reset PlotView visibility in case plot output option isn't selected.
 			PlotViewKin.Visibility = Visibility.Collapsed;
 			TextNoPlots.Visibility = Visibility.Visible;
@@ -239,57 +230,6 @@ namespace ThermodynamicistUWP
 			{
 				ErrorDialog.ShowErrorDialog(e);
 			}
-		}
-
-		/// <summary>
-		/// Generates a list of OutputItems for the page.
-		/// </summary>
-		private ObservableCollection<OutputItem> GenerateOutputItems()
-		{
-			return new ObservableCollection<OutputItem>()
-			{
-				new OutputItem(OutputItem.ItemType.Number)
-				{
-					OutputName = "MolarEntropyOfReaction",
-					DisplayName = "Molar entropy of reaction\n[J/K/mol]",
-					DisplayFormat = x => $"Molar entropy of reaction: {x}"
-				},
-				new OutputItem(OutputItem.ItemType.Number)
-				{
-					OutputName = "MolarEnthalpyOfReaction",
-					DisplayName = "Molar enthalpy of reaction\n[J/mol]",
-					DisplayFormat = x => $"Molar enthalpy of reaction: {x}"
-				},
-				new OutputItem(OutputItem.ItemType.Number)
-				{
-					OutputName = "MolarGibbsEnergyOfReaction",
-					DisplayName = "Molar Gibbs energy of reaction\n[J/mol]",
-					DisplayFormat = x => $"Molar Gibbs energy of reaction: {x}"
-				},
-				new OutputItem(OutputItem.ItemType.Plot)
-				{
-					OutputName = "PlotMolarityTransience",
-					DisplayName = "Species molarity vs reaction time \n[mol/L vs s]"
-				}
-			};
-		}
-
-		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
-		{
-			var SelectedOutputs = ButtonSelectOutputItems.GetSelectedOutputs();
-			bool flagMolarityTransienceSelected = SelectedOutputs.Select(item => item.OutputName).Contains("PlotMolarityTransience");
-			var vm = new ControlRxnSpeciesViewModel
-			{
-				//Chemical = Chemical.Water,
-				//EoSFactory = new PengRobinsonEOSFactory(),
-				Stoich = 1,
-				//Phase = "",
-				Concentration = double.NaN,
-				IsReactant = true,
-				DeleteCommand = ViewModel.DeleteCommand,
-				IsConcentrationRequired = flagMolarityTransienceSelected
-			};
-			ViewModel.AddItem(vm);
 		}
 
 		private void UpdateValidationStyles()
@@ -384,19 +324,68 @@ namespace ThermodynamicistUWP
 			}
 		}
 
+		/// <summary>
+		/// Generates a list of OutputItems for the page.
+		/// </summary>
+		private ObservableCollection<OutputItem> GenerateOutputItems()
+		{
+			return new ObservableCollection<OutputItem>()
+			{
+				new OutputItem(OutputItem.ItemType.Number)
+				{
+					OutputName = "MolarEntropyOfReaction",
+					DisplayName = "Molar entropy of reaction\n[J/K/mol]",
+					DisplayFormat = x => $"Molar entropy of reaction: {x}"
+				},
+				new OutputItem(OutputItem.ItemType.Number)
+				{
+					OutputName = "MolarEnthalpyOfReaction",
+					DisplayName = "Molar enthalpy of reaction\n[J/mol]",
+					DisplayFormat = x => $"Molar enthalpy of reaction: {x}"
+				},
+				new OutputItem(OutputItem.ItemType.Number)
+				{
+					OutputName = "MolarGibbsEnergyOfReaction",
+					DisplayName = "Molar Gibbs energy of reaction\n[J/mol]",
+					DisplayFormat = x => $"Molar Gibbs energy of reaction: {x}"
+				},
+				new OutputItem(OutputItem.ItemType.Plot)
+				{
+					OutputName = "PlotMolarityTransience",
+					DisplayName = "Species molarity vs reaction time \n[mol/L vs s]"
+				}
+			};
+		}
+
+		private void ButtonAddSpecies_Click(object sender, RoutedEventArgs e)
+		{
+			var SelectedOutputs = ButtonSelectOutputItems.GetSelectedOutputs();
+			bool flagMolarityTransienceSelected = SelectedOutputs.Select(item => item.OutputName).Contains("PlotMolarityTransience");
+			var vm = new ControlRxnSpeciesViewModel
+			{
+				//Chemical = Chemical.Water,
+				//EoSFactory = new PengRobinsonEOSFactory(),
+				Stoich = 1,
+				//Phase = "",
+				Concentration = double.NaN,
+				IsReactant = true,
+				DeleteCommand = ViewModel.DeleteCommand,
+				IsConcentrationRequired = flagMolarityTransienceSelected
+			};
+			ViewModel.AddItem(vm);
+		}
+
 		private void SelectedOutputOptions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			UpdateValidationStyles();
+		}
+		private void ValNumBox_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			UpdateValidationStyles();
 		}
 
 		private void NumBox_ValueChanged(Microsoft.UI.Xaml.Controls.NumberBox sender, Microsoft.UI.Xaml.Controls.NumberBoxValueChangedEventArgs args)
 		{
-			//ViewModel.T = NumBoxT.Value;
-			//ViewModel.P = NumBoxP.Value;
-			//ViewModel.Time = NumBoxTime.Value;
-			//ViewModel.FrequencyFactor = NumBoxFrequencyFactor.Value;
-			//ViewModel.ActivationEnergy = NumBoxActivationEnergy.Value;
-
 			UpdateValidationStyles();
 		}
 

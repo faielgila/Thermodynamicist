@@ -66,8 +66,8 @@
 
 				<!--Model-wide inputs panel-->
 				<StackPanel Orientation="Vertical" Grid.Column="0" Padding="10" VerticalAlignment="Top" Spacing="10">
-					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inputs" Margin="0,0,0,5"/>
-					<local:ValidatedNumberBox x:Name="NumBoxT" Header="Temperature:"
+					<TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Model-wide inputs"/>
+					<local:ValidatedNumberBox x:Name="NumBoxT" Header="Temperature:" Margin="0,-5,0,0"
 											  PlaceholderText="[K]" AcceptsExpression="True" CanBeZero="False"
 											  HorizontalAlignment="Left"
 											  Value="{x:Bind ViewModel.T, Mode=TwoWay}"
@@ -90,8 +90,7 @@
 							<ColumnDefinition Width="Auto"/>
 						</Grid.ColumnDefinitions>
 
-						<Button Background="{StaticResource SystemAccentColor}" Margin="0,5,5,0" CornerRadius="0,4,4,0" Grid.Column="1"
-								Click="RunCalc" Height="33">
+						<Button Style="{StaticResource ButtonRunCalculationStyle}" Grid.Column="1" Click="RunCalc">
 							<StackPanel Orientation="Horizontal">
 								<SymbolIcon Symbol="Play" Margin="0,0,5,0"/>
 								<TextBlock Text="Run calculation"/>

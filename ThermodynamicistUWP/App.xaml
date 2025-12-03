@@ -6,6 +6,7 @@
 	xmlns:ctrl="using:CommunityToolkit.WinUI.Controls"
 	xmlns:animate="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
 	xmlns:local="using:ThermodynamicistUWP"
+	xmlns:vm="using:Core.ViewModels"
 	xmlns:converters="using:ThermodynamicistUWP.Converters">
 
 	<Application.Resources>
@@ -24,7 +25,16 @@
 			</ResourceDictionary.MergedDictionaries>
 			<!--#endregion-->
 			
-			<!--#region NumberBox styles-->
+			<!--#region Button styles -->
+			<Style x:Key="ButtonRunCalculationStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+				<Setter Property="Background" Value="{StaticResource SystemAccentColor}"/>
+				<Setter Property="Height" Value="33"/>
+				<Setter Property="Margin" Value="0,5,5,0"/>
+				<Setter Property="CornerRadius" Value="0,4,4,0"/>
+			</Style>
+			<!--#endregion-->
+			
+			<!--#region NumberBox styles -->
 			<Style x:Key="NumberBoxDefaultStyle" TargetType="muxc:NumberBox">
 				<Setter Property="BorderBrush" Value="{StaticResource TextControlBorderBrush}"/>
 			</Style>
@@ -65,6 +75,51 @@
 				</Setter>
 			</Style>
 			<Style x:Key="MajorHorizontalSplitterStyle" TargetType="ctrl:GridSplitter">
+				<Setter Property="Height" Value="16"/>
+				<Setter Property="Foreground" Value="White"/>
+				<Setter Property="VerticalAlignment" Value="Top"/>
+				<Setter Property="ResizeBehavior" Value="BasedOnAlignment"/>
+				<Setter Property="ResizeDirection" Value="Auto"/>
+				<Setter Property="RenderTransform">
+					<Setter.Value>
+						<TranslateTransform Y="-8"/>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			<Style x:Key="MajorVerticalRectangleStyle" TargetType="Rectangle">
+				<Setter Property="Width" Value="2"/>
+				<Setter Property="Fill" Value="Gray"/>
+				<Setter Property="HorizontalAlignment" Value="Left"/>
+				<Setter Property="RenderTransform">
+					<Setter.Value>
+						<TranslateTransform X="-1"/>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			<Style x:Key="MajorVerticalSplitterStyle" TargetType="ctrl:GridSplitter">
+				<Setter Property="Width" Value="16"/>
+				<Setter Property="Foreground" Value="White"/>
+				<Setter Property="HorizontalAlignment" Value="Left"/>
+				<Setter Property="ResizeBehavior" Value="BasedOnAlignment"/>
+				<Setter Property="ResizeDirection" Value="Auto"/>
+				<Setter Property="RenderTransform">
+					<Setter.Value>
+						<TranslateTransform X="-8"/>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<Style x:Key="MinorHorizontalRectangleStyle" TargetType="Rectangle">
+				<Setter Property="Height" Value="2"/>
+				<Setter Property="Fill" Value="{StaticResource ButtonPointerOverBackgroundThemeBrush}"/>
+				<Setter Property="VerticalAlignment" Value="Top"/>
+				<Setter Property="RenderTransform">
+					<Setter.Value>
+						<TranslateTransform Y="-1"/>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			<Style x:Key="MinorHorizontalSplitterStyle" TargetType="ctrl:GridSplitter">
 				<Setter Property="Height" Value="16"/>
 				<Setter Property="Foreground" Value="White"/>
 				<Setter Property="VerticalAlignment" Value="Top"/>

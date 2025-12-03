@@ -18,7 +18,7 @@ public partial class PagePCSFViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private Temperature _T;
+	private double _T;
 
 	/// <summary>
 	/// Stores the pressure to calculate thermo state variables at.
@@ -26,7 +26,7 @@ public partial class PagePCSFViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private Pressure _P;
+	private double _P;
 
 	/// <summary>
 	/// Stores the <see cref="EquationOfState"/> to be used for calculating thermo state variables.
@@ -94,6 +94,9 @@ public partial class PagePCSFViewModel : ObservableObject
 			UpdateEoS();
 		}
 	}
+
+	[ObservableProperty]
+	private ObservableCollection<ErrorInfoViewModel> _errors = [];
 
 	/// <summary>
 	/// Generates an <see cref="EquationOfState"/> with the values of this ViewModel.

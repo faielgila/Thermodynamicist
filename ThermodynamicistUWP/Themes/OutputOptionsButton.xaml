@@ -79,10 +79,12 @@
 					<TextBlock Text="Available outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
 					<TextBlock x:Name="TextNoOutputsAvailable"
 							   Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
-					<ListView x:Name="ListOutputItems_Left" Margin="-5,0,0,0" HorizontalAlignment="Left"
+					<ScrollViewer MaxHeight="280" VerticalScrollBarVisibility="Auto" Padding="0,0,15,0">
+						<ListView x:Name="ListOutputItems_Left" Margin="-5,0,0,0" HorizontalAlignment="Left"
 							  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 							  ItemsSource="{x:Bind ViewModel.AvailableOutputOptions, Mode=TwoWay}"
 							  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple"/>
+					</ScrollViewer>
 
 				</StackPanel>
 
@@ -112,10 +114,12 @@
 				<StackPanel Orientation="Vertical" Grid.Column="2" Margin="5,0,0,0">
 					<TextBlock Text="Selected outputs" Style="{ThemeResource SubtitleTextBlockStyle}"/>
 					<TextBlock x:Name="TextNoOutputsSelected" Style="{ThemeResource WarningCaptionTextBlockStyle}"/>
-					<ListView x:Name="ListOutputItems_Right" Margin="-5,0,0,0"
+					<ScrollViewer MaxHeight="280" VerticalScrollBarVisibility="Auto">
+						<ListView x:Name="ListOutputItems_Right" Margin="-5,0,0,0"
 							  ItemTemplate="{StaticResource ListOutputSelectionTemplate}"
 							  ItemsSource="{x:Bind ViewModel.SelectedOutputOptions}"
 							  CanDragItems="True" CanReorderItems="True" AllowDrop="True" SelectionMode="Multiple"/>
+					</ScrollViewer>
 				</StackPanel>
 			</Grid>
 		</Popup>
