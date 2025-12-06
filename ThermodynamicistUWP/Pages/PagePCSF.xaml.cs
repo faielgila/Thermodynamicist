@@ -424,13 +424,13 @@ namespace ThermodynamicistUWP
 				{
 					OutputName = "VaporPressure",
 					DisplayName = "Vapor pressure\n[Pa]",
-					DisplayFormat = x => $"Vapor pressure: {x}"
+					DisplayFormat = x => $"Vapor pressure, Pvap: {x}"
 				},
 				new OutputItem(OutputItem.ItemType.Number)
 				{
 					OutputName = "BoilingTemperature",
 					DisplayName = "Boiling temperature\n[K]",
-					DisplayFormat = x => $"Boiling temperature: {x}"
+					DisplayFormat = x => $"Boiling temperature, Tboil: {x}"
 				},
 				new OutputItem(OutputItem.ItemType.Number)
 				{

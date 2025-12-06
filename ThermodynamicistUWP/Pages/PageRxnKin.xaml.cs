@@ -338,19 +338,19 @@ namespace ThermodynamicistUWP
 				{
 					OutputName = "MolarEntropyOfReaction",
 					DisplayName = "Molar entropy of reaction\n[J/K/mol]",
-					DisplayFormat = x => $"Molar entropy of reaction: {x}"
+					DisplayFormat = x => $"Molar entropy of reaction, Srxn: {x}"
 				},
 				new OutputItem(OutputItem.ItemType.Number)
 				{
 					OutputName = "MolarEnthalpyOfReaction",
 					DisplayName = "Molar enthalpy of reaction\n[J/mol]",
-					DisplayFormat = x => $"Molar enthalpy of reaction: {x}"
+					DisplayFormat = x => $"Molar enthalpy of reaction, Hmix: {x}"
 				},
 				new OutputItem(OutputItem.ItemType.Number)
 				{
 					OutputName = "MolarGibbsEnergyOfReaction",
 					DisplayName = "Molar Gibbs energy of reaction\n[J/mol]",
-					DisplayFormat = x => $"Molar Gibbs energy of reaction: {x}"
+					DisplayFormat = x => $"Molar Gibbs energy of reaction, Gmix: {x}"
 				},
 				new OutputItem(OutputItem.ItemType.Plot)
 				{
