@@ -70,6 +70,9 @@ namespace ThermodynamicistUWP
 			UpdateData(ViewModel.ToModel(), ViewModel.T, ViewModel.P);
 		}
 
+		/// <summary>
+		/// Updates styles on input controls to signal input validation.
+		/// </summary>
 		private bool CheckInvalidPageInputs()
 		{
 			Temperature T = ViewModel.T;

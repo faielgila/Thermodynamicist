@@ -1,9 +1,10 @@
-﻿<UserControl
+﻿<UserControl x:Name="ThisControl"
 	x:Class="ThermodynamicistUWP.ControlMixtureSpecies"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:ThermodynamicistUWP"
 	xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+	xmlns:ctk="using:CommunityToolkit.WinUI"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:core="using:Core"
@@ -11,75 +12,111 @@
 	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d">
 
-	<Grid Padding="5" BorderThickness="2" CornerRadius="{ThemeResource ControlCornerRadius}"
-		  BorderBrush="{ThemeResource AccentFillColorSelectedTextBackgroundBrush}" d:Background="White" Margin="5">
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="Auto"/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="32"/>
-			<RowDefinition Height="37"/>
-		</Grid.RowDefinitions>
+	<Border x:Name="BorderControl" CornerRadius="{x:Bind ExpanderRxnSpecies.CornerRadius}" BorderThickness="1">
+		<muxc:Expander x:Name="ExpanderRxnSpecies" IsExpanded="True" Width="525" BorderThickness="0">
+			<muxc:Expander.Header>
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
 
-		<!--
-		Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
-		Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
-		Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
-		-->
-		<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
-				  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
-				  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
-				  Margin="0, 0, 5, 0" Grid.Row="0" Grid.Column="0" Width="200">
-			<ComboBox.ItemTemplate>
-				<DataTemplate x:DataType="core:ChemicalNamePair">
-					<TextBlock Text="{x:Bind Name}"/>
-				</DataTemplate>
-			</ComboBox.ItemTemplate>
-		</ComboBox>
+					<TextBlock Text="Chemical:" VerticalAlignment="Center" Grid.Column="0"/>
+					<Grid VerticalAlignment="Center" Grid.Column="1" Margin="5">
+						<!--
+						Initialize : Generate all ChemicalNamePairs from the Chemical enum to set dropdown options.
+						Selection  : Bound to the ViewModel.Chemical property, but needs a converter to go between Chemical and ChemicalNamePair.
+						Note : Dropdown species requires the converter because the ViewModel stores a Chemical object but the control needs a ChemicalNamePair.
+						-->
+						<ComboBox x:Name="DropdownSpecies" PlaceholderText="Pick a species"
+								  SelectedValue="{x:Bind ViewModel.Chemical, Mode=TwoWay, Converter={StaticResource ChemicalNamePairConverter}}"
+								  ItemsSource="{x:Bind core:Constants.GetChemicalNames()}"
+								  SelectionChanged="Dropdown_SelectionChanged"
+								  VerticalAlignment="Top" HorizontalAlignment="Left" Width="200">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="core:ChemicalNamePair">
+									<TextBlock Text="{x:Bind Name}"/>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+						<muxc:InfoBadge x:Name="InfoBadgeDropdownSpecies" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+					</Grid>
 
-		<!--
-		Value : Bound to ViewModel.SpeciesMoleFraction.
-		-->
-		<muxc:NumberBox x:Name="NumBoxMoleFraction" PlaceholderText="Mole fraction" AcceptsExpression="True"
-						Value="{x:Bind ViewModel.SpeciesMoleFraction, Mode=TwoWay}"
-						Margin="0,0,5,0" Grid.Row="0" Grid.Column="1" Width="120"/>
-		
-		<!--
-		Initialize : Bound to ViewModel.ModeledPhases. This has to be OneWay (instead of OneTime) because the allowable phases
-		             depends on which equation of state is selected.
-		Selection  : Bound to ViewModel.ModeledPhase. Phase is already a string, so this is surprisingly easy.
-		-->
-		<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
-				  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}" SelectedValue="{x:Bind ViewModel.ModeledPhase, Mode=TwoWay}"
-				  Margin="0, 0, 0, 0" Grid.Row="0" Grid.Column="2" Width="100"/>
-	
-		<!--
-		Command : Bound to ViewModel.DeleteCommand, which is itself passed down from PageRxnKin to ensure propery deletion from the
-		          master list.
-		CommandParameter : ViewModel.DeleteCommand takes in a parameter to decide which ViewModel to remove from the list in PageRxnKin.
-		                   ViewModel contains this ControlRxnSpecies instance, which removes it from the list.
-		-->
-		<Button Content="Remove species"
-				Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
-				Margin="0, 5, 5, 0" Grid.Row="1" Grid.Column="0" Width="135"/>
-		
-		<!--
-		Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
-		Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
-		TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
-		Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
-		-->
-		<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state" SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
-				  Margin="205,5,0,0" Grid.Row="1" Grid.ColumnSpan="3" Width="225">
-			<ComboBox.ItemTemplate>
-				<DataTemplate x:DataType="eos:IEquationOfStateFactory">
-					<TextBlock Text="{x:Bind Name}"/>
-				</DataTemplate>
-			</ComboBox.ItemTemplate>
-		</ComboBox>
-		
-	</Grid>
+					<!--
+					Command : Bound to ViewModel.DeleteCommand, which is itself passed down from PageRxnKin to ensure proper deletion from the
+							  master list.
+					CommandParameter : ViewModel.DeleteCommand takes in a parameter to decide which ViewModel to remove from the list in PageRxnKin.
+									   ViewModel contains this ControlRxnSpecies instance, which removes it from the list.
+					-->
+					<Button Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
+							Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+						<StackPanel Orientation="Horizontal">
+							<FontIcon Glyph="&#xE74D;" Margin="0,0,5,0"/>
+							<TextBlock Text="Remove"/>
+						</StackPanel>
+					</Button>
+				</Grid>
+			</muxc:Expander.Header>
+
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+
+				<TextBlock Text="Mole fraction:" Grid.Column="0"/>
+				<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Margin="0,5,15,0">
+					<muxc:NumberBox x:Name="NumBoxMoleFraction" PlaceholderText="[1]" AcceptsExpression="False"
+									Value="{x:Bind ViewModel.SpeciesMoleFraction, Mode=TwoWay}"
+									ValueChanged="NumBox_ValueChanged"
+									Minimum="0"
+									VerticalAlignment="Top" Width="100"/>
+					<muxc:InfoBadge x:Name="InfoBadgeNumBoxMoleFraction" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+				</Grid>
+
+				<TextBlock Text="Equation of state:" Grid.Row="0" Grid.Column="1"/>
+				<Grid Grid.Row="1" Grid.Column="1" Margin="0,5,15,0">
+					<!--
+					Initialize : See attached .cs file. EoS's must be added manually using their EoSFactories.
+					Selection  : Bound to ViewModel.EoSFactory, notably not an EquationOfState directly.
+					TextBlock  : Bound to EoSFactory.Name which contains the human-readable name for the EoS.
+					Note : Binding to EoSFactory removes the need to pass around a specific EoS instance and is more like the *concept* of an EoS.
+					-->
+					<ComboBox x:Name="DropdownEoS" PlaceholderText="Equation of state"
+							  SelectedValue="{x:Bind ViewModel.EoSFactory, Mode=TwoWay}"
+							  SelectionChanged="Dropdown_SelectionChanged"
+							  Width="200" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+						<ComboBox.ItemTemplate>
+							<DataTemplate x:DataType="eos:IEquationOfStateFactory">
+								<TextBlock Text="{x:Bind Name}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<muxc:InfoBadge x:Name="InfoBadgeDropdownEoS" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+				</Grid>
+
+				<TextBlock Text="Modeled phase:" Grid.Row="0" Grid.Column="2"/>
+				<Grid Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" Margin="0,5,5,0">
+					<!--
+					Initialize : Bound to ViewModel.ModeledPhases. This has to be OneWay (instead of OneTime) because the allowable phases
+								 depends on which equation of state is selected.
+					Selection  : Bound to ViewModel.ModeledPhase. Phase is already a string, so this is surprisingly easy.
+					-->
+					<ComboBox x:Name="DropdownPhase" PlaceholderText="Phase"
+							  ItemsSource="{x:Bind ViewModel.ModeledPhases, Mode=OneWay}"
+							  SelectedValue="{x:Bind ViewModel.ModeledPhase, Mode=TwoWay}"
+							  SelectionChanged="Dropdown_SelectionChanged"
+							  VerticalAlignment="Top" Width="150"/>
+					<muxc:InfoBadge x:Name="InfoBadgeDropdownPhase" Style="{StaticResource ControlErrorInfoBadgeStyle}"/>
+				</Grid>
+
+			</Grid>
+		</muxc:Expander>
+	</Border>
 </UserControl>

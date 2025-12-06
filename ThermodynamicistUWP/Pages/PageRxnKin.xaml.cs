@@ -232,6 +232,9 @@ namespace ThermodynamicistUWP
 			}
 		}
 
+		/// <summary>
+		/// Updates styles on input controls to signal input validation.
+		/// </summary>
 		private void UpdateValidationStyles()
 		{
 			var SelectedOutputs = ButtonSelectOutputItems.GetSelectedOutputs();

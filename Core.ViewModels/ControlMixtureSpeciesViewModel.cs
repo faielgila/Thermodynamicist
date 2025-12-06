@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Core.EquationsOfState;
 using Core.Multicomponent;
 using Core.VariableTypes;
+using System.Numerics;
 
 namespace Core.ViewModels;
 
@@ -85,7 +86,7 @@ public partial class ControlMixtureSpeciesViewModel : ObservableObject
 	/// No need to explicitly define a public property for this field since
 	/// no special logic is needed to change the ViewModel when this value is changed.
 	[ObservableProperty]
-	private MoleFraction _speciesMoleFraction;
+	private double _speciesMoleFraction;
 
 	/// <summary>
 	/// Stores the list of modeled phases for the selected EoS.
@@ -137,23 +138,28 @@ public partial class ControlMixtureSpeciesViewModel : ObservableObject
 	/// <summary>
 	/// Validates all input properties.
 	/// </summary>
-	/// <returns>true if all inputs are valid.</returns>
-	public bool CheckValidInput()
+	/// <returns>null if all inputs are valid, combined string of each invalid input.</returns>
+	public string? CheckValidInput()
 	{
-		if (EoSFactory is null ||
-			ModeledPhase is null ||
-			Chemical == null ||
-			SpeciesMoleFraction is null ||
-			DeleteCommand is null)
-		{
-			return false;
-		}
+		var missingInputs = new List<string>();
+		if (EoSFactory is null) missingInputs.Add("Equation of state");
+		if (ModeledPhase is null) missingInputs.Add("Modeled phase");
+		if (double.IsNaN(SpeciesMoleFraction)) missingInputs.Add("Mole fraction");
+		if (DeleteCommand is null) missingInputs.Add("Delete");
 
-		if (_EoS is null)
-		{
-			UpdateEoS(); return false;
-		}
+		if (_EoS is null) UpdateEoS();
 
-		return true;
+		// Combine missingInputs string.
+		if (missingInputs.Count != 0)
+		{
+			string missingInputsString = missingInputs.First();
+			missingInputs.Remove(missingInputs.First());
+			foreach (var item in missingInputs)
+			{
+				missingInputsString += "; " + item;
+			}
+			return missingInputsString;
+		}
+		return null;
 	}
 }

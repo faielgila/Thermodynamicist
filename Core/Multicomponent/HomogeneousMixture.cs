@@ -248,7 +248,7 @@ public class HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase
 	/// <summary>
 	/// Calculates the fugacity coefficient of a species in the mixture.
 	/// </summary>
-	public double SpeciesFugacity(Chemical species, Temperature T, Pressure P)
+	public double SpeciesFugacity(Temperature T, Pressure P, Chemical species)
 	{
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
 		var modeledPhase = mixtureSpecies.modeledPhase;

@@ -128,7 +128,7 @@ public abstract class EquationOfState
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>fugacity coefficient φ, unitless</returns>
+	/// <returns>fugacity coefficient φ [1]</returns>
 	public abstract double FugacityCoeff(Temperature T, Pressure P, Volume VMol);
 
 	/// <summary>
@@ -137,7 +137,7 @@ public abstract class EquationOfState
 	/// <param name="T">temperature, in [K]</param>
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
-	/// <returns>fugacity, unitless. f = φP</returns>
+	/// <returns>fugacity [Pa]. f = φP</returns>
 	public double Fugacity(Temperature T, Pressure P, Volume VMol) { return FugacityCoeff(T, P, VMol) * P; }
 
 	/// <summary>

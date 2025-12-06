@@ -90,7 +90,7 @@ namespace ThermodynamicistUWP
 				ClearMarks_DropdownSpecies();
 			}
 
-			if (double.IsNaN(stoich) && stoich <= 0)
+			if (double.IsNaN(stoich) || stoich <= 0)
 			{
 				MarkWithError_Stoichiometry();
 				anyError = true;

@@ -13,6 +13,18 @@ namespace Core.ViewModels;
 public partial class PageHomoMixViewModel : ObservableObject
 {
 	/// <summary>
+	/// Stores the temperature to calculate the reaction at.
+	/// </summary>
+	[ObservableProperty]
+	private double _T;
+
+	/// <summary>
+	/// Stores the pressure to calculate the reaction at.
+	/// </summary>
+	[ObservableProperty]
+	private double _P;
+
+	/// <summary>
 	/// Stores a list of <see cref="ControlMixtureSpeciesViewModel"/>s as an Observable
 	/// so the list is bound to the UI.
 	/// </summary>
@@ -56,6 +68,9 @@ public partial class PageHomoMixViewModel : ObservableObject
 	/// </summary>
 	[ObservableProperty]
 	private IRelayCommand<ControlMixtureSpeciesViewModel> _deleteCommand;
+
+	[ObservableProperty]
+	private ObservableCollection<ErrorInfoViewModel> _errors = [];
 
 	public PageHomoMixViewModel()
 	{

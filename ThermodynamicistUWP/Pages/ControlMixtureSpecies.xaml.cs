@@ -1,10 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using Core;
 using Core.EquationsOfState;
 using Core.ViewModels;
 using Microsoft.UI.Xaml.Controls;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 
 namespace ThermodynamicistUWP
@@ -65,6 +68,150 @@ namespace ThermodynamicistUWP
 			}
 
 			return true;
+		}
+
+		public void UpdateValidationStyles()
+		{
+			if (ViewModel is null)
+			{
+				MarkWithError_Expander();
+				MarkWithError_DropdownSpecies();
+				MarkWithError_MoleFraction();
+				MarkWithError_Phase();
+				MarkWithError_EoS();
+				return;
+			}
+			var chemical = DropdownSpecies.SelectedValue;
+			var moleFraction = NumBoxMoleFraction.Value;
+			var phase = DropdownPhase.SelectedValue;
+			var EoS = DropdownEoS.SelectedValue;
+
+			var anyError = false;
+
+
+			if (chemical is null)
+			{
+				MarkWithError_DropdownSpecies();
+				anyError = true;
+			}
+			else
+			{
+				ClearMarks_DropdownSpecies();
+			}
+
+			if (double.IsNaN(moleFraction) || moleFraction <= 0 || moleFraction > 1)
+			{
+				MarkWithError_MoleFraction();
+				anyError = true;
+			}
+			else
+			{
+				ClearMarks_MoleFraction();
+			}
+
+			if (phase is null || phase.Equals(""))
+			{
+				MarkWithError_Phase();
+				anyError = true;
+			}
+			else
+			{
+				ClearMarks_Phase();
+			}
+
+			if (EoS is null)
+			{
+				MarkWithError_EoS();
+				anyError = true;
+			}
+			else
+			{
+				ClearMarks_EoS();
+			}
+
+			if (anyError)
+			{
+				MarkWithError_Expander();
+			}
+			else
+			{
+				ClearMarks_Expander();
+			}
+		}
+
+		#region Mark and Clear Errors functions
+		private void MarkWithError_Expander()
+		{
+			BorderControl.BorderBrush = this.FindResource("SystemFillColorCriticalBrush") as Brush;
+		}
+
+		private void ClearMarks_Expander()
+		{
+			//#FFFF99A4
+			BorderControl.BorderBrush = new SolidColorBrush(new Color() { R = 0xFF, G = 0x99, B = 0xA4 });
+		}
+
+		private void MarkWithError_DropdownSpecies()
+		{
+			DropdownSpecies.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+			InfoBadgeDropdownSpecies.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeDropdownSpecies.Visibility = Visibility.Visible;
+		}
+		private void ClearMarks_DropdownSpecies()
+		{
+			DropdownSpecies.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+			InfoBadgeDropdownSpecies.Visibility = Visibility.Collapsed;
+		}
+
+		public void MarkWithError_MoleFraction()
+		{
+			NumBoxMoleFraction.Style = this.FindResource("NumberBoxErrorStyle") as Style;
+			InfoBadgeNumBoxMoleFraction.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeNumBoxMoleFraction.Visibility = Visibility.Visible;
+		}
+
+		public void ClearMarks_MoleFraction()
+		{
+			NumBoxMoleFraction.Style = this.FindResource("NumberBoxDefaultStyle") as Style;
+			InfoBadgeNumBoxMoleFraction.Visibility = Visibility.Collapsed;
+		}
+
+		private void MarkWithError_Phase()
+		{
+			DropdownPhase.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+			InfoBadgeDropdownPhase.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeDropdownPhase.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_Phase()
+		{
+			DropdownPhase.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+			InfoBadgeDropdownPhase.Visibility = Visibility.Collapsed;
+		}
+
+		private void MarkWithError_EoS()
+		{
+			DropdownEoS.Style = this.FindResource("ComboBoxErrorStyle") as Style;
+			InfoBadgeDropdownEoS.Style = this.FindResource("ControlErrorInfoBadgeStyle") as Style;
+			InfoBadgeDropdownEoS.Visibility = Visibility.Visible;
+		}
+
+		private void ClearMarks_EoS()
+		{
+			DropdownEoS.Style = this.FindResource("ComboBoxDefaultStyle") as Style;
+			InfoBadgeDropdownEoS.Visibility = Visibility.Collapsed;
+		}
+		#endregion
+
+		private void Dropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			UpdateValidationStyles();
+		}
+
+		private void NumBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+		{
+
+			UpdateValidationStyles();
 		}
 	}
 }
