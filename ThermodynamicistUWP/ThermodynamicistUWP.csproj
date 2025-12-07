@@ -123,10 +123,10 @@
     <Compile Include="Dialogs\ErrorDialog.xaml.cs">
       <DependentUpon>ErrorDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\ControlMixtureSpecies.xaml.cs">
+    <Compile Include="Controls\ControlMixtureSpecies.xaml.cs">
       <DependentUpon>ControlMixtureSpecies.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\ControlRxnSpecies.xaml.cs">
+    <Compile Include="Controls\ControlRxnSpecies.xaml.cs">
       <DependentUpon>ControlRxnSpecies.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\ChemicalNamePairConverter.cs" />
@@ -152,10 +152,10 @@
     </Compile>
     <Compile Include="Plotting\Models\RxnKineticsPlotModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Themes\ValidatedNumberBox.xaml.cs">
+    <Compile Include="Controls\ValidatedNumberBox.xaml.cs">
       <DependentUpon>ValidatedNumberBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Themes\OutputOptionsButton.xaml.cs">
+    <Compile Include="Controls\OutputOptionsButton.xaml.cs">
       <DependentUpon>OutputOptionsButton.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -241,11 +241,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\ControlMixtureSpecies.xaml">
+    <Page Include="Controls\ControlMixtureSpecies.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\ControlRxnSpecies.xaml">
+    <Page Include="Controls\ControlRxnSpecies.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -269,11 +269,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Themes\ValidatedNumberBox.xaml">
+    <Page Include="Controls\ValidatedNumberBox.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Themes\OutputOptionsButton.xaml">
+    <Page Include="Controls\OutputOptionsButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
