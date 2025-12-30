@@ -44,12 +44,14 @@
 					</Grid>
 
 					<!--
-					Command : Bound to ViewModel.DeleteCommand, which is itself passed down from PageRxnKin to ensure proper deletion from the
+					Command : Bound to ViewModel.DeleteCommand, which is itself passed down from the page to ensure proper deletion from the
 							  master list.
-					CommandParameter : ViewModel.DeleteCommand takes in a parameter to decide which ViewModel to remove from the list in PageRxnKin.
-									   ViewModel contains this ControlRxnSpecies instance, which removes it from the list.
+					CommandParameter : ViewModel.DeleteCommand takes in a parameter to decide which ViewModel to remove from the list in the page.
+									   ViewModel contains this ControlMixtureSpecies instance, which removes it from the list.
 					-->
-					<Button Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}" CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
+					<Button x:Name="ButtonDelete"
+							Command="{x:Bind ViewModel.DeleteCommand, Mode=OneWay}"
+							CommandParameter="{x:Bind ViewModel, Mode=OneWay}"
 							Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
 						<StackPanel Orientation="Horizontal">
 							<FontIcon Glyph="&#xE74D;" Margin="0,0,5,0"/>

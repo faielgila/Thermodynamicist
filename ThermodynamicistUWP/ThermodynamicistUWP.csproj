@@ -130,6 +130,9 @@
       <DependentUpon>ControlRxnSpecies.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\ChemicalNamePairConverter.cs" />
+    <Compile Include="Pages\PageBinarySys.xaml.cs">
+      <DependentUpon>PageBinarySys.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageHomoMix.xaml.cs">
       <DependentUpon>PageHomoMix.xaml</DependentUpon>
     </Compile>
@@ -250,6 +253,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\MainPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageBinarySys.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

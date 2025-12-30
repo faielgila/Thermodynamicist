@@ -36,7 +36,7 @@
 					<muxc:ImageIcon Source="/Assets/TypeIcons/HomogeneousMixture@3x.png"/>
 				</NavigationViewItem.Icon>
 			</NavigationViewItem>
-			<NavigationViewItem Content="Binary two-phase system" Tag="ThermodynamicistUWP.PageHomoMix">
+			<NavigationViewItem Content="Binary two-phase system" Tag="ThermodynamicistUWP.PageBinarySys">
 				<NavigationViewItem.Icon>
 					<muxc:ImageIcon Source="/Assets/TypeIcons/MultiphaseSystem@3x.png"/>
 				</NavigationViewItem.Icon>

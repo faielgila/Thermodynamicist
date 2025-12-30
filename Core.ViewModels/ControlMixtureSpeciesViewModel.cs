@@ -112,6 +112,19 @@ public partial class ControlMixtureSpeciesViewModel : ObservableObject
 	[ObservableProperty]
 	private IRelayCommand<ControlMixtureSpeciesViewModel> _deleteCommand;
 
+	[ObservableProperty]
+	private bool _suppressDeletion;
+
+	public ControlMixtureSpeciesViewModel()
+	{
+		SuppressDeletion = false;
+	}
+
+	public ControlMixtureSpeciesViewModel(bool suppressDeletion)
+	{
+		SuppressDeletion = suppressDeletion;
+	}
+
 	/// <summary>
 	/// Generates a <see cref="MixtureSpecies"/> with the values of this ViewModel.
 	/// </summary>

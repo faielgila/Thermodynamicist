@@ -95,11 +95,11 @@ namespace ThermodynamicistUWP
 				));
 			}
 
-			// Warning: No rxnSpecies have been defined.
+			// Warning: No mixtureSpecies have been defined.
 			if (ViewModel.Items.Count == 0)
 			{
 				ViewModel.Errors.Add(new ErrorInfoViewModel(false,
-					"No reaction species were defined. Click the '+' icon in the Reaction panel to add one."
+					"No mixture species were defined. Click the '+' icon in the Mixture panel to add one."
 				));
 			}
 
@@ -107,7 +107,7 @@ namespace ThermodynamicistUWP
 			if (T <= 0 || double.IsNaN(T)) missingInputs.Add("Temperature");
 			if (P <= 0 || double.IsNaN(P)) missingInputs.Add("Pressure");
 
-			// Error: Missing reaction inputs.
+			// Error: Missing mixture inputs.
 			if (DropdownModel.SelectedItem == null) missingInputs.Add("Activity model");
 
 			// Validate MixtureSpecies inputs.

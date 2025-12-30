@@ -51,7 +51,7 @@ public class MultiphaseSystem
 	/// <summary>
 	/// Lists all phases present in the system.
 	/// </summary>
-	List<string> PhasesList { get; }
+	public List<string> PhasesList { get; }
 
 	/// <summary>
 	/// Stores all calculated chemical potential curves for each species at various temperatures, pressures, and phases.
@@ -160,6 +160,9 @@ public class MultiphaseSystem
 			}
 		}
 
+		// If ther are no possible states, return empty list.
+		if (roughing.Count == 0) return [];
+
 		// Include roughing near edges of the 'no state found' region.
 		roughing.Add(possibleStates.Min());
 		roughing.Add(possibleStates.Max());
@@ -176,7 +179,7 @@ public class MultiphaseSystem
 			// Beware of NaN states!
 			// If the range being tested extends beyond the 'no state found' region,
 			// you'll need to find exactly where the edge of that region is.
-			var compositionsV = new LinearEnumerable(xVr.min, xVr.max, searchDensity).ToList();
+			var compositionsV = new LinearEnumerable(xVr.Value.min, xVr.Value.max, searchDensity).ToList();
 			CalculatePotentialAndEnergyCurves(T, P, "vapor", compositionsV);
 			MoleFraction xL_fromMin = double.NaN;
 			foreach (var xVtest in compositionsV)
@@ -210,7 +213,7 @@ public class MultiphaseSystem
 			//Console.WriteLine($"Determined search range for xL to be between {xL_fromMin} and {xL_fromMax}");
 
 			(MoleFraction xV, MoleFraction xL, double error) previousResult = (double.NaN, double.NaN, double.NaN);
-			for (MoleFraction xV = xVr.min; xV <= xVr.max; xV += searchDensity)
+			for (MoleFraction xV = xVr.Value.min; xV <= xVr.Value.max; xV += searchDensity)
 			{
 				(MoleFraction xL, double error) = SearchForCommonTangets(xV);
 				if (double.IsNaN(xL)) continue;
@@ -551,8 +554,7 @@ public class PhaseTotalGibbsEnergyCurve : InterpolableTable<MoleFraction, GibbsE
 
 struct MoleFractionSearchRanges
 {
-	
-	public List<(MoleFraction min, MoleFraction max)> Ranges { private set; get; }
+	public Dictionary<Int32, (MoleFraction min, MoleFraction max)> Ranges { private set; get; }
 
 	public MoleFractionSearchRanges(List<(MoleFraction min, MoleFraction max)> minmaxRanges)
 	{
@@ -580,13 +582,13 @@ struct MoleFractionSearchRanges
 		{
 			if (!Ranges.Any())
 			{
-				Ranges.Add(x);
+				Ranges.Add(GetHashcode(x), x);
 				continue;
 			}
 
 			// Get all s such that x is entirely contained in s.
 			var range_contained = (from s in Ranges
-								   where s.min <= x.min && s.max >= x.max
+								   where s.Value.min <= x.min && s.Value.max >= x.max
 								   select s).ToArray();
 			if (range_contained.Length != 0)
 			{
@@ -595,42 +597,44 @@ struct MoleFractionSearchRanges
 
 			// Get all s such that s is entirely contained in x.
 			var range_contains = (from s in Ranges
-								  where s.min >= x.min && s.max <= x.max
+								  where s.Value.min >= x.min && s.Value.max <= x.max
 								  select s).ToArray();
 			if (range_contains.Length != 0)
 			{
 				var s = range_contains[0];
-				Ranges.Remove(s);
-				Ranges.Add(x);
+				Ranges.Remove(s.Key);
+				Ranges.Add(GetHashcode(x), x);
 				continue;
 			}
 
 			// Get all s such that only the 'top' portion of s is contained in x.
 			var range_left = (from s in Ranges
-							  where s.min <= x.min && x.min <= s.max && s.max <= x.max
+							  where s.Value.min <= x.min && x.min <= s.Value.max && s.Value.max <= x.max
 							  select s).ToArray();
 			if (range_left.Length != 0)
 			{
 				var s = range_left[0];
-				Ranges.Remove(s);
-				Ranges.Add((s.min, x.max));
+				var r = (s.Value.min, x.max);
+				Ranges.Remove(s.Key);
+				Ranges.Add(GetHashcode(r), r);
 				continue;
 			}
 
 			// Get all s such that only the 'bottom' portion of s is contained in x.
 			var range_right = (from s in Ranges
-							   where s.max >= x.max && x.min <= s.min && s.min <= x.max
+							   where s.Value.max >= x.max && x.min <= s.Value.min && s.Value.min <= x.max
 							   select s).ToArray();
 			if (range_right.Length != 0)
 			{
 				var s = range_right[0];
-				Ranges.Remove(s);
-				Ranges.Add((x.min, s.max));
+				var r = (x.min, s.Value.max);
+				Ranges.Remove(s.Key);
+				Ranges.Add(GetHashcode(r), r);
 				continue;
 			}
 
 			// All other cases are such that s and x have no intersection.
-			Ranges.Add(x);
+			Ranges.Add(GetHashcode(x), x);
 		}
 	}
 
@@ -639,7 +643,13 @@ struct MoleFractionSearchRanges
 	/// </summary>
 	public void AddRange(MoleFraction min, MoleFraction max)
 	{
-		Ranges.Add((min, max));
-		UnifyRanges(Ranges);
+		var x = (min, max);
+		Ranges.Add(GetHashcode(x), x);
+		UnifyRanges(Ranges.Values.ToList());
+	}
+
+	private Int32 GetHashcode((MoleFraction min, MoleFraction max) x)
+	{
+		return (x.min.GetHashCode() << 32) + x.max.GetHashCode();
 	}
 }

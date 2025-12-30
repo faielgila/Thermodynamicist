@@ -34,7 +34,9 @@ namespace ThermodynamicistUWP
 		/// Allows ViewModel to be bound in the XAML specification of this control.
 		/// </summary>
 		public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
-			nameof(ViewModel), typeof(ControlMixtureSpeciesViewModel), typeof(ControlMixtureSpecies), new PropertyMetadata(null));
+			nameof(ViewModel), typeof(ControlMixtureSpeciesViewModel),
+			typeof(ControlMixtureSpecies),
+			new PropertyMetadata(null, ViewModelPropertyChanged));
 
 		public ControlMixtureSpecies()
 		{
@@ -51,6 +53,12 @@ namespace ThermodynamicistUWP
 			DropdownEoS.Items.Add(new VanDerWaalsEOSFactory());
 			DropdownEoS.Items.Add(new PengRobinsonEOSFactory());
 			DropdownEoS.Items.Add(new ModSolidLiquidVaporEOSFactory());
+		}
+
+		private static void ViewModelPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			var obj = (ControlMixtureSpecies)sender;
+			if (obj.ViewModel.SuppressDeletion) obj.ButtonDelete.Visibility = Visibility.Collapsed;
 		}
 
 		/// <summary>
