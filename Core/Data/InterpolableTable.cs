@@ -6,7 +6,7 @@ using System.Text;
 namespace Core.Data;
 
 /// <summary>
-/// Represents a sorted data table of input type Tx and ourput type Ty.
+/// Represents a sorted data table of input type Tx and output type Ty.
 /// Example: A table of chemical potentials at various mixture compositions. This
 /// class would be used to find a composition given a composition without requiring
 /// an expensive search algorithm.
