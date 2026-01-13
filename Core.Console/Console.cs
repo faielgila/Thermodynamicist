@@ -28,13 +28,14 @@ AnsiConsole.WriteLine();
 
 //TestHomogeneousMixture.Test(dirConsole);
 //TestBinaryMultiphaseSystem.Test(dirConsole);
-//TestBinaryPhaseDiagram.Test(dirConsole);
+TestBinaryPhaseDiagram.Test(dirConsole);
 
 
 //
 // PHASE IV - REACTIVE SYSTEMS
 //
-TestElementaryRateLaw.Test(dirConsole);
+
+//TestElementaryRateLaw.Test(dirConsole);
 
 
 

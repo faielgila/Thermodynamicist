@@ -1,6 +1,7 @@
 ﻿using Core.Data;
 using Core.VariableTypes;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Core.Multicomponent;
 
@@ -56,12 +57,12 @@ public class MultiphaseSystem
 	/// <summary>
 	/// Stores all calculated chemical potential curves for each species at various temperatures, pressures, and phases.
 	/// </summary>
-	public Dictionary<MultiphaseStatePoint, ChemicalPotentialCurve> chemicalPotentialCurves = [];
+	public ChemicalPotentialCurvesLibrary curvesLibChemicalPotential = [];
 
 	/// <summary>
 	/// Stores all calculated Gibbs energy curves for each phase at various temperatures and pressures.
 	/// </summary>
-	public Dictionary<(string phase, Temperature T, Pressure P), PhaseTotalGibbsEnergyCurve> totalGibbsEnergyCurves = [];
+	public PhaseTotalGibbsEnergyCurvesLibrary curvesLibPhaseTotalGibbsEnergy = [];
 
 	public Dictionary<MoleFraction, double> LastPhaseEquilibriaErrors = [];
 
@@ -128,16 +129,17 @@ public class MultiphaseSystem
 		var errorTolerance = 0.02;
 
 		var searchDensity = 0.01;
-		var compositions = new LinearEnumerable(0.001, 1, searchDensity).ToList();
+		var compositions = new LinearEnumerable(0.0001, 1, searchDensity).ToList();
+		compositions.Add(0.9999);
 		foreach (var phase in PhasesList)
 		{
-			CalculatePotentialAndEnergyCurves(T, P, phase, compositions);
+			PopulateCurveLibraries(T, P, phase, compositions);
 		}
 		LastPhaseEquilibriaErrors = [];
 
 
 		// Run a roughing search across all compositions.
-		//Console.WriteLine("== Performing rough search across all compositions ==");
+		Console.WriteLine("== Performing rough search across all compositions ==");
 		// All compositions (e.g. xV) are mole fractions of the non-basis species.
 		// For a binary mixture, this is really easy.
 		List<MoleFraction> roughing = [];
@@ -147,16 +149,16 @@ public class MultiphaseSystem
 			(MoleFraction xL, double error) = SearchForCommonTangets(xV);
 			if (double.IsNaN(error))
 			{
-				//Console.WriteLine($"No state found at x0V={xV.RoundToSigfigs(3)}");
+				Console.WriteLine($"No state found at x0V={xV.RoundToSigfigs(3)}");
 				continue;
 			}
 			possibleStates.Add(xV);
 			LastPhaseEquilibriaErrors.Add(xV, error);
-			//Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
+			Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
 			if (error <= errorTolerance*2)
 			{
 				roughing.Add(xV);
-				//Console.WriteLine($"Roughing candidate found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)}");
+				Console.WriteLine($"Roughing candidate found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)}");
 			}
 		}
 
@@ -174,13 +176,13 @@ public class MultiphaseSystem
 		var finalSearchSpace = new MoleFractionSearchRanges(roughing, searchRadius);
 		foreach (var xVr in finalSearchSpace.Ranges)
 		{
-			//Console.WriteLine($"== Performing final search for xV = [{xVr.min.RoundToSigfigs(3)}, {xVr.max.RoundToSigfigs(3)}] ==");
+			Console.WriteLine($"== Performing final search for xV = [{xVr.Value.min.RoundToSigfigs(3)}, {xVr.Value.max.RoundToSigfigs(3)}] ==");
 
 			// Beware of NaN states!
 			// If the range being tested extends beyond the 'no state found' region,
 			// you'll need to find exactly where the edge of that region is.
 			var compositionsV = new LinearEnumerable(xVr.Value.min, xVr.Value.max, searchDensity).ToList();
-			CalculatePotentialAndEnergyCurves(T, P, "vapor", compositionsV);
+			PopulateCurveLibraries(T, P, "vapor", compositionsV);
 			MoleFraction xL_fromMin = double.NaN;
 			foreach (var xVtest in compositionsV)
 			{
@@ -209,22 +211,22 @@ public class MultiphaseSystem
 				}
 			}
 			var compositionsL = new LinearEnumerable(Math.Min(xL_fromMin, xL_fromMax), Math.Max(xL_fromMin, xL_fromMax), searchDensity).ToList();
-			CalculatePotentialAndEnergyCurves(T, P, "liquid", compositionsL);
-			//Console.WriteLine($"Determined search range for xL to be between {xL_fromMin} and {xL_fromMax}");
+			PopulateCurveLibraries(T, P, "liquid", compositionsL);
+			Console.WriteLine($"Determined search range for xL to be between {xL_fromMin} and {xL_fromMax}");
 
 			(MoleFraction xV, MoleFraction xL, double error) previousResult = (double.NaN, double.NaN, double.NaN);
 			for (MoleFraction xV = xVr.Value.min; xV <= xVr.Value.max; xV += searchDensity)
 			{
 				(MoleFraction xL, double error) = SearchForCommonTangets(xV);
 				if (double.IsNaN(xL)) continue;
-				//Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
+				Console.WriteLine($"State found at x0V={xV.RoundToSigfigs(3)} with error {error}");
 				LastPhaseEquilibriaErrors.Add(xV, error);
 
 				// Check to ensure error is below accepted tolerance.
 				// Necesary to avoid always finding solutions at the no-state boundaries.
 				if (error > errorTolerance)
 				{
-					//Console.WriteLine($"State ignored at x0V={xV.RoundToSigfigs(3)} with error {error}");
+					Console.WriteLine($"State ignored at x0V={xV.RoundToSigfigs(3)} with error {error}");
 					continue;
 				}
 				
@@ -233,7 +235,7 @@ public class MultiphaseSystem
 				{
 					resultsPrelim.Remove((previousResult.xV, previousResult.xL));
 					resultsPrelim.Add((xV, xL), error);
-					//Console.WriteLine($"Better final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+					Console.WriteLine($"Better final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
 				}
 				else if (error == previousResult.error)
 				{
@@ -242,7 +244,7 @@ public class MultiphaseSystem
 					(xL, error) = SearchForCommonTangets(xV);
 					resultsPrelim.Add((xV, xL), error);
 					LastPhaseEquilibriaErrors.Add(xV, error);
-					//Console.WriteLine($"Equivalent final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
+					Console.WriteLine($"Equivalent final equilibrium found at x0V={xV.RoundToSigfigs(3)} x0L={xL.RoundToSigfigs(3)} with error {error}");
 				}
 
 				// Store this current state for future use.
@@ -268,8 +270,8 @@ public class MultiphaseSystem
 
 		(MoleFraction xL, double error) SearchForCommonTangets(MoleFraction xV)
 		{
-			var curves_V = GetChemicalPotentialCurves(T, P, PhasesList[0]);
-			var curves_L = GetChemicalPotentialCurves(T, P, PhasesList[1]);
+			var curves_V = curvesLibChemicalPotential.GetCurves(T, P, PhasesList[0]);
+			var curves_L = curvesLibChemicalPotential.GetCurves(T, P, PhasesList[1]);
 			var curvePotential_V0 = curves_V[SpeciesListNonBasis[0]];
 			var curvePotential_V1 = curves_V[SpeciesBasis];
 			var curveComposition_L0 = curves_L[SpeciesListNonBasis[0]].Invert();
@@ -281,12 +283,12 @@ public class MultiphaseSystem
 			var xL_from1 = curveComposition_L1.GetValue(mu_V1);
 			if (mu_V0 is null || xL_from0 is null)
 			{
-				//Console.WriteLine($"Common tangent not possible for x0V={xV}");
+				Console.WriteLine($"Common tangent not possible for x0V={xV}");
 				return (double.NaN, double.NaN);
 			}
 			if (mu_V1 is null || xL_from1 is null)
 			{
-				//Console.WriteLine($"Common tangent not possible for x0V={xV}");
+				Console.WriteLine($"Common tangent not possible for x0V={xV}");
 				return (double.NaN, double.NaN);
 			}
 			var error = Math.Abs(xL_from0 - xL_from1);
@@ -299,13 +301,13 @@ public class MultiphaseSystem
 	/// Calculates the chemical potential curves for all species in the given phase
 	/// at the specified temperature and pressure.
 	/// </summary>
-	public void CalculatePotentialAndEnergyCurves(Temperature T, Pressure P, string phase, List<double> compositions)
+	public void PopulateCurveLibraries(Temperature T, Pressure P, string phase, List<double> compositions)
 	{
 		// Check for already calculated curves.
 		//foreach (var entry in speciesList)
 		//{
 		//	var state = new MultiphaseStatePoint(entry.Key, phase, T, P);
-		//	if (chemicalPotentialCurves.ContainsKey(state)) { return; }
+		//	if (curvesLibChemicalPotential.ContainsKey(state)) { return; }
 		//}
 
 		var state0 = new MultiphaseStatePoint(SpeciesListNonBasis[0], phase, T, P);
@@ -314,7 +316,7 @@ public class MultiphaseSystem
 		var phaseCurve1 = new ConcurrentDictionary<MoleFraction, ChemicalPotential>();
 		var energyCurve = new ConcurrentDictionary<MoleFraction, GibbsEnergy>();
 
-		//Console.WriteLine($"Calculating chemical potential curves for phase \"{phase}\"");
+		Console.WriteLine($"Calculating chemical potential curves for phase \"{phase}\"");
 		Parallel.ForEach(compositions, x => {
 			var speciesList_local = new List<MixtureSpecies>
 			{
@@ -334,7 +336,7 @@ public class MultiphaseSystem
 			phaseCurve1.TryAdd(x, mu1);
 			energyCurve.TryAdd(x, G);
 
-			//Console.WriteLine($"Calculated chemical potentials at x0={x}");
+			Console.WriteLine($"Calculated chemical potentials at x0={x}");
 		});
 
 		var phaseTable0 = new ChemicalPotentialCurve(state0, phaseCurve0);
@@ -344,34 +346,34 @@ public class MultiphaseSystem
 		phaseTable1.Resort();
 		energyTable.Resort();
 
-		if (ChemicalPotentialCurvesContainsKey(state0))
+		if (curvesLibChemicalPotential.ContainsKey(state0))
 		{
-			chemicalPotentialCurves[state0].Append(phaseTable0);
-			chemicalPotentialCurves[state0].Resort();
+			curvesLibChemicalPotential.GetCurve(state0).Append(phaseTable0);
+			curvesLibChemicalPotential.GetCurve(state0).Resort();
 		}
 		else
 		{
-			chemicalPotentialCurves.Add(state0, phaseTable0);
+			curvesLibChemicalPotential.Add(state0, phaseTable0);
 		}
 
-		if (ChemicalPotentialCurvesContainsKey(state1))
+		if (curvesLibChemicalPotential.ContainsKey(state1))
 		{
-			chemicalPotentialCurves[state1].Append(phaseTable1);
-			chemicalPotentialCurves[state1].Resort();
+			curvesLibChemicalPotential.GetCurve(state1).Append(phaseTable1);
+			curvesLibChemicalPotential.GetCurve(state1).Resort();
 		}
 		else
 		{
-			chemicalPotentialCurves.Add(state1, phaseTable1);
+			curvesLibChemicalPotential.Add(state1, phaseTable1);
 		}
 
-		if (totalGibbsEnergyCurves.ContainsKey((phase, T, P)))
+		if (curvesLibPhaseTotalGibbsEnergy.ContainsKey((T, P, phase)))
 		{
-			totalGibbsEnergyCurves[(phase, T, P)].Append(energyTable);
-			totalGibbsEnergyCurves[(phase, T, P)].Resort();
+			curvesLibPhaseTotalGibbsEnergy[(T, P, phase)].Append(energyTable);
+			curvesLibPhaseTotalGibbsEnergy[(T, P, phase)].Resort();
 		}
 		else
 		{
-			totalGibbsEnergyCurves.Add((phase, T, P), energyTable);
+			curvesLibPhaseTotalGibbsEnergy.Add((T, P, phase), energyTable);
 		}
 		
 	}
@@ -387,83 +389,13 @@ public class MultiphaseSystem
 		}
 		throw new KeyNotFoundException($"Mixture with phase \'{phase}\' not found in mixtureList.");
 	}
-
-	/// <summary>
-	/// Retrieves all chemical potential curves from <see cref="chemicalPotentialCurves"/> with the given phase.
-	/// </summary>
-	public Dictionary<(Temperature T, Pressure P, Chemical species), ChemicalPotentialCurve> GetChemicalPotentialCurves(string phase)
-	{
-		Dictionary<(Temperature T, Pressure P, Chemical species), ChemicalPotentialCurve> results = [];
-		foreach (var entry in chemicalPotentialCurves)
-		{
-			if (entry.Key.phase == phase) results.Add((entry.Key.T, entry.Key.P, entry.Key.species), entry.Value);
-		}
-		return results;
-	}
-
-	/// <summary>
-	/// Retrieves all chemical potential curves from <see cref="chemicalPotentialCurves"/> with the given temperature, pressure, and phase.
-	/// </summary>
-	public Dictionary<Chemical, ChemicalPotentialCurve> GetChemicalPotentialCurves(Temperature T, Pressure P, string phase)
-	{
-		Dictionary<Chemical, ChemicalPotentialCurve> results = [];
-		foreach (var entry in chemicalPotentialCurves)
-		{
-			if (entry.Key.phase != phase) continue;
-			if (entry.Key.T != T) continue;
-			if (entry.Key.P != P) continue;
-			
-			if (!results.ContainsKey(entry.Key.species)) results.Add(entry.Key.species, entry.Value);
-		}
-		return results;
-	}
-
-	/// <summary>
-	/// Determines if the chemical potential curves list already contains an
-	/// entry for the given state.
-	/// </summary>
-	public bool ChemicalPotentialCurvesContainsKey(MultiphaseStatePoint state)
-	{
-		foreach (var curve in chemicalPotentialCurves)
-		{
-			if (curve.Key.Equals(state)) return true;
-		}
-		return false;
-	}
-
-	/// <summary>
-	/// Converts all chemical potential curves in <see cref="ChemicalPotentialCurves"/>
-	/// to a CSV-formatted string.
-	/// </summary>
-	public Dictionary<MultiphaseStatePoint, string> ConvertChemicalPotentialCurvesToCSV()
-	{
-		Dictionary<MultiphaseStatePoint, string> dict = [];
-		foreach (var entry in chemicalPotentialCurves)
-		{
-			dict.Add(entry.Key, entry.Value.ToCSVString());
-		}
-		return dict;
-	}
-
-	/// <summary>
-	/// Converts all total Gibbs energy curves in <see cref="totalGibbsEnergyCurves"/>
-	/// to a CSV-formatted string.
-	/// </summary>
-	public Dictionary<(string phase, Temperature T, Pressure P), string> ConvertTotalGibbsEnergyCurvesToCSV()
-	{
-		Dictionary<(string phase, Temperature T, Pressure P), string> dict = [];
-		foreach (var entry in totalGibbsEnergyCurves)
-		{
-			dict.Add(entry.Key, entry.Value.ToCSVString());
-		}
-		return dict;
-	}
 }
+
 
 /// <summary>
 /// Stores a state point for the system according to phase, species, temperature, and pressure.
 /// </summary>
-public struct MultiphaseStatePoint(Chemical _species, string _phase, Temperature _T, Pressure _P)
+public class MultiphaseStatePoint(Chemical _species, string _phase, Temperature _T, Pressure _P)
 {
 	public Chemical species = _species;
 	public string phase = _phase;
@@ -552,6 +484,108 @@ public class PhaseTotalGibbsEnergyCurve : InterpolableTable<MoleFraction, GibbsE
 	}
 }
 
+/// <summary>
+/// Stores all chemical potential curves for a given multiphase system in a Dictionary.
+/// Extends Dictionary<> with special functions relevant for selecting curves.
+/// </summary>
+public class ChemicalPotentialCurvesLibrary : Dictionary<MultiphaseStatePoint, ChemicalPotentialCurve>
+{
+	public new bool ContainsKey(MultiphaseStatePoint state)
+	{
+		foreach (var kvp in this)
+		{
+			if (kvp.Key.phase != state.phase) continue;
+			if (kvp.Key.species != state.species) continue;
+			if (kvp.Key.T != state.T) continue;
+			if (kvp.Key.P != state.P) continue;
+
+			return true;
+		}
+		return false;
+	}
+
+	public ChemicalPotentialCurve GetCurve(MultiphaseStatePoint state)
+	{
+		foreach (var kvp in this)
+		{
+			if (kvp.Key.phase != state.phase) continue;
+			if (kvp.Key.species != state.species) continue;
+			if (kvp.Key.T != state.T) continue;
+			if (kvp.Key.P != state.P) continue;
+
+			return kvp.Value;
+		}
+		throw new KeyNotFoundException("Chemial potential curve for the given state not present.");
+	}
+
+	/// <summary>
+	/// Retrieves curves for a phase at the given temperature and pressure.
+	/// </summary>
+	public Dictionary<Chemical, ChemicalPotentialCurve> GetCurves(Temperature T, Pressure P, string phase)
+	{
+		Dictionary<Chemical, ChemicalPotentialCurve> results = [];
+		foreach (var kvp in this)
+		{
+			if (kvp.Key.phase != phase) continue;
+			if (kvp.Key.T != T) continue;
+			if (kvp.Key.P != P) continue;
+
+			if (!results.ContainsKey(kvp.Key.species)) results.Add(kvp.Key.species, kvp.Value);
+		}
+		return results;
+	}
+
+	/// <summary>
+	/// Retrieves curves for a chemical at the given temperature and pressure.
+	/// </summary>
+	public Dictionary<string, ChemicalPotentialCurve> GetCurves(Temperature T, Pressure P, Chemical chemical)
+	{
+		Dictionary<string, ChemicalPotentialCurve> results = [];
+		foreach (var kvp in this)
+		{
+			if (kvp.Key.species != chemical) continue;
+			if (kvp.Key.T != T) continue;
+			if (kvp.Key.P != P) continue;
+
+			if (!results.ContainsKey(kvp.Key.phase)) results.Add(kvp.Key.phase, kvp.Value);
+		}
+		return results;
+	}
+
+	/// <summary>
+	/// Converts every curve in the library to a CSV-formatted string.
+	/// </summary>
+	public Dictionary<MultiphaseStatePoint, string> ConvertToCSV()
+	{
+		Dictionary<MultiphaseStatePoint, string> dict = [];
+		foreach (var kvp in this)
+		{
+			dict.Add(kvp.Key, kvp.Value.ToCSVString());
+		}
+		return dict;
+	}
+}
+
+/// <summary>
+/// Stores all total Gibbs energy curves for a given multiphase system in a Dictionary.
+/// Extends Dictionary<> with special functions relevant for selecting curves.
+/// </summary>
+public class PhaseTotalGibbsEnergyCurvesLibrary : Dictionary<(Temperature T, Pressure P, string phase), PhaseTotalGibbsEnergyCurve>
+{
+	/// <summary>
+	/// Converts every curve in the library to a CSV-formatted string.
+	/// </summary>
+	public Dictionary<(Temperature T, Pressure P, string phase), string> ConvertToCSV()
+	{
+		Dictionary<(Temperature T, Pressure P, string phase), string> dict = [];
+		foreach (var kvp in this)
+		{
+			dict.Add(kvp.Key, kvp.Value.ToCSVString());
+		}
+		return dict;
+	}
+}
+
 struct MoleFractionSearchRanges
 {
 	public Dictionary<Int32, (MoleFraction min, MoleFraction max)> Ranges { private set; get; }
@@ -566,7 +600,7 @@ struct MoleFractionSearchRanges
 		List<(MoleFraction min, MoleFraction max)> minmaxRanges = [];
 		foreach (var x in _centerRanges)
 		{
-			minmaxRanges.Add((x-radius, x+radius));
+			minmaxRanges.Add((Math.Max(x-radius, 0), Math.Min(x+radius, 1)));
 		}
 		UnifyRanges(minmaxRanges);
 	}

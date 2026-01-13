@@ -36,7 +36,7 @@ static class TestBinaryMultiphaseSystem
 
 		var equilibria = system.FindPhaseEquilibria(T, P);
 
-		foreach (var entry in system.ConvertChemicalPotentialCurvesToCSV())
+		foreach (var entry in system.curvesLibChemicalPotential.ConvertToCSV())
 		{
 			string filename = $"T365-P{P}-{entry.Key.phase}-{entry.Key.species}.csv";
 			File.Delete(filename);
@@ -46,7 +46,7 @@ static class TestBinaryMultiphaseSystem
 			AnsiConsole.WriteLine($"Wrote to file: {filename}.");
 		}
 
-		foreach (var entry in system.ConvertTotalGibbsEnergyCurvesToCSV())
+		foreach (var entry in system.curvesLibPhaseTotalGibbsEnergy.ConvertToCSV())
 		{
 			string filename = $"T365-P{P}-{entry.Key.phase}.csv";
 			File.Delete(filename);

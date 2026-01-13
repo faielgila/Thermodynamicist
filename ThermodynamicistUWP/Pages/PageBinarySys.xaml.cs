@@ -256,7 +256,7 @@ namespace ThermodynamicistUWP
 								foreach (var kvp in result.Value)
 								{
 									var point = new MultiphaseStatePoint(kvp.Key.species, kvp.Key.phase, result.T, result.P);
-									var x = binSys.chemicalPotentialCurves[point].GetValue(kvp.Value).ToEngrNotation(5);
+									var x = binSys.curvesLibChemicalPotential[point].GetValue(kvp.Value).ToEngrNotation(5);
 									equilibriumOutputDict[result.Value.First().Value].AddOutputDatum(kvp.Key, item.DisplayFormat(x));
 								}
 							}
