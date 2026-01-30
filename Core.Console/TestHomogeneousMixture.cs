@@ -55,8 +55,8 @@ static class TestHomogeneousMixture
 				};
 				var modelL = new UNIFACActivityModel(mixtureSpecies);
 				var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", modelL, null);
-				var activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T).ToString();
-				var activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T).ToString();
+				var activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T, P).ToString();
+				var activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T, P).ToString();
 				var mu0 = homomix.SpeciesChemicalPotential(T, P, species0).ToString();
 				var mu1 = homomix.SpeciesChemicalPotential(T, P, species1).ToString();
 				var totalG = homomix.TotalMolarGibbsEnergy(T, P).ToString();
@@ -78,8 +78,8 @@ static class TestHomogeneousMixture
 				};
 				var modelV = new IdealMixture("vapor", mixtureSpecies);
 				homomix = new HomogeneousMixture(mixtureSpecies, "vapor", modelV, null);
-				activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T).ToString();
-				activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T).ToString();
+				activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T, P).ToString();
+				activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T, P).ToString();
 				mu0 = homomix.SpeciesChemicalPotential(T, P, species0).ToString();
 				mu1 = homomix.SpeciesChemicalPotential(T, P, species1).ToString();
 				totalG = homomix.TotalMolarGibbsEnergy(T, P).ToString();

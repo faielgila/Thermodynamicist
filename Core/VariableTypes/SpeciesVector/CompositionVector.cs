@@ -15,6 +15,21 @@ public class CompositionVector : ISpeciesVector<MoleFraction>
 	public CompositionVector() => dict = [];
 
 	/// <summary>
+	/// Calculates the total mole fraction of the mixture.
+	/// If the values of this vector are set correctly, the sum will always be 1.
+	/// </summary>
+	/// <returns>mole fraction, in [mol%]</returns>
+	public MoleFraction Total()
+	{
+		MoleFraction val = 0;
+		foreach (var item in dict)
+		{
+			val += item.Value;
+		}
+		return val;
+	}
+
+	/// <summary>
 	/// Creates an exact copy of the composition vector without reference to this original.
 	/// </summary>
 	public CompositionVector DeepCopy()

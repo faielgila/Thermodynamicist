@@ -28,7 +28,7 @@ AnsiConsole.WriteLine();
 
 //TestHomogeneousMixture.Test(dirConsole);
 //TestBinaryMultiphaseSystem.Test(dirConsole);
-TestBinaryPhaseDiagram.Test(dirConsole);
+//TestBinaryPhaseDiagram.Test(dirConsole);
 
 
 //
@@ -36,6 +36,7 @@ TestBinaryPhaseDiagram.Test(dirConsole);
 //
 
 //TestElementaryRateLaw.Test(dirConsole);
+TestIrreversibleReactiveMixture.Test(dirConsole);
 
 
 

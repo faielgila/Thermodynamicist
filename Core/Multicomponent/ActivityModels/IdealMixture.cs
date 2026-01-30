@@ -34,7 +34,7 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 		throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} not found in speciesList.");
 	}
 
-	public override double SpeciesActivityCoefficient(Chemical species, Temperature T)
+	public override double SpeciesActivityCoefficient(Chemical species, Temperature T, Pressure P)
 	{
 		// By definition, activity coefficients for an ideal mixture is 1.
 		// While seemingly unnecessary, in order to use IdealMixture as an

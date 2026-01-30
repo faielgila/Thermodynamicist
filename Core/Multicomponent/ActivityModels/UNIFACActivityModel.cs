@@ -1323,7 +1323,7 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 
 	#endregion
 
-	public override double SpeciesActivityCoefficient(Chemical species, Temperature T)
+	public override double SpeciesActivityCoefficient(Chemical species, Temperature T, Pressure P)
 	{
 		// Calculates all para-static variables (i.e., precalculations that only rely on the speciesList).
 		RunPrecalculations();
