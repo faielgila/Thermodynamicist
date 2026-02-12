@@ -65,9 +65,9 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 	/// <summary>
 	/// Calculates the overall molar heat capacity for an ideal solution.
 	/// </summary>
-	public double MolarHeatCapacity(Temperature T, Pressure P)
+	public HeatCapacity MolarHeatCapacity(Temperature T, Pressure P)
 	{
-		double Cp = 0;
+		var Cp = new HeatCapacity(0, ThermoVarRelations.RealMolar);
 		foreach (var mixSpecies in speciesList)
 		{
 			var Vi = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];

@@ -148,11 +148,11 @@ public abstract class EquationOfState
 	/// <param name="P">pressure, in [Pa]</param>
 	/// <param name="VMol">molar volume, in [m³/mol]</param>
 	/// <returns>molar heat capacity, in [J/K/mol]</returns>
-	public double MolarHeatCapacity(Temperature T, Pressure P, Volume VMol)
+	public HeatCapacity MolarHeatCapacity(Temperature T, Pressure P, Volume VMol)
 	{
 		var H1 = ReferenceMolarEnthalpy(T,P,VMol);
 		var H2 = ReferenceMolarEntropy(T+dTPrecision,P,VMol);
-		return (H2-H1)/dTPrecision;
+		return new HeatCapacity((H2-H1)/dTPrecision, ThermoVarRelations.RealMolar);
 	}
 
 

@@ -200,6 +200,20 @@ public class HomogeneousMixture
 		// see Phase Diagrams and Thermodynamics of Solutions, eq 4.3
 	}
 
+	/// <summary>
+	/// Calculates the total molar heat capacity of the mixture.
+	/// </summary>
+	/// <exception cref="KeyNotFoundException"/>
+	public HeatCapacity TotalMolarHeatCapacity(Temperature T, Pressure P)
+	{
+		var sumCp = new HeatCapacity(0, ThermoVarRelations.RealMolar);
+		foreach (var item in speciesList)
+		{
+			sumCp += item.speciesMoleFraction * SpeciesPartialMolarHeatCapacity(T, P, item.chemical);
+		}
+		return sumCp;
+	}
+
 	#endregion
 
 
@@ -363,6 +377,23 @@ public class HomogeneousMixture
 		var entropicCorrectionTerm = R * T * Math.Log(x);
 
 		return new GibbsEnergy(partialGex + pureG + entropicCorrectionTerm, ThermoVarRelations.PartialMolar);
+	}
+
+	/// <summary>
+	/// Calculates the partial molar heat capacity for a given species in the mixture.
+	/// </summary>
+	public HeatCapacity SpeciesPartialMolarHeatCapacity(Temperature T, Pressure P, Chemical species)
+	{
+		/* See Sandler, pg 362 (Ch 8).
+		 * The partial molar heat capacity of species i is equal to the partial derivative of
+		 * the partial molar enthalpy of species i with respect to the temperature under constant
+		 * pressure and mole number of all other species.
+		 * Thus, a first-order approximation of the partial derivative is appropriate.
+		 */
+		var Cp0 = SpeciesPartialMolarEnthalpy(T, P, species);
+		var Cp1 = SpeciesPartialMolarEnthalpy(T + dTPrecision, P, species);
+		var val = (Cp1 - Cp0) / dTPrecision;
+		return new HeatCapacity(val, ThermoVarRelations.PartialMolar);
 	}
 
 	#endregion
