@@ -209,9 +209,27 @@ public class HomogeneousMixture
 		var sumCp = new HeatCapacity(0, ThermoVarRelations.RealMolar);
 		foreach (var item in speciesList)
 		{
-			sumCp += item.speciesMoleFraction * SpeciesPartialMolarHeatCapacity(T, P, item.chemical);
+			var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(item.chemical)];
+			var x = mixtureSpecies.speciesMoleFraction;
+			var modeledPhase = mixtureSpecies.modeledPhase;
+			var EoS = mixtureSpecies.EoS;
+
+			var phases = EoS.PhaseFinder(T, P, true);
+			double VMol;
+			try
+			{
+				VMol = phases[modeledPhase];
+			}
+			catch
+			{
+				throw new KeyNotFoundException($"Phase \"{modeledPhase}\" for {Constants.ChemicalNames[item.chemical]} not found using {EoS.GetType().Name} phase finder.");
+			}
+
+			var pureCp = EoS.MolarHeatCapacity(T, P, VMol);
+			sumCp += item.speciesMoleFraction * pureCp;
 		}
-		return sumCp;
+		var mixCp = MolarHeatCapacityOfMixing(T, P);
+		return new HeatCapacity(mixCp + sumCp, ThermoVarRelations.RealMolar);
 	}
 
 	#endregion
@@ -243,6 +261,15 @@ public class HomogeneousMixture
 	public GibbsEnergy MolarGibbsEnergyOfMixing(Temperature T, Pressure P)
 	{
 		throw new NotImplementedException();
+	}
+
+	/// <summary>
+	/// Calculates the change in total molar heat capacity upon mixing for the mixture.
+	/// </summary>
+	public HeatCapacity MolarHeatCapacityOfMixing(Temperature T, Pressure P)
+	{
+		var Cpex = MolarExcessHeatCapacity(T, P);
+		return new HeatCapacity(Cpex, ThermoVarRelations.Mixing);
 	}
 
 	#endregion
@@ -290,6 +317,27 @@ public class HomogeneousMixture
 	{
 		var gamma = activityModel.SpeciesActivityCoefficient(species, T, P);
 		return new GibbsEnergy(R * T * Math.Log(gamma), ThermoVarRelations.PartialMolarExcess);
+	}
+
+	/// <summary>
+	/// Calculates the partial molar excess heat capacity for a given species in the mixture. 
+	/// </summary>
+	public HeatCapacity SpeciesPartialMolarExcessHeatCapacity(Temperature T, Pressure P, Chemical species)
+	{
+		/* Use a numerical approximation of the partial derivative relationship between
+		 * activity coefficients and the partial molar excess heat capacity.
+		 * Derived from Sandler eqn 9.3-21 and the definition of heat capacity restated on pg 362.
+		*/
+		var parHex = SpeciesPartialMolarExcessEnthalpy(T, P, species);
+		var gamma0 = activityModel.SpeciesActivityCoefficient(species, T, P);
+		var gamma1 = activityModel.SpeciesActivityCoefficient(species, T + dTPrecision, P);
+		var gamma2 = activityModel.SpeciesActivityCoefficient(species, T + 2*dTPrecision, P);
+		var gamma3 = activityModel.SpeciesActivityCoefficient(species, T + 3*dTPrecision, P);
+
+		var secDerNumr = -Math.Log(gamma3) + 4 * Math.Log(gamma2) - 5 * Math.Log(gamma1) + 2 * Math.Log(gamma0);
+
+		var val = -2 / T * parHex - R * T * T * secDerNumr / (Math.Pow(dTPrecision, 2));
+		return new HeatCapacity(val, ThermoVarRelations.PartialMolarExcess);
 	}
 
 	#endregion
@@ -384,16 +432,25 @@ public class HomogeneousMixture
 	/// </summary>
 	public HeatCapacity SpeciesPartialMolarHeatCapacity(Temperature T, Pressure P, Chemical species)
 	{
-		/* See Sandler, pg 362 (Ch 8).
-		 * The partial molar heat capacity of species i is equal to the partial derivative of
-		 * the partial molar enthalpy of species i with respect to the temperature under constant
-		 * pressure and mole number of all other species.
-		 * Thus, a first-order approximation of the partial derivative is appropriate.
-		 */
-		var Cp0 = SpeciesPartialMolarEnthalpy(T, P, species);
-		var Cp1 = SpeciesPartialMolarEnthalpy(T + dTPrecision, P, species);
-		var val = (Cp1 - Cp0) / dTPrecision;
-		return new HeatCapacity(val, ThermoVarRelations.PartialMolar);
+		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
+		var x = mixtureSpecies.speciesMoleFraction;
+		var modeledPhase = mixtureSpecies.modeledPhase;
+		var EoS = mixtureSpecies.EoS;
+
+		var phases = EoS.PhaseFinder(T, P, true);
+		double VMol;
+		try
+		{
+			VMol = phases[modeledPhase];
+		}
+		catch
+		{
+			throw new KeyNotFoundException($"Phase \"{modeledPhase}\" for {Constants.ChemicalNames[species]} not found using {EoS.GetType().Name} phase finder.");
+		}
+
+		var pureCp = EoS.MolarHeatCapacity(T, P, VMol);
+		var partialCpex = SpeciesPartialMolarExcessHeatCapacity(T, P, species);
+		return new HeatCapacity(pureCp + partialCpex, ThermoVarRelations.PartialMolar);
 	}
 
 	#endregion
@@ -425,6 +482,19 @@ public class HomogeneousMixture
 			Hex += item.speciesMoleFraction * SpeciesPartialMolarExcessEnthalpy(T, P, item.chemical);
 		}
 		return new Enthalpy(Hex, ThermoVarRelations.MolarExcess);
+	}
+
+	/// <summary>
+	/// Calculates the molar excess heat capacity for the mixture.
+	/// </summary>
+	public HeatCapacity MolarExcessHeatCapacity(Temperature T, Pressure P)
+	{
+		double Cpex = 0;
+		foreach (var item in speciesList)
+		{
+			Cpex += item.speciesMoleFraction * SpeciesPartialMolarExcessHeatCapacity(T, P, item.chemical);
+		}
+		return new HeatCapacity(Cpex, ThermoVarRelations.MolarExcess);
 	}
 
 	#endregion
