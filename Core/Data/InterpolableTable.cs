@@ -82,11 +82,12 @@ public class InterpolableTable<Tx, Ty> where Tx : ThermoVariable, new() where Ty
 	/// <returns>
 	/// Value in the table if key already exists;
 	/// interpolated value if key is within bounds;
-	/// null if key is outside bounds.
+	/// null if key is outside bounds or the table is empty.
 	/// </returns>
 	public Ty? GetValue(Tx? x)
 	{
 		if (x is null) return null;
+		if (Table.Count == 0) return null;
 
 		// Should x already have an entry in the table, no need for interpolation.
 		if (Table.TryGetValue(x, out var y)) return y;
