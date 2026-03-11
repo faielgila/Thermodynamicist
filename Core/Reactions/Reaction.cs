@@ -27,14 +27,33 @@ public class Reaction
 
 	#region Utilities
 
-	public List<Chemical> ConvertSpeciesToChemicalList()
+	/// <summary>
+	/// Gets a list of all chemicals in the reaction.
+	/// </summary>
+	public List<Chemical> GetChemicalList()
 	{
-		List<Chemical> list = [];
-		foreach (var rxnSpecies in speciesList)
+		return speciesList.Select(sp => sp.chemical).ToList();
+	}
+	
+	/// <summary>
+	/// Gets the index in speciesList which represents the given chemical.
+	/// </summary>
+	int GetRxnSpeciesIdx(Chemical species)
+	{
+		for (int i = 0; i < speciesList.Count; i++)
 		{
-			list.Add(rxnSpecies.chemical);
+			if (speciesList[i].chemical == species) return i;
 		}
-		return list;
+
+		throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} not found in speciesList.");
+	}
+	
+	/// <summary>
+	/// Gets the index in speciesList which represents the given chemical.
+	/// </summary>
+	public RxnSpecies GetRxnSpecies(Chemical species)
+	{
+		return speciesList[GetRxnSpeciesIdx(species)];
 	}
 
 	#endregion

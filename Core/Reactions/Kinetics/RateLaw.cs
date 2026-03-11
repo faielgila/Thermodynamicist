@@ -43,12 +43,20 @@ public abstract class RateLaw
 	/// If the species is a reactant, the reaction rate will be negative (i.e., consumption rate).
 	/// If the species is a product, the reaction rate will be positive (i.e., generation rate).
 	/// </summary>
+	/// <param name="T">reaction temperature, in [K]</param>
+	/// <param name="P">reaction pressure, in [Pa]</param>
+	/// <param name="concentrations">initial molar concentrations for each species, in [mol/L]</param>
+	/// <returns>rate of reaction/consumptions for each species, in [mol/s]</returns>
 	public abstract RateOfReaction ReactionRate(Temperature T, Pressure P, MolarityVector concentrations);
 
 	/// <summary>
 	/// Calculates the individual rates of generation/consumption for all species in the reaction
 	/// based on stoichiometry.
 	/// </summary>
+	/// <param name="T">reaction temperature, in [K]</param>
+	/// <param name="P">reaction pressure, in [Pa]</param>
+	/// <param name="concentrations">initial molar concentrations for each species, in [mol/L]</param>
+	/// <returns>rate of reaction/consumptions for each species, in [mol/s]</returns>
 	public GenericSpeciesVector<RateOfReaction> SpeciesReactionRates(Temperature T, Pressure P, MolarityVector concentrations)
 	{
 		var r = ReactionRate(T, P, concentrations);
