@@ -29,8 +29,8 @@ static class TestBinaryMultiphaseSystem
 			new(species1, 0.5, "liquid")
 		};
 		var mixtureList = new List<HomogeneousMixture>() {
-			new(vaporSpeciesList, "vapor", new IdealMixture("vapor", vaporSpeciesList), null),
-			new(liquidSpeciesList, "liquid", new UNIFACActivityModel(liquidSpeciesList), null)
+			new(vaporSpeciesList, "vapor", new IdealMixtureModelFactory(), null),
+			new(liquidSpeciesList, "liquid", new UNIFACActivityModelFactory(), null)
 		};
 		var system = new MultiphaseSystem(systemCompVec, mixtureList, Chemical.Water);
 

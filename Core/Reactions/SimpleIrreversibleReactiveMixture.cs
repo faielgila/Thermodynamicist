@@ -32,8 +32,8 @@ public class SimpleIrreversibleReactiveMixture : HomogeneousMixture
 	/// <param name="_phase">mixture phase</param>
 	/// <param name="_activityModel">activity model</param>
 	public SimpleIrreversibleReactiveMixture(List<Reaction> _reactionSet,
-		List<ReactiveMixtureSpecies> _speciesList, string _phase, ActivityModel _activityModel)
-		: base(ReactiveMixtureSpecies.ConvertToMixtureSpeciesList(_speciesList), _phase, _activityModel, null)
+		List<ReactiveMixtureSpecies> _speciesList, string _phase, IActivityModelFactory _activityModelFactory)
+		: base(ReactiveMixtureSpecies.ConvertToMixtureSpeciesList(_speciesList), _phase, _activityModelFactory, null)
 	{
 		reactiveSpeciesList = _speciesList;
 		reactionSet = _reactionSet;

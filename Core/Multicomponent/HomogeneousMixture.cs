@@ -39,13 +39,16 @@ public class HomogeneousMixture
 	/// Activity coefficient model to use in thermodynamic calculations.
 	/// </summary>
 	public ActivityModel activityModel;
+	
+	private IActivityModelFactory activityModelFactory;
 
-	public HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase, ActivityModel _activityModel, MoleFraction? _moleFraction)
+	public HomogeneousMixture(List<MixtureSpecies> _speciesList, string _phase, IActivityModelFactory _activityModelFactory, MoleFraction? _moleFraction)
 	{
 		speciesList = _speciesList;
 		totalPhase = _phase;
 		mixtureMoleFraction = _moleFraction;
-		activityModel = _activityModel;
+		activityModelFactory = _activityModelFactory;
+		activityModel = _activityModelFactory.Create(speciesList);
 	}
 
 	/// <summary>
@@ -109,14 +112,21 @@ public class HomogeneousMixture
 
 		throw new KeyNotFoundException($"{Constants.ChemicalNames[species]} not found in speciesList.");
 	}
+	
+	/// <summary>
+	/// Gets the index in speciesList which represents the given chemical.
+	/// </summary>
+	public MixtureSpecies GetMixtureSpecies(Chemical species)
+	{
+		return speciesList[GetMixtureSpeciesIdx(species)];
+	}
 
 	/// <summary>
 	/// Returns an exact copy of the mixture which is not linked to the original (i.e., a deep copy).
 	/// </summary>
 	public HomogeneousMixture Copy()
 	{
-		var activityModelCopy = activityModel.Copy();
-		return new HomogeneousMixture(speciesList, totalPhase, activityModelCopy, mixtureMoleFraction);
+		return new HomogeneousMixture(speciesList, totalPhase, activityModelFactory, mixtureMoleFraction);
 	}
 
 

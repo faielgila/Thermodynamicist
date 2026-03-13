@@ -187,28 +187,18 @@ public class MultiphaseSystem
 			foreach (var xVtest in compositionsV)
 			{
 				(var xL, _) = SearchForCommonTangets(xVtest);
-				if (double.IsNaN(xL))
-				{
-					continue;
-				} else {
-					xL_fromMin = xL;
-					break;
-				}
+				if (double.IsNaN(xL)) continue;
+				xL_fromMin = xL;
+				break;
 			}
 			MoleFraction xL_fromMax = double.NaN;
 			compositionsV.Reverse();
 			foreach (var xVtest in compositionsV)
 			{
 				(var xL, _) = SearchForCommonTangets(xVtest);
-				if (double.IsNaN(xL))
-				{
-					continue;
-				}
-				else
-				{
-					xL_fromMax = xL;
-					break;
-				}
+				if (double.IsNaN(xL)) continue;
+				xL_fromMax = xL;
+				break;
 			}
 			var compositionsL = new LinearEnumerable(Math.Min(xL_fromMin, xL_fromMax), Math.Max(xL_fromMin, xL_fromMax), searchDensity).ToList();
 			PopulateCurveLibraries(T, P, "liquid", compositionsL);
@@ -323,9 +313,9 @@ public class MultiphaseSystem
 				new(state0.species, x, state0.phase),
 				new(state1.species, 1-x, state1.phase)
 			};
-			var activityModel_local = mixtureList[GetMixutureIdxFromPhase(phase)].activityModel.Copy();
-			activityModel_local.speciesList = speciesList_local;
-			var homomix_local = new HomogeneousMixture(speciesList_local, phase, activityModel_local, null);
+
+			var activityModelFactory_local = mixtureList[GetMixutureIdxFromPhase(phase)].activityModel.Factory();
+			var homomix_local = new HomogeneousMixture(speciesList_local, phase, activityModelFactory_local, null);
 
 			var mu0 = homomix_local.SpeciesChemicalPotential(T, P, state0.species);
 			var mu1 = homomix_local.SpeciesChemicalPotential(T, P, state1.species);

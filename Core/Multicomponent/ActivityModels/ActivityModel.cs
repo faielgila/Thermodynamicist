@@ -24,5 +24,10 @@ public abstract class ActivityModel
 	/// Returns an exact copy of the activity model.
 	/// </summary>
 	public abstract ActivityModel Copy();
+
+	/// <summary>
+	/// Returns the factory which can be used to spin up new instances of the activity model.
+	/// </summary>
+	public abstract IActivityModelFactory Factory();
 }
 

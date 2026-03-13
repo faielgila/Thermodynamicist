@@ -53,8 +53,7 @@ static class TestHomogeneousMixture
 					new(species0, x, "liquid"),
 					new(species1, 1-x, "liquid")
 				};
-				var modelL = new UNIFACActivityModel(mixtureSpecies);
-				var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", modelL, null);
+				var homomix = new HomogeneousMixture(mixtureSpecies, "liquid", new UNIFACActivityModelFactory(), null);
 				var activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T, P).ToString();
 				var activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T, P).ToString();
 				var mu0 = homomix.SpeciesChemicalPotential(T, P, species0).ToString();
@@ -76,8 +75,7 @@ static class TestHomogeneousMixture
 					new(species0, x, "vapor"),
 					new(species1, 1-x, "vapor")
 				};
-				var modelV = new IdealMixture("vapor", mixtureSpecies);
-				homomix = new HomogeneousMixture(mixtureSpecies, "vapor", modelV, null);
+				homomix = new HomogeneousMixture(mixtureSpecies, "vapor", new IdealMixtureModelFactory(), null);
 				activity0 = homomix.activityModel.SpeciesActivityCoefficient(species0, T, P).ToString();
 				activity1 = homomix.activityModel.SpeciesActivityCoefficient(species1, T, P).ToString();
 				mu0 = homomix.SpeciesChemicalPotential(T, P, species0).ToString();

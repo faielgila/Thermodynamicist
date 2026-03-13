@@ -21,6 +21,11 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 		return new IdealMixture(totalPhase, speciesListCopy);
 	}
 
+	public override IActivityModelFactory Factory()
+	{
+		return new IdealMixtureModelFactory();
+	}
+
 	/// <summary>
 	/// Gets the index in speciesList which represents the given chemical.
 	/// </summary>

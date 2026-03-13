@@ -13,6 +13,11 @@ public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityMo
 		return new UNIFACActivityModel(speciesListCopy);
 	}
 
+	public override IActivityModelFactory Factory()
+	{
+		return new UNIFACActivityModelFactory();
+	}
+
 	#region Parameters
 
 	private enum FunctionalSubgroup

@@ -38,21 +38,11 @@ static class TestIrreversibleReactiveMixture
 			new(Chemical.Chlorine, 1, "vapor"),
 			new(Chemical.HydrogenChloride, 0, "vapor")
 		];
-		var mixSpecies = ReactiveMixtureSpecies.ConvertToMixtureSpeciesList(rxnMixtureSpecies);
-		var activityModel = new IdealMixture("vapor", mixSpecies);
 
 		double dt = 0.01;
 		double maxtime = 10;
-		MolarityVector cVec = new()
-		{
-			[Chemical.Oxygen] = 1,
-			[Chemical.Hydrogen] = 2,
-			[Chemical.Water] = 0,
-			[Chemical.Chlorine] = 1,
-			[Chemical.HydrogenChloride] = 0
-		};
-		var sys = new SimpleIrreversibleReactiveMixture(rxnSet, rxnMixtureSpecies, "vapor", activityModel);
-		sys.SetConcentrations(cVec);
+		var sys = new SimpleIrreversibleReactiveMixture(rxnSet, rxnMixtureSpecies, "vapor", new IdealMixtureModelFactory());
+		var cVec = sys.GetConcentrations();
 
 		string filename = "SimpleIrreversibleReactiveMixture.csv";
 		File.Delete(filename);
