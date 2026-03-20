@@ -11,7 +11,7 @@ public class ReactiveMixtureSpecies
 {
 	public Chemical chemical;
 
-	public EquationOfState EoS;
+	public IEquationOfStateFactory EoSFactory;
 
 	public string phase;
 
@@ -24,15 +24,15 @@ public class ReactiveMixtureSpecies
 		phase = _phase;
 
 		// Since no EoS is given, assign default values based on phase.
-		EoS = EquationOfState.GetDefaultEoSFromPhase(_phase).Create(_chemical);
+		EoSFactory = EquationOfState.GetDefaultEoSFromPhase(_phase);
 	}
 
-	public ReactiveMixtureSpecies(Chemical _chemical, EquationOfState _EoS, Molarity _concentration, string _phase)
+	public ReactiveMixtureSpecies(Chemical _chemical, IEquationOfStateFactory _EoSFactory, Molarity _concentration, string _phase)
 	{
 		chemical = _chemical;
 		concentration = _concentration;
 		phase = _phase;
-		EoS = _EoS;
+		EoSFactory = _EoSFactory;
 	}
 
 	/// <summary>

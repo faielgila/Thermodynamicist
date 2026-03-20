@@ -56,7 +56,7 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 
 		foreach (var mixSpecies in speciesList)
 		{
-			var Vi = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
+			var Vi = mixSpecies.EoS().PhaseFinder(T, P, true)[totalPhase];
 			var xi = mixSpecies.speciesMoleFraction;
 
 			// See Perry's handbook, eqn 4-118
@@ -75,10 +75,10 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 		var Cp = new HeatCapacity(0, ThermoVarRelations.RealMolar);
 		foreach (var mixSpecies in speciesList)
 		{
-			var Vi = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
+			var Vi = mixSpecies.EoS().PhaseFinder(T, P, true)[totalPhase];
 
 			var xi = mixSpecies.speciesMoleFraction;
-			var Cpi = mixSpecies.EoS.MolarHeatCapacity(T, P, Vi);
+			var Cpi = mixSpecies.EoS().MolarHeatCapacity(T, P, Vi);
 			Cp += xi * Cpi;
 		}
 		return Cp;
@@ -93,10 +93,10 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 
 		foreach (var mixSpecies in speciesList)
 		{
-			var VMol = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
+			var VMol = mixSpecies.EoS().PhaseFinder(T, P, true)[totalPhase];
 
 			var xi = mixSpecies.speciesMoleFraction;
-			var Hi = mixSpecies.EoS.ReferenceMolarEnthalpy(T, P, VMol);
+			var Hi = mixSpecies.EoS().ReferenceMolarEnthalpy(T, P, VMol);
 
 			// See Perry's handbook, eqn 4-120
 			// or Sandler, eqn 9.3-5c
@@ -115,10 +115,10 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 
 		foreach (var mixSpecies in speciesList)
 		{
-			var VMol = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
+			var VMol = mixSpecies.EoS().PhaseFinder(T, P, true)[totalPhase];
 
 			var xi = mixSpecies.speciesMoleFraction;
-			var Si = mixSpecies.EoS.ReferenceMolarEntropy(T, P, VMol);
+			var Si = mixSpecies.EoS().ReferenceMolarEntropy(T, P, VMol);
 
 			// See Perry's handbook, eqn 4-119
 			// or Sandler, eqn 9.3-5d
@@ -137,10 +137,10 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 
 		foreach (var mixSpecies in speciesList)
 		{
-			var VMol = mixSpecies.EoS.PhaseFinder(T, P, true)[totalPhase];
+			var VMol = mixSpecies.EoS().PhaseFinder(T, P, true)[totalPhase];
 
 			var xi = mixSpecies.speciesMoleFraction;
-			var Gi = mixSpecies.EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
+			var Gi = mixSpecies.EoS().ReferenceMolarGibbsEnergy(T, P, VMol);
 
 			// See Perry's handbook, eqn 4-117
 			// or Sandler, eqn 9.3-5e
@@ -156,7 +156,7 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 	/// </summary>
 	public ChemicalPotential ComponentChemicalPotential(Temperature T, Pressure P, Chemical species)
 	{
-		var EoS = speciesList[GetMixtureSpeciesIdx(species)].EoS;
+		var EoS = speciesList[GetMixtureSpeciesIdx(species)].EoS();
 		var VMol = EoS.PhaseFinder(T, P, true)[totalPhase];
 
 		var Gi = EoS.ReferenceMolarGibbsEnergy(T, P, VMol);
@@ -172,7 +172,7 @@ public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : Ac
 	/// </summary>
 	public double ComponentFugacity(Temperature T, Pressure P, Chemical species)
 	{
-		var EoS = speciesList[GetMixtureSpeciesIdx(species)].EoS;
+		var EoS = speciesList[GetMixtureSpeciesIdx(species)].EoS();
 		var VMol = EoS.PhaseFinder(T, P, true)[totalPhase];
 
 		var fi = EoS.Fugacity(T, P, VMol);

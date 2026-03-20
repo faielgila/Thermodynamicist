@@ -128,7 +128,7 @@ public partial class ControlMixtureSpeciesViewModel : ObservableObject
 	/// <summary>
 	/// Generates a <see cref="MixtureSpecies"/> with the values of this ViewModel.
 	/// </summary>
-	public MixtureSpecies ToModel() => new(Chemical, EoSFactory.Create(Chemical), SpeciesMoleFraction, ModeledPhase);
+	public MixtureSpecies ToModel() => new(Chemical, EoSFactory, SpeciesMoleFraction, ModeledPhase);
 
 	/// <summary>
 	/// Updates <see cref="_EoS"/> and <see cref="ModeledPhases"/> whenever

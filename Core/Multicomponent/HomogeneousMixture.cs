@@ -144,7 +144,7 @@ public class HomogeneousMixture
 			var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(item.chemical)];
 			var x = mixtureSpecies.speciesMoleFraction;
 			var modeledPhase = mixtureSpecies.modeledPhase;
-			var EoS = mixtureSpecies.EoS;
+			var EoS = mixtureSpecies.EoS();
 
 			var phases = EoS.PhaseFinder(T, P, true);
 			double VMol = 0;
@@ -175,7 +175,7 @@ public class HomogeneousMixture
 			var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(item.chemical)];
 			var x = mixtureSpecies.speciesMoleFraction;
 			var modeledPhase = mixtureSpecies.modeledPhase;
-			var EoS = mixtureSpecies.EoS;
+			var EoS = mixtureSpecies.EoS();
 
 			var phases = EoS.PhaseFinder(T, P, true);
 			double VMol = 0;
@@ -222,7 +222,7 @@ public class HomogeneousMixture
 			var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(item.chemical)];
 			var x = mixtureSpecies.speciesMoleFraction;
 			var modeledPhase = mixtureSpecies.modeledPhase;
-			var EoS = mixtureSpecies.EoS;
+			var EoS = mixtureSpecies.EoS();
 
 			var phases = EoS.PhaseFinder(T, P, true);
 			double VMol;
@@ -364,7 +364,7 @@ public class HomogeneousMixture
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
 		var x = mixtureSpecies.speciesMoleFraction;
 		var modeledPhase = mixtureSpecies.modeledPhase;
-		var EoS = mixtureSpecies.EoS;
+		var EoS = mixtureSpecies.EoS();
 
 		var phases = EoS.PhaseFinder(T, P, true);
 		double VMol = 0;
@@ -390,7 +390,7 @@ public class HomogeneousMixture
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
 		var x = mixtureSpecies.speciesMoleFraction;
 		var modeledPhase = mixtureSpecies.modeledPhase;
-		var EoS = mixtureSpecies.EoS;
+		var EoS = mixtureSpecies.EoS();
 
 		var phases = EoS.PhaseFinder(T, P, true);
 		double VMol = 0;
@@ -417,7 +417,7 @@ public class HomogeneousMixture
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
 		var x = mixtureSpecies.speciesMoleFraction;
 		var modeledPhase = mixtureSpecies.modeledPhase;
-		var EoS = mixtureSpecies.EoS;
+		var EoS = mixtureSpecies.EoS();
 
 		var phases = EoS.PhaseFinder(T, P, true);
 		double VMol = 0;
@@ -445,7 +445,7 @@ public class HomogeneousMixture
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
 		var x = mixtureSpecies.speciesMoleFraction;
 		var modeledPhase = mixtureSpecies.modeledPhase;
-		var EoS = mixtureSpecies.EoS;
+		var EoS = mixtureSpecies.EoS();
 
 		var phases = EoS.PhaseFinder(T, P, true);
 		double VMol;
@@ -519,7 +519,7 @@ public class HomogeneousMixture
 	{
 		var mixtureSpecies = speciesList[GetMixtureSpeciesIdx(species)];
 		var modeledPhase = mixtureSpecies.modeledPhase;
-		var EoS = mixtureSpecies.EoS;
+		var EoS = mixtureSpecies.EoS();
 
 		var phases = EoS.PhaseFinder(T, P, true);
 		double VMol = 0;

@@ -77,7 +77,7 @@ public class Reaction
 		{
 			
 			// Calculate formation enthalpy for species.
-			var speciesEnthalpy = speciesItem.EoS.FormationMolarEnthalpy(T, P, speciesItem.phase);
+			var speciesEnthalpy = speciesItem.EoS().FormationMolarEnthalpy(T, P, speciesItem.phase);
 
 			// Add formation enthalpy to list, multiplied by stoichiometric coefficient.
 			// Formation enthalpy is considered negative for reactants, and positive for products.
@@ -111,7 +111,7 @@ public class Reaction
 		{
 
 			// Calculate formation enthalpy for species.
-			var speciesEntropy = speciesItem.EoS.FormationMolarEntropy(T, P, speciesItem.phase);
+			var speciesEntropy = speciesItem.EoS().FormationMolarEntropy(T, P, speciesItem.phase);
 
 			// Add formation enthalpy to list, multiplied by stoichiometric coefficient.
 			// Formation enthalpy is considered negative for reactants, and positive for products.

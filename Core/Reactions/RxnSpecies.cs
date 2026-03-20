@@ -9,15 +9,15 @@ namespace Core.Reactions;
 public class RxnSpecies
 {
 	public Chemical chemical;
-	public EquationOfState EoS;
+	public IEquationOfStateFactory EoSFactory;
 	public int stoich;
 	public string phase;
 	public bool IsReactant;
 
-	public RxnSpecies(Chemical _chemical, EquationOfState _EoS, int _stoich, string _phase, bool _IsReactant)
+	public RxnSpecies(Chemical _chemical, IEquationOfStateFactory _EoSFactory, int _stoich, string _phase, bool _IsReactant)
 	{
 		chemical = _chemical;
-		EoS = _EoS;
+		EoSFactory = _EoSFactory;
 		stoich = _stoich;
 		phase = _phase;
 		IsReactant = _IsReactant;
@@ -31,6 +31,14 @@ public class RxnSpecies
 		IsReactant = _IsReactant;
 
 		// Since no EoS is given, assign default values based on phase.
-		EoS = EquationOfState.GetDefaultEoSFromPhase(_phase).Create(_chemical);
+		EoSFactory = EquationOfState.GetDefaultEoSFromPhase(_phase);
+	}
+
+	/// <summary>
+	/// Creates an instance of the EoS for this species using the stored EoSFactory.
+	/// </summary>
+	public EquationOfState EoS()
+	{
+		return EoSFactory.Create(chemical);
 	}
 }

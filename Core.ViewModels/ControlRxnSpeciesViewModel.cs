@@ -136,7 +136,7 @@ public partial class ControlRxnSpeciesViewModel : ObservableObject
 	/// <summary>
 	/// Generates a <see cref="RxnSpecies"/> with the values of this ViewModel.
 	/// </summary>
-	public RxnSpecies ToModel() => new(Chemical, EoSFactory.Create(Chemical), Stoich, Phase, IsReactant);
+	public RxnSpecies ToModel() => new(Chemical, EoSFactory, Stoich, Phase, IsReactant);
 
 	/// <summary>
 	/// Updates <see cref="_EoS"/> and <see cref="ModeledPhases"/> whenever
