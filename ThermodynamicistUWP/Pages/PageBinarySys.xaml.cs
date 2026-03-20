@@ -193,14 +193,11 @@ namespace ThermodynamicistUWP
 			List<string> outputStrings = new List<string>();
 			try
 			{
-				// Instatiate activity model using the provided ActivityModelFactory.
-				var modelPhase1 = ViewModel.CreateActivityModel(0);
-				var modelPhase2 = ViewModel.CreateActivityModel(1);
 				// Instatiate HomogeneousMixture Core object. This will begin some preliminary calculations.
 				var mixturePhases = new List<HomogeneousMixture>()
 				{
-					new HomogeneousMixture(ViewModel.GetMixtureSpeciesList(0), "vapor", modelPhase1, null),
-					new HomogeneousMixture(ViewModel.GetMixtureSpeciesList(1), "liquid", modelPhase2, null)
+					new HomogeneousMixture(ViewModel.GetMixtureSpeciesList(0), "vapor", ViewModel.ActivityModelFactoryPhase1, null),
+					new HomogeneousMixture(ViewModel.GetMixtureSpeciesList(1), "liquid", ViewModel.ActivityModelFactoryPhase2, null)
 				};
 				
 				// Define temporary composition vector.

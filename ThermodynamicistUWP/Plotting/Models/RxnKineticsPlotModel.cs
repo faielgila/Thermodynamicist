@@ -44,7 +44,7 @@ namespace ThermodynamicistUWP
 		{
 			Model = new PlotModel { Title = "Chemical concentration transience - molarity vs reaction time" };
 			
-			var speciesList = rxn.ConvertSpeciesToChemicalList();
+			var speciesList = rxn.GetChemicalList();
 			var cVec = new MolarityVector();
 			var seriesList = new Dictionary<Chemical, LineSeries>();
 			var rng = new Random();

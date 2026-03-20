@@ -186,10 +186,8 @@ namespace ThermodynamicistUWP
 			{
 				// Get species list from ControlMixtureSpecies.
 				var speciesList = ViewModel.GetMixtureSpeciesList();
-				// Instatiate activity model using the provided ActivityModelFactory.
-				var model = ViewModel.ActivityModelFactory.Create(ViewModel.GetMixtureSpeciesList());
 				// Instatiate HomogeneousMixture Core object. This will begin some preliminary calculations.
-				var mixture = new HomogeneousMixture(speciesList, "liquid", model, null);
+				var mixture = new HomogeneousMixture(speciesList, "liquid", ViewModel.ActivityModelFactory, null);
 
 				
 				// Create empty SpeciesOutputData objects for adding data to later.
@@ -251,7 +249,7 @@ namespace ThermodynamicistUWP
 						case "SpeciesActivityCoefficient":
 							foreach (var species in speciesList)
 							{
-								var xa = mixture.activityModel.SpeciesActivityCoefficient(species.chemical, T).ToEngrNotation(5);
+								var xa = mixture.activityModel.SpeciesActivityCoefficient(species.chemical, T, P).ToEngrNotation(5);
 								speciesOutputDict[species.chemical].AddOutputDatum(item.DisplayFormat(xa));
 							}
 							break;
