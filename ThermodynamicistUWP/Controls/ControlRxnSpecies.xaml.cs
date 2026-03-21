@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI;
-using Core;
-using Core.EquationsOfState;
-using Core.ViewModels;
+using ThermodynamicistCore;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 using Windows.UI;
 using Windows.UI.Xaml;

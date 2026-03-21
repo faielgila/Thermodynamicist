@@ -1,7 +1,7 @@
 ﻿using Spectre.Console;
-using Core;
-using Core.Data;
-using Core.VariableTypes;
+using ThermodynamicistCore;
+using ThermodynamicistCore.Data;
+using ThermodynamicistCore.VariableTypes;
 
 static class TestInterpolableTable
 {

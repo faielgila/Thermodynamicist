@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using ThermodynamicistCore;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.UI.Xaml.Controls;

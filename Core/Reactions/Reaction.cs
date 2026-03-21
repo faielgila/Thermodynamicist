@@ -1,7 +1,6 @@
-﻿using Core.VariableTypes;
-using Core.Reactions.Kinetics;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Reactions;
+namespace ThermodynamicistCore.Reactions;
 
 /// <summary>
 /// Represents a chemical reaction and its related variables.

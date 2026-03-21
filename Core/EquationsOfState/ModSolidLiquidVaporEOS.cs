@@ -1,7 +1,7 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System.Linq;
 
-namespace Core.EquationsOfState;
+namespace ThermodynamicistCore.EquationsOfState;
 
 /// <summary>
 /// Represents the modified solid-liquid-vapor (MSLV) equation of state and related functions as published by

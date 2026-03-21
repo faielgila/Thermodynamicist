@@ -1,7 +1,7 @@
-﻿using Core.EquationsOfState;
-using Core;
+﻿using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore;
 
-namespace Core.Reactions;
+namespace ThermodynamicistCore.Reactions;
 
 /// <summary>
 /// Stores all data that <see cref="Reaction"/> needs for each species in a reaction.

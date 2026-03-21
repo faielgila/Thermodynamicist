@@ -1,7 +1,7 @@
-﻿using Core.EquationsOfState;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Multicomponent;
+namespace ThermodynamicistCore.Multicomponent;
 
 public class MixtureSpecies
 {

@@ -1,7 +1,7 @@
-﻿using Core;
-using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore;
+using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore.VariableTypes;
 using Spectre.Console;
 using System.Threading.Tasks;
 

@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.EquationsOfState;
+namespace ThermodynamicistCore.EquationsOfState;
 
 /// <summary>
 /// Abstract representation of any cubic equation of state.

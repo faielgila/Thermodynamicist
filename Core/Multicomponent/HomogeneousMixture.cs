@@ -1,8 +1,8 @@
-﻿using Core.EquationsOfState;
-using Core.Multicomponent.ActivityModels;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Multicomponent;
+namespace ThermodynamicistCore.Multicomponent;
 
 /// <summary>
 /// Represents a homogeneous mixture (a multicomponent, single-phase system).

@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI;
-using Core;
-using Core.EquationsOfState;
-using Core.ViewModels;
+using ThermodynamicistCore;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -19,7 +19,7 @@ namespace ThermodynamicistUWP
 	public sealed partial class ControlMixtureSpecies : UserControl
 	{
 		/// <summary>
-		/// Stores a ViewModel for this species. Mirrors <see cref="Core.Multicomponent.MixtureSpecies"/>.
+		/// Stores a ViewModel for this species. Mirrors <see cref="ThermodynamicistCore.Multicomponent.MixtureSpecies"/>.
 		/// All inputs in this user control are bound to this field.
 		/// </summary>
 		public ControlMixtureSpeciesViewModel ViewModel

@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.EquationsOfState;
-using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
 using System.Collections.ObjectModel;
 
-namespace Core.ViewModels;
+namespace ThermodynamicistCore.ViewModels;
 
 /// <summary>
 /// ViewModel for ControlRxn (or specifically, PageHomoMix).

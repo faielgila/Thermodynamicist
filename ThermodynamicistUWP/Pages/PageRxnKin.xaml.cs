@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.WinUI;
-using Core;
-using Core.Reactions;
-using Core.Reactions.Kinetics;
-using Core.VariableTypes;
-using Core.ViewModels;
+using ThermodynamicistCore;
+using ThermodynamicistCore.Reactions;
+using ThermodynamicistCore.VariableTypes;
+using ThermodynamicistCore.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -51,7 +50,7 @@ namespace ThermodynamicistUWP
 		}
 
 		/// <summary>
-		/// Checks inputs and packages into Core objects.
+		/// Checks inputs and packages into ThermodynamicistCore objects.
 		/// </summary>
 		private void RunCalc(object sender, RoutedEventArgs e)
 		{

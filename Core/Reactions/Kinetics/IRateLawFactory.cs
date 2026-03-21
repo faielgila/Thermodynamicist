@@ -1,8 +1,8 @@
-﻿using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Reactions.Kinetics;
+namespace ThermodynamicistCore.Reactions;
 
 /// <summary>
 /// Provides an interface for defining RateLawFactories, which removes the need to create

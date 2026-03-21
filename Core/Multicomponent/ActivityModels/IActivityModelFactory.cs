@@ -1,4 +1,4 @@
-﻿namespace Core.Multicomponent.ActivityModels;
+﻿namespace ThermodynamicistCore.Multicomponent.ActivityModels;
 
 /// <summary>
 /// Provides an interface for defining ActivityModelFactories, which removes the need to create

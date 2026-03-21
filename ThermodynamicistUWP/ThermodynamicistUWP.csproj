@@ -309,13 +309,13 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core.ViewModels\Core.ViewModels.csproj">
+    <ProjectReference Include="..\Core.ViewModels\ThermodynamicistCore.ViewModels.csproj">
       <Project>{d3942ab5-5f30-470a-99fa-3a7bacc0348f}</Project>
-      <Name>Core.ViewModels</Name>
+      <Name>ThermodynamicistCore.ViewModels</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Core.csproj">
+    <ProjectReference Include="..\Core\ThermodynamicistCore.csproj">
       <Project>{6a6b19d0-bcf1-430e-bb6a-c8f294cec2b4}</Project>
-      <Name>Core</Name>
+      <Name>ThermodynamicistCore</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

@@ -1,7 +1,7 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System.Linq;
 
-namespace Core.Multicomponent.ActivityModels;
+namespace ThermodynamicistCore.Multicomponent.ActivityModels;
 
 public class UNIFACActivityModel(List<MixtureSpecies> _speciesList) : ActivityModel(_speciesList)
 {

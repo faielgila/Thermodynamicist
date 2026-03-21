@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core.ViewModels;
+namespace ThermodynamicistCore.ViewModels;
 
 /// <summary>
 /// View model for page errors to be displayed in an InfoBar.

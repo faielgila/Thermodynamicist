@@ -1,8 +1,8 @@
-﻿using Core.EquationsOfState;
-using Core.Multicomponent;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Reactions;
+namespace ThermodynamicistCore.Reactions;
 
 /// <summary>
 /// Represents a single chemical species in a reactive mixture.

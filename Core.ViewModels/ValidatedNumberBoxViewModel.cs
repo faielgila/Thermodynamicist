@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Core.ViewModels;
+namespace ThermodynamicistCore.ViewModels;
 
 public partial class ValidatedNumberBoxViewModel : ObservableObject
 {

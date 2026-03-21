@@ -1,9 +1,9 @@
 ﻿using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using Core.EquationsOfState;
+using ThermodynamicistCore.EquationsOfState;
 using ThermodynamicistUWP.Plotting;
-using Core;
+using ThermodynamicistCore;
 using System.Threading.Tasks;
 using ThermodynamicistUWP.Plotting.Factories;
 

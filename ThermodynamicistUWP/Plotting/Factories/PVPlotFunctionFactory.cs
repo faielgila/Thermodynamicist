@@ -1,6 +1,6 @@
-﻿using Core;
-using Core.EquationsOfState;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.VariableTypes;
 using OxyPlot;
 using OxyPlot.Series;
 using System;

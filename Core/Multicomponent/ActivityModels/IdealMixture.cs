@@ -1,7 +1,7 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System;
 
-namespace Core.Multicomponent.ActivityModels;
+namespace ThermodynamicistCore.Multicomponent.ActivityModels;
 
 public class IdealMixture(string _phase, List<MixtureSpecies> _speciesList) : ActivityModel(_speciesList)
 {

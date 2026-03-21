@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Data;
+namespace ThermodynamicistCore.Data;
 class FormationThermodynamics
 {
 	public static readonly Dictionary<Chemical, string> StandardFormationPhase = new()

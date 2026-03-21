@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.WinUI;
-using Core;
-using Core.EquationsOfState;
-using Core.VariableTypes;
-using Core.ViewModels;
+using ThermodynamicistCore;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.VariableTypes;
+using ThermodynamicistCore.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

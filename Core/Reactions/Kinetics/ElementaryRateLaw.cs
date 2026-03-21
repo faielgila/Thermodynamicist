@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Reactions.Kinetics;
+namespace ThermodynamicistCore.Reactions;
 
 public class ElementaryRateLaw(List<RxnSpecies> _speciesList, double _frequencyFactor, GibbsEnergy _activationEnergy)
 	: RateLaw(_speciesList, _frequencyFactor, _activationEnergy)

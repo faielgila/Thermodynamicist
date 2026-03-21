@@ -1,4 +1,4 @@
-﻿using Core.Console;
+﻿using ThermodynamicistCore.Console;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-AnsiConsole.WriteLine("Starting Thermodynamicist.Core testing console...");
+AnsiConsole.WriteLine("Starting Thermodynamicist.ThermodynamicistCore testing console...");
 var dirConsole = Environment.CurrentDirectory;
-dirConsole = "Y:\\Repos\\faielgila\\Thermodynamicist\\Core.Console\\csv\\";
+dirConsole = "Y:\\Repos\\faielgila\\Thermodynamicist\\ThermodynamicistCore.Console\\csv\\";
 AnsiConsole.MarkupLine($"CSV output directory is [blue]{dirConsole}[/]");
 
 AnsiConsole.WriteLine();
-//var font = FigletFont.Load("Y:\\Repos\\faielgila\\Thermodynamicist\\Core.Console\\slant.flf");
+//var font = FigletFont.Load("Y:\\Repos\\faielgila\\Thermodynamicist\\ThermodynamicistCore.Console\\slant.flf");
 //var figlet = new FigletText(font, "Troposoft");
 //figlet.Color(Color.OrangeRed1);
 //AnsiConsole.Write(figlet);
@@ -40,4 +40,4 @@ TestIrreversibleReactiveMixture.Test(dirConsole);
 
 
 
-AnsiConsole.MarkupLine("\n\n[skyblue1]Thermodynamicist.Core test completed.[/]");
+AnsiConsole.MarkupLine("\n\n[skyblue1]Thermodynamicist.ThermodynamicistCore test completed.[/]");

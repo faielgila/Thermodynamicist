@@ -1,8 +1,8 @@
-﻿using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Reactions;
+namespace ThermodynamicistCore.Reactions;
 
 /// <summary>
 /// Represents a homogeneous mixture with multiple reactions throughout the bulk mixture.

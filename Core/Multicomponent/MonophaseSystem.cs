@@ -1,4 +1,4 @@
-﻿namespace Core.Multicomponent;
+﻿namespace ThermodynamicistCore.Multicomponent;
 
 /// <summary>
 /// Represents a closed system with a single phase.

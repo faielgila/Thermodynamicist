@@ -1,8 +1,7 @@
-using Core;
-using Core.EquationsOfState;
-using Core.Reactions;
-using Core.Reactions.Kinetics;
-using Core.VariableTypes;
+using ThermodynamicistCore;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.Reactions;
+using ThermodynamicistCore.VariableTypes;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;

@@ -1,5 +1,5 @@
-﻿using Core.EquationsOfState;
-using Core;
+﻿using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore;
 using OxyPlot.Series;
 using OxyPlot;
 using System.Collections.Generic;

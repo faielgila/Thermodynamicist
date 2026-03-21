@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core;
+namespace ThermodynamicistCore;
 
 public class Constants
 {

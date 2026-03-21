@@ -1,8 +1,8 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System;
 using System.Collections.Concurrent;
 
-namespace Core;
+namespace ThermodynamicistCore;
 
 /// <summary>
 /// Handles a cache of calculated values for a given set of input variables.

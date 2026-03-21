@@ -1,9 +1,9 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core.Multicomponent.ActivityModels;
+namespace ThermodynamicistCore.Multicomponent.ActivityModels;
 
 public abstract class ActivityModel
 {

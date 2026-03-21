@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.Reactions.Kinetics;
+namespace ThermodynamicistCore.Reactions;
 
 /// <summary>
 /// Abstract class which represents a chemical reaction's rate law.

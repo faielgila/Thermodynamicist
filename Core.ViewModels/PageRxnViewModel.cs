@@ -1,11 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.Reactions;
-using Core.Reactions.Kinetics;
-using Core.VariableTypes;
+using ThermodynamicistCore.Reactions;
+using ThermodynamicistCore.VariableTypes;
 using System.Collections.ObjectModel;
 
-namespace Core.ViewModels;
+namespace ThermodynamicistCore.ViewModels;
 
 /// <summary>
 /// ViewModel for ControlRxn (or specifically, PageRxnKin).

@@ -1,9 +1,9 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core.Data;
+namespace ThermodynamicistCore.Data;
 
 /// <summary>
 /// Represents a sorted data table of input type Tx and output type Ty.

@@ -7,8 +7,8 @@
 	xmlns:ctk="using:CommunityToolkit.WinUI"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:core="using:Core"
-	xmlns:eos="using:Core.EquationsOfState"
+	xmlns:core="using:ThermodynamicistCore"
+	xmlns:eos="using:ThermodynamicistCore.EquationsOfState"
 	xmlns:generic="using:System.Collections.Generic"
 	mc:Ignorable="d">
 

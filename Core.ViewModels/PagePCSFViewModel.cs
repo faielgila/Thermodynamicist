@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.EquationsOfState;
-using Core.VariableTypes;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.ViewModels;
+namespace ThermodynamicistCore.ViewModels;
 
 /// <summary>
 /// ViewModel for an EoS (or specifically, PagePCSF).

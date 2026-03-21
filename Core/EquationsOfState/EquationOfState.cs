@@ -1,7 +1,7 @@
-﻿using Core.Data;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.Data;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core.EquationsOfState;
+namespace ThermodynamicistCore.EquationsOfState;
 
 /// <summary>
 /// Abstract class which stores an equation of state and its related functions,

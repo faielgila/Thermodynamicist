@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace Core.VariableTypes;
+namespace ThermodynamicistCore.VariableTypes;
 
 /// <summary>
 /// Represents the phase fraction/composition vector of a system.

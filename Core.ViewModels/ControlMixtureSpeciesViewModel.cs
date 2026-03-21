@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Core.EquationsOfState;
-using Core.Multicomponent;
-using Core.VariableTypes;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.VariableTypes;
 using System.Numerics;
 
-namespace Core.ViewModels;
+namespace ThermodynamicistCore.ViewModels;
 
 /// <summary>
 /// ViewModel for ControlMixtureSpecies.

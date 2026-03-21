@@ -1,8 +1,8 @@
 ﻿using OxyPlot;
 using OxyPlot.Axes;
-using Core;
-using Core.VariableTypes;
-using Core.EquationsOfState;
+using ThermodynamicistCore;
+using ThermodynamicistCore.VariableTypes;
+using ThermodynamicistCore.EquationsOfState;
 using ThermodynamicistUWP.Plotting;
 using System.Threading.Tasks;
 

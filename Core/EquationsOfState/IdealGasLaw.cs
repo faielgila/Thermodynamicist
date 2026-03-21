@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.EquationsOfState;
+namespace ThermodynamicistCore.EquationsOfState;
 
 /// <summary>
 /// Represents the ideal gas law and related functions.

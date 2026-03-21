@@ -1,4 +1,4 @@
-﻿namespace Core;
+﻿namespace ThermodynamicistCore;
 public enum Element
 {
 	Hydrogen,

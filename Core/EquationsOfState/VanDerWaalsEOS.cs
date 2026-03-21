@@ -1,6 +1,6 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 
-namespace Core.EquationsOfState;
+namespace ThermodynamicistCore.EquationsOfState;
 
 /// <summary>
 /// Represents the van der Waals equation of state and related functions.

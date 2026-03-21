@@ -1,8 +1,8 @@
-﻿using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
-using Core;
+﻿using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore;
 using Spectre.Console;
-using Core.VariableTypes;
+using ThermodynamicistCore.VariableTypes;
 
 static class TestHomogeneousMixture
 {

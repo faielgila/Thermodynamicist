@@ -3,10 +3,10 @@
 	using OxyPlot;
 	using OxyPlot.Axes;
 	using OxyPlot.Series;
-	using Core.EquationsOfState;
+	using ThermodynamicistCore.EquationsOfState;
 	using ThermodynamicistUWP.Plotting;
-	using Core;
-	using Core.VariableTypes;
+	using ThermodynamicistCore;
+	using ThermodynamicistCore.VariableTypes;
 
 	public class GenericPlotModel
 	{

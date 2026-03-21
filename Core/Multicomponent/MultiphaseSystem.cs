@@ -1,9 +1,9 @@
-﻿using Core.Data;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.Data;
+using ThermodynamicistCore.VariableTypes;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace Core.Multicomponent;
+namespace ThermodynamicistCore.Multicomponent;
 
 /// <summary>
 /// Represents a closed system with multiple phases present.

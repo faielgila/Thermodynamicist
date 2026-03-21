@@ -1,12 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI;
-using Core;
-using Core.EquationsOfState;
-using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
-using Core.Reactions;
-using Core.VariableTypes;
-using Core.ViewModels;
+using ThermodynamicistCore;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore.Reactions;
+using ThermodynamicistCore.VariableTypes;
+using ThermodynamicistCore.ViewModels;
 using OxyPlot;
 using System;
 using System.Collections.Generic;
@@ -72,7 +72,7 @@ namespace ThermodynamicistUWP
 		}
 
 		/// <summary>
-		/// Checks inputs and packages into Core objects.
+		/// Checks inputs and packages into ThermodynamicistCore objects.
 		/// </summary>
 		private void RunCalc(object sender, RoutedEventArgs e)
 		{
@@ -82,7 +82,7 @@ namespace ThermodynamicistUWP
 				return;
 			}
 
-			/* Normally, the input data would be packaged into a Core object (in this case, MultiphaseSystem)
+			/* Normally, the input data would be packaged into a ThermodynamicistCore object (in this case, MultiphaseSystem)
 			 * before being passed to UpdateData().
 			 * However, calculations for some activity models are done during initialization to prevent
 			 * duplicate calculations. Thus, the UpdateData() method will take care of the packaging and will directly
@@ -193,7 +193,7 @@ namespace ThermodynamicistUWP
 			List<string> outputStrings = new List<string>();
 			try
 			{
-				// Instatiate HomogeneousMixture Core object. This will begin some preliminary calculations.
+				// Instatiate HomogeneousMixture ThermodynamicistCore object. This will begin some preliminary calculations.
 				var mixturePhases = new List<HomogeneousMixture>()
 				{
 					new HomogeneousMixture(ViewModel.GetMixtureSpeciesList(0), "vapor", ViewModel.ActivityModelFactoryPhase1, null),

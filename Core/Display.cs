@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using Core.EquationsOfState;
-using Core.VariableTypes;
+using ThermodynamicistCore.EquationsOfState;
+using ThermodynamicistCore.VariableTypes;
 
-namespace Core;
+namespace ThermodynamicistCore;
 
 public static class Display
 {

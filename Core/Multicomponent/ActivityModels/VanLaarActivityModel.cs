@@ -1,9 +1,9 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core.Multicomponent.ActivityModels;
+namespace ThermodynamicistCore.Multicomponent.ActivityModels;
 class VanLaarActivityModel
 {
 	public static (double a, double b) VanLaarCoefficients(Chemical species1, Chemical species2, Temperature? T = null)

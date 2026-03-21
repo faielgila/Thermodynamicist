@@ -1,11 +1,10 @@
-﻿using Core.Multicomponent;
-using Core.Multicomponent.ActivityModels;
-using Core.Reactions;
-using Core.Reactions.Kinetics;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.Multicomponent;
+using ThermodynamicistCore.Multicomponent.ActivityModels;
+using ThermodynamicistCore.Reactions;
+using ThermodynamicistCore.VariableTypes;
 using Spectre.Console;
 
-namespace Core.Console;
+namespace ThermodynamicistCore.Console;
 
 static class TestIrreversibleReactiveMixture
 {

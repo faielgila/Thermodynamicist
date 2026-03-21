@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 
-namespace Core.ViewModels
+namespace ThermodynamicistCore.ViewModels
 {
 	public class OutputItem
 	{

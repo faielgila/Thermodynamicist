@@ -1,5 +1,5 @@
 ﻿using System;
-using Core;
+using ThermodynamicistCore;
 using Windows.UI.Xaml.Data;
 
 namespace ThermodynamicistUWP.Converters

@@ -1,4 +1,4 @@
-﻿namespace Core.VariableTypes;
+﻿namespace ThermodynamicistCore.VariableTypes;
 
 /// <summary>
 /// Represents the species molarity vector of a system.

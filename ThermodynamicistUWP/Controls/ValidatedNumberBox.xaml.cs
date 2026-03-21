@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.WinUI;
-using Core.ViewModels;
+using ThermodynamicistCore.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;

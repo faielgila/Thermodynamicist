@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace Core.VariableTypes;
+namespace ThermodynamicistCore.VariableTypes;
 
 /// <summary>
 /// Represents a vector indexed by a chemical/species of any ThermoVariable.

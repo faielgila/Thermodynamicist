@@ -1,9 +1,8 @@
-﻿using Core.Reactions;
-using Core.Reactions.Kinetics;
-using Core.VariableTypes;
+﻿using ThermodynamicistCore.Reactions;
+using ThermodynamicistCore.VariableTypes;
 using Spectre.Console;
 
-namespace Core.Console;
+namespace ThermodynamicistCore.Console;
 
 static class TestElementaryRateLaw
 {

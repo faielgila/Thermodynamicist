@@ -6,7 +6,7 @@
 	xmlns:ctrl="using:CommunityToolkit.WinUI.Controls"
 	xmlns:animate="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
 	xmlns:local="using:ThermodynamicistUWP"
-	xmlns:vm="using:Core.ViewModels"
+	xmlns:vm="using:ThermodynamicistCore.ViewModels"
 	xmlns:converters="using:ThermodynamicistUWP.Converters">
 
 	<Application.Resources>

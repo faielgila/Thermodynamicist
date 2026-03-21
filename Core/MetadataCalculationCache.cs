@@ -1,9 +1,9 @@
-﻿using Core.VariableTypes;
+﻿using ThermodynamicistCore.VariableTypes;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core;
+namespace ThermodynamicistCore;
 
 public class MetadataCalculationCache : CalculationCache
 {

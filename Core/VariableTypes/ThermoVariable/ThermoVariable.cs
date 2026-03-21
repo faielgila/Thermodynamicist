@@ -1,4 +1,4 @@
-﻿namespace Core.VariableTypes
+﻿namespace ThermodynamicistCore.VariableTypes
 {
 	public abstract class ThermoVariable : IComparable<ThermoVariable>
 	{

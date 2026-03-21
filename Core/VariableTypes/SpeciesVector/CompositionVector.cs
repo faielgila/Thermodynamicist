@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace Core.VariableTypes;
+namespace ThermodynamicistCore.VariableTypes;
 
 /// <summary>
 /// Represents the species composition vector of a phase in the system.
